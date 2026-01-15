@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RelanceWork</title>
+  <style>
+    body {
+      width: 300px;
+      padding: 15px;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+    }
+
+    h1 {
+      font-size: 18px;
+      margin: 0 0 10px 0;
+      color: #333;
+    }
+
+    .status {
+      padding: 10px;
+      background-color: #e8f5e9;
+      border-left: 4px solid #4caf50;
+      border-radius: 4px;
+      margin-bottom: 15px;
+    }
+
+    .status.inactive {
+      background-color: #fff3e0;
+      border-left-color: #ff9800;
+    }
+
+    .info {
+      font-size: 13px;
+      color: #666;
+      line-height: 1.5;
+      margin-bottom: 10px;
+    }
+
+    .format {
+      background-color: #f5f5f5;
+      padding: 8px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 12px;
+      margin: 10px 0;
+    }
+
+    .example {
+      color: #4caf50;
+      font-weight: bold;
+    }
+
+    .link {
+      color: #1976d2;
+      text-decoration: none;
+      font-size: 13px;
+    }
+
+    .link:hover {
+      text-decoration: underline;
+    }
+
+    .footer {
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 1px solid #eee;
+      font-size: 12px;
+      color: #999;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <h1>📋 RelanceWork</h1>
+
+  <div class="status" id="status">
+    <strong>✅ Extension active</strong>
+    <p style="margin: 5px 0 0 0; font-size: 12px;">Vos emails de candidature sont surveillés</p>
+  </div>
+
+  <div class="info">
+    <strong>Format d'objet requis :</strong>
+  </div>
+
+  <div class="format">
+    <div class="example">[CANDIDATURE] Entreprise - Poste</div>
+    <div style="margin-top: 5px;">ou</div>
+    <div class="example">[RELANCE] Entreprise - Poste</div>
+  </div>
+
+  <div class="info">
+    <strong>Exemples :</strong><br>
+    • [CANDIDATURE] Google - Développeur Backend<br>
+    • [RELANCE] Microsoft - DevOps Engineer
+  </div>
+
+  <div class="info" style="margin-top: 15px;">
+    <strong>Comment ça marche ?</strong><br>
+    1. Composez votre email de candidature<br>
+    2. Utilisez le format ci-dessus dans l'objet<br>
+    3. Envoyez l'email<br>
+    4. La candidature est ajoutée automatiquement !
+  </div>
+
+  <div style="text-align: center; margin-top: 15px;">
+    <a href="http://localhost:3000" target="_blank" class="link">
+      🔗 Ouvrir RelanceWork
+    </a>
+  </div>
+
+  <div class="footer">
+    RelanceWork Auto Tracker v1.0
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
