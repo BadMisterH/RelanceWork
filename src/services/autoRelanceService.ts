@@ -1,5 +1,5 @@
 import db from "../config/database";
-import { sendRelanceReminder } from "./emailServices.js";
+import { sendRelanceReminder } from "./emailServices";
 
 // Nombre de jours avant de marquer comme "à relancer"
 const DAYS_BEFORE_RELANCE = 3;
@@ -36,7 +36,7 @@ function daysBetween(date1: Date, date2: Date): number {
  * Vérifie et met à jour automatiquement les candidatures
  * qui ont dépassé le délai de relance
  */
-export function checkAndUpdateRelances(): number {
+export async function checkAndUpdateRelances(): Promise<number> {
   try {
     const today = new Date();
     today.setHours(0, 0, 0, 0); // Normaliser à minuit
@@ -46,7 +46,7 @@ export function checkAndUpdateRelances(): number {
       .prepare("SELECT id, date, company, poste FROM applications WHERE relanced = 0")
       .all() as Array<{ id: number; date: string; company: string; poste: string }>;
 
-    let updatedCount = 0;
+    const applicationsToRelance: Array<{ company: string; poste: string; date: string }> = [];
 
     for (const app of applications) {
       const applicationDate = parseDate(app.date);
@@ -61,18 +61,24 @@ export function checkAndUpdateRelances(): number {
       if (daysPassed >= DAYS_BEFORE_RELANCE) {
         // Marquer comme à relancer
         db.prepare("UPDATE applications SET relanced = 1 WHERE id = ?").run(app.id);
-        updatedCount++;
+        applicationsToRelance.push({
+          company: app.company,
+          poste: app.poste,
+          date: app.date,
+        });
         console.log(
           `📧 Auto-relance: ${app.company} - ${app.poste} (${daysPassed} jours écoulés)`
         );
       }
     }
 
-    if (updatedCount > 0) {
-      console.log(`✅ ${updatedCount} candidature(s) marquée(s) à relancer`);
+    // Envoyer un email si des candidatures ont été marquées
+    if (applicationsToRelance.length > 0) {
+      console.log(`✅ ${applicationsToRelance.length} candidature(s) marquée(s) à relancer`);
+      await sendRelanceReminder(applicationsToRelance);
     }
 
-    return updatedCount;
+    return applicationsToRelance.length;
   } catch (error) {
     console.error("❌ Erreur lors de la vérification auto-relance:", error);
     return 0;
@@ -83,15 +89,15 @@ export function checkAndUpdateRelances(): number {
  * Démarre le service de vérification automatique
  */
 export function startAutoRelanceService(): void {
-  // console.log("🔄 Service auto-relance démarré (vérification toutes les heures)");
-  // console.log(`⏰ Délai de relance configuré: ${DAYS_BEFORE_RELANCE} jours`);
+  console.log("🔄 Service auto-relance démarré (vérification toutes les heures)");
+  console.log(`⏰ Délai de relance configuré: ${DAYS_BEFORE_RELANCE} jours`);
 
   // Vérification immédiate au démarrage
-  checkAndUpdateRelances();
+  checkAndUpdateRelances().catch(console.error);
 
   // Puis vérification périodique
   setInterval(() => {
-    // console.log("🔄 Vérification automatique des relances...");
-    checkAndUpdateRelances();
+    console.log("🔄 Vérification automatique des relances...");
+    checkAndUpdateRelances().catch(console.error);
   }, CHECK_INTERVAL);
 }

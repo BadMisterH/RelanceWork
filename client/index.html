@@ -11,6 +11,78 @@
         <h1>RelanceWork</h1>
         <p>Gérez vos candidatures professionnelles</p>
       </header>
+
+      <main>
+        <!-- Statistiques -->
+        <section class="stats-section">
+          <div class="stat-card" id="stat-total">
+            <span class="stat-number">0</span>
+            <span class="stat-label">Total</span>
+          </div>
+          <div class="stat-card stat-pending" id="stat-pending">
+            <span class="stat-number">0</span>
+            <span class="stat-label">En attente</span>
+          </div>
+          <div class="stat-card stat-relance" id="stat-relance">
+            <span class="stat-number">0</span>
+            <span class="stat-label">À relancer</span>
+          </div>
+          <div class="stat-card stat-nomail" id="stat-nomail">
+            <span class="stat-number">0</span>
+            <span class="stat-label">Sans email</span>
+          </div>
+        </section>
+
+        <!-- Filtres et recherche -->
+        <section class="filters-section">
+          <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Rechercher une entreprise ou un poste..." />
+          </div>
+          <div class="filter-buttons">
+            <button class="filter-btn active" data-filter="all">Toutes</button>
+            <button class="filter-btn" data-filter="pending">En attente</button>
+            <button class="filter-btn" data-filter="relance">À relancer</button>
+          </div>
+        </section>
+
+        <!-- Formulaire d'ajout -->
+        <section class="form-section">
+          <button class="btn-toggle-form" id="toggleFormBtn">+ Ajouter une candidature</button>
+          <form id="addApplicationForm" class="add-form hidden">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="company">Entreprise *</label>
+                <input type="text" id="company" name="company" required />
+              </div>
+              <div class="form-group">
+                <label for="poste">Poste *</label>
+                <input type="text" id="poste" name="poste" required />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" placeholder="recruteur@entreprise.com" />
+              </div>
+              <div class="form-group">
+                <label for="status">Statut *</label>
+                <select id="status" name="status" required>
+                  <option value="En attente">En attente</option>
+                  <option value="Entretien prévu">Entretien prévu</option>
+                  <option value="Relancé">Relancé</option>
+                  <option value="Refusé">Refusé</option>
+                  <option value="Accepté">Accepté</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn-submit">Ajouter</button>
+              <button type="button" class="btn-cancel" id="cancelFormBtn">Annuler</button>
+            </div>
+          </form>
+        </section>
+
+        <!-- Liste des candidatures -->
         <section class="list-section">
           <h2 class="Title-h2">Mes candidatures</h2>
           <div id="applicationsList">

@@ -1,3 +1,4 @@
+import "dotenv/config";
 import app from "./app";
 import db from "./config/database";
 import { startAutoRelanceService } from "./services/autoRelanceService";
