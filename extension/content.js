@@ -5,30 +5,67 @@ const API_URL = 'http://localhost:3000/api';
 
 // Parser l'objet de l'email pour extraire les informations
 function parseEmailSubject(subject) {
-  // Format attendu: [CANDIDATURE] Entreprise - Poste
-  // ou: [RELANCE] Entreprise - Poste
-  const regex = /\[(CANDIDATURE|RELANCE)\]\s*(.+?)\s*-\s*(.+)/i;
-  const match = subject.match(regex);
+  // Formats acceptés (du plus spécifique au plus général):
+  // NOTE: Supporte les tirets normaux (-), les tirets longs (–), les deux-points (:)
 
-  if (!match) {
-    return null;
+  // Format 1: "Candidature - Poste - Entreprise" ou "Candidature : Poste - Entreprise"
+  // Supporte aussi les tirets longs (–) utilisés par Gmail
+  const format1 = /^candidature\s*[-–:]\s*(.+?)\s*[-–:]\s*(.+)$/i;
+  let match = subject.match(format1);
+  if (match) {
+    return {
+      poste: match[1].trim(),
+      company: match[2].trim(),
+      status: 'Candidature envoyée',
+      isRelance: false
+    };
   }
 
-  const type = match[1].toUpperCase();
-  const company = match[2].trim();
-  const poste = match[3].trim();
+  // Format 2: "Candidature au poste de [Poste] - [Entreprise]"
+  const format2 = /candidature\s*(?:au\s*)?(?:poste\s*)?(?:de\s*)?(.+?)\s*[-–]\s*(.+)/i;
+  match = subject.match(format2);
+  if (match) {
+    return {
+      poste: match[1].trim(),
+      company: match[2].trim(),
+      status: 'Candidature envoyée',
+      isRelance: false
+    };
+  }
 
-  return {
-    company,
-    poste,
-    status: type === 'RELANCE' ? 'Relance envoyée' : 'Candidature envoyée',
-    isRelance: type === 'RELANCE'
-  };
+  // Format 3: "Suite à ma candidature - [Poste]" (pour les relances)
+  const format3 = /suite\s*(?:à|a)\s*ma\s*candidature\s*[-–:]\s*(.+)/i;
+  match = subject.match(format3);
+  if (match) {
+    return {
+      poste: match[1].trim(),
+      company: '', // On n'a pas l'entreprise dans ce format
+      status: 'Relance envoyée',
+      isRelance: true
+    };
+  }
+
+  // Format 4: Ancien format "[CANDIDATURE] Entreprise - Poste" (rétrocompatibilité)
+  const format4 = /\[(CANDIDATURE|RELANCE)\]\s*(.+?)\s*[-–]\s*(.+)/i;
+  match = subject.match(format4);
+  if (match) {
+    const type = match[1].toUpperCase();
+    return {
+      company: match[2].trim(),
+      poste: match[3].trim(),
+      status: type === 'RELANCE' ? 'Relance envoyée' : 'Candidature envoyée',
+      isRelance: type === 'RELANCE'
+    };
+  }
+
+  return null;
 }
 
 // Envoyer les données à l'API RelanceWork
 async function sendToAPI(data) {
   try {
+    console.log('📤 Envoi vers API:', JSON.stringify(data, null, 2));
+
     const response = await fetch(`${API_URL}/application`, {
       method: 'POST',
       headers: {
@@ -38,7 +75,9 @@ async function sendToAPI(data) {
     });
 
     if (!response.ok) {
-      throw new Error(`Erreur HTTP: ${response.status}`);
+      const errorText = await response.text();
+      console.error(`❌ Erreur HTTP ${response.status}:`, errorText);
+      throw new Error(`Erreur HTTP: ${response.status} - ${errorText}`);
     }
 
     const result = await response.json();
@@ -82,52 +121,138 @@ function showNotification(message, type = 'success') {
 let lastSubjectBeforeSend = null;
 let lastRecipientEmail = null;
 
-// Extraire l'email du destinataire UNIQUEMENT depuis la fenêtre de composition ACTIVE
-function getRecipientEmail() {
-  // Trouver le champ objet actuellement actif/visible
-  const subjectField = document.querySelector('input[name="subjectbox"]');
-  if (!subjectField) {
-    return null;
+// Récupérer l'email de l'expéditeur (ton email) pour l'exclure
+function getMyEmail() {
+  // Gmail affiche ton email dans plusieurs endroits, on le récupère pour l'exclure
+  // Chercher dans le header de compte Google
+  const accountEmail = document.querySelector('[data-email][aria-label*="Compte Google"]');
+  if (accountEmail) {
+    return accountEmail.getAttribute('data-email');
   }
 
-  // Chercher le textarea "À" (destinataires) qui est AVANT le champ objet dans le DOM
-  // On remonte dans le DOM puis on cherche uniquement dans la zone "to"
-  const form = subjectField.closest('form');
-  if (!form) {
-    return null;
-  }
-
-  // Méthode 1: Chercher le div avec name="to" (zone des destinataires)
-  const toField = form.querySelector('[name="to"]');
-  if (toField) {
-    // Chercher span[email] uniquement dans cette zone
-    const emailSpan = toField.querySelector('span[email]');
+  // Chercher dans le champ "De" (From) de la composition
+  const fromField = document.querySelector('[aria-label*="De"], [aria-label*="From"]');
+  if (fromField) {
+    const emailSpan = fromField.querySelector('[email]');
     if (emailSpan) {
-      const email = emailSpan.getAttribute('email');
-      console.log('✅ Email trouvé dans zone TO:', email);
-      return email;
+      return emailSpan.getAttribute('email');
     }
+  }
 
-    // Si pas trouvé, chercher data-hovercard-id
-    const hovercardElement = toField.querySelector('[data-hovercard-id*="@"]');
-    if (hovercardElement) {
-      const email = hovercardElement.getAttribute('data-hovercard-id');
-      console.log('✅ Email trouvé via hovercard:', email);
-      return email;
-    }
+  // Chercher l'email dans le profil utilisateur Gmail
+  const profileEmail = document.querySelector('[data-hovercard-id][href*="SignOutOptions"]');
+  if (profileEmail) {
+    return profileEmail.getAttribute('data-hovercard-id');
+  }
 
-    // Dernière chance: chercher un email dans le texte
-    const spans = toField.querySelectorAll('span');
-    for (const span of spans) {
-      const text = span.textContent || '';
-      const match = text.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/);
-      if (match) {
-        console.log('✅ Email trouvé dans texte:', match[1]);
-        return match[1];
+  return null;
+}
+
+// Extraire l'email du destinataire depuis la fenêtre de composition ACTIVE
+function getRecipientEmail() {
+  console.log('🔍 Recherche de l\'email du destinataire...');
+
+  // D'abord, récupérer mon propre email pour l'exclure
+  const myEmail = getMyEmail();
+  console.log('👤 Mon email (à exclure):', myEmail);
+
+  // Méthode 1: Chercher l'input textarea/div où on tape le destinataire
+  // Gmail utilise un div avec role="combobox" ou un input pour le champ "À"
+  const toInputs = document.querySelectorAll(
+    'input[name="to"], ' +
+    '[gh="tl"] input, ' +  // Gmail compose "to" field
+    '[aria-label="À"] input, ' +
+    '[aria-label="To"] input, ' +
+    'div[aria-label*="À"][role="combobox"], ' +
+    'div[aria-label*="To"][role="combobox"]'
+  );
+
+  for (const input of toInputs) {
+    if (input.value && input.value.includes('@')) {
+      const email = input.value.trim();
+      if (email !== myEmail) {
+        console.log('✅ Email destinataire trouvé via input "to":', email);
+        return email;
       }
     }
   }
 
+  // Méthode 2: Chercher dans les "chips" de destinataires (les bulles avec les noms)
+  // Ces chips sont dans un conteneur spécifique avec la classe qui contient le champ À
+  const composeBoxes = document.querySelectorAll('.aoD, .aDh, [role="dialog"]');
+
+  for (const box of composeBoxes) {
+    // Vérifier que c'est une fenêtre de composition visible
+    if (!box.offsetParent) continue;
+
+    // Chercher la zone "À" spécifiquement (première ligne du formulaire)
+    const toRow = box.querySelector('.aB, .aoD, [name="to"]')?.closest('tr, div');
+
+    if (toRow) {
+      // Chercher les spans avec attribut email DANS cette zone
+      const emailSpans = toRow.querySelectorAll('span[email], div[data-hovercard-id]');
+
+      for (const span of emailSpans) {
+        const email = span.getAttribute('email') || span.getAttribute('data-hovercard-id');
+        if (email && email.includes('@') && email !== myEmail) {
+          console.log('✅ Email destinataire trouvé dans zone À:', email);
+          return email;
+        }
+      }
+    }
+  }
+
+  // Méthode 3: Chercher tous les spans avec email et filtrer
+  // En excluant: mon email, les emails dans la zone "De", les emails hors composition
+  const allEmailSpans = document.querySelectorAll('span[email]');
+
+  for (const span of allEmailSpans) {
+    const email = span.getAttribute('email');
+
+    // Ignorer mon propre email
+    if (email === myEmail) continue;
+
+    // Vérifier que c'est dans une fenêtre de composition
+    const isInCompose = span.closest('[role="dialog"], .nH.Hd, .AD, .aoP');
+    if (!isInCompose) continue;
+
+    // Vérifier que ce n'est PAS dans le champ "De" (From)
+    const isInFromField = span.closest('[aria-label*="De"], [aria-label*="From"], .aFm');
+    if (isInFromField) continue;
+
+    // Vérifier que c'est visible
+    if (!span.offsetParent) continue;
+
+    if (email && email.includes('@')) {
+      console.log('✅ Email destinataire trouvé (filtré):', email);
+      return email;
+    }
+  }
+
+  // Méthode 4: Chercher via data-hovercard-id (autre attribut Gmail)
+  const hovercardElements = document.querySelectorAll('[data-hovercard-id]');
+
+  for (const el of hovercardElements) {
+    const email = el.getAttribute('data-hovercard-id');
+
+    if (!email || !email.includes('@')) continue;
+    if (email === myEmail) continue;
+
+    // Vérifier que c'est dans une zone de composition
+    const isInCompose = el.closest('[role="dialog"], .aoP, .nH.Hd');
+    if (!isInCompose) continue;
+
+    // Exclure la zone "De"
+    const isInFromField = el.closest('[aria-label*="De"], [aria-label*="From"]');
+    if (isInFromField) continue;
+
+    if (el.offsetParent) {
+      console.log('✅ Email destinataire trouvé via hovercard:', email);
+      return email;
+    }
+  }
+
+  console.log('⚠️ Aucun email destinataire détecté');
   return null;
 }
 
@@ -135,24 +260,35 @@ function getRecipientEmail() {
 function watchSubjectField() {
   console.log('🔍 Démarrage de la surveillance du champ objet et destinataire...');
 
-  let lastSubject = null;
-  let lastEmail = null;
-
   const checkFields = () => {
-    // Capturer l'objet
+    // Capturer l'objet - chercher TOUS les champs possibles
+    let currentSubject = null;
+    
     const subjectField = document.querySelector('input[name="subjectbox"]');
-    if (subjectField && subjectField.value) {
-      if (lastSubjectBeforeSend !== subjectField.value) {
-        lastSubjectBeforeSend = subjectField.value;
-        console.log('📌 Objet capturé:', lastSubjectBeforeSend);
+    if (subjectField && subjectField.value && subjectField.offsetParent !== null) {
+      currentSubject = subjectField.value;
+    }
+
+    // Chercher aussi dans les inputs avec aria-label contenant "objet" ou "subject"
+    if (!currentSubject) {
+      const inputs = document.querySelectorAll('input[aria-label*="Objet"], input[aria-label*="Subject"]');
+      for (const input of inputs) {
+        if (input.value && input.offsetParent !== null) {
+          currentSubject = input.value;
+          break;
+        }
       }
     }
 
-    // Capturer l'email du destinataire (sans spam de console.log)
+    if (currentSubject && currentSubject !== lastSubjectBeforeSend) {
+      lastSubjectBeforeSend = currentSubject;
+      console.log('📌 Objet capturé:', lastSubjectBeforeSend);
+    }
+
+    // Capturer l'email du destinataire
     const recipientEmail = getRecipientEmail();
-    if (recipientEmail && recipientEmail !== lastEmail) {
+    if (recipientEmail && recipientEmail !== lastRecipientEmail) {
       lastRecipientEmail = recipientEmail;
-      lastEmail = recipientEmail;
       console.log('📧 Email destinataire capturé:', lastRecipientEmail);
     }
   };

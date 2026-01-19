@@ -14,7 +14,17 @@ export const getAllApplications = (_req: Request, res: Response) => {
 // POST /application - Créer une nouvelle application
 export const createApplication = (req: Request, res: Response) => {
   try {
-    const { company, poste, status, email } = req.body;
+    console.log('📥 Requête POST reçue:', JSON.stringify(req.body, null, 2));
+    
+    const { company, poste, status, email, isRelance } = req.body;
+
+    // Vérifier que les champs obligatoires sont présents
+    if (!company || !poste || !status) {
+      console.warn('⚠️ Champs manquants:', { company, poste, status });
+      return res.status(400).json({ 
+        message: "Missing required fields: company, poste, status" 
+      });
+    }
 
     // Générer automatiquement la date au format JJ/MM/AAAA
     const today = new Date();
@@ -23,22 +33,42 @@ export const createApplication = (req: Request, res: Response) => {
     const year = today.getFullYear();
     const date = `${day}/${month}/${year}`;
 
+    console.log('📝 Données à insérer:', { company, poste, status, date, email, isRelance });
+
+    // Vérifier la structure de la table
+    try {
+      const tableInfo = db.prepare("PRAGMA table_info(applications)").all();
+      console.log('📊 Structure de la table:', tableInfo);
+    } catch (e) {
+      console.error('❌ Erreur lecture table_info:', e);
+    }
+
     const stmt = db.prepare(
       `INSERT INTO applications (company, poste, status, date, relanced, email)
        VALUES (?, ?, ?, ?, ?, ?)`
     );
 
-    const result = stmt.run(company, poste, status, date, 0, email || null); // 0 = false par défaut, email optionnel
+    // Convertir isRelance en booléen (0 ou 1)
+    const relancedValue = isRelance ? 1 : 0;
+    const result = stmt.run(company, poste, status, date, relancedValue, email || null);
+
+    console.log('✅ Insert résultat - lastInsertRowid:', result.lastInsertRowid, '- changes:', result.changes);
 
     // Récupérer l'application créée
     const newApplication = db.prepare("SELECT * FROM applications WHERE id = ?").get(result.lastInsertRowid);
+
+    console.log(`✅ Application créée et récupérée:`, newApplication);
 
     res.status(201).json({
       message: "Application created",
       data: newApplication,
     });
   } catch (error) {
-    res.status(500).json({ message: "Database error" });
+    console.error("❌ Erreur création application:", error);
+    res.status(500).json({ 
+      message: "Database error",
+      error: error instanceof Error ? error.message : "Unknown error"
+    });
   }
 };
 

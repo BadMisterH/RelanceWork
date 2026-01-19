@@ -34,16 +34,18 @@ export class UI {
   // Générer le lien mailto pour la relance
   private generateMailtoLink(element: Application): string {
     const subject = encodeURIComponent(
-      `[RELANCE] ${element.company} - ${element.poste}`
+      `Suite à ma candidature - ${element.poste}`
     );
     const body = encodeURIComponent(
       `Bonjour,
 
-Je me permets de revenir vers vous concernant ma candidature pour le poste de ${element.poste} envoyée le ${element.date}.
+Je me permets de revenir vers vous concernant ma candidature pour le poste de ${element.poste} au sein de ${element.company}, envoyée le ${element.date}.
 
-Je reste très motivé par cette opportunité et serais ravi d'échanger avec vous sur ma candidature.
+Toujours très intéressé par cette opportunité, je souhaitais savoir si vous aviez eu l'occasion d'examiner mon dossier.
 
-Je me tiens à votre disposition pour un entretien à votre convenance.
+Je reste à votre entière disposition pour un entretien à votre convenance.
+
+Dans l'attente de votre retour, je vous prie d'agréer mes salutations distinguées.
 
 Cordialement`
     );
@@ -103,12 +105,18 @@ Cordialement`
   private attachDeleteEvents() {
     const buttons = document.querySelectorAll(".btn-delete");
 
-    buttons.forEach((buttons) => {
-      buttons.addEventListener("click", async (e) => {
+    buttons.forEach((button) => {
+      button.addEventListener("click", async (e) => {
         const target = e.target as HTMLButtonElement;
         const id = target.getAttribute("data-id");
+        const card = target.closest(".box-candidature");
+        const companyName = card?.querySelector("h2")?.textContent || "cette candidature";
 
         if (id) {
+          const confirmed = confirm(`Êtes-vous sûr de vouloir supprimer la candidature chez ${companyName} ?`);
+
+          if (!confirmed) return;
+
           const result = await fetch(
             `http://localhost:3000/api/applications/${id}`,
             {
@@ -116,7 +124,6 @@ Cordialement`
             }
           );
           if (result.ok) {
-            const card = target.closest(".box-candidature");
             card?.remove();
           }
         }

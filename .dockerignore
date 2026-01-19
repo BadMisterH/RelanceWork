@@ -1,0 +1,24 @@
+# Dépendances (seront réinstallées dans le conteneur)
+node_modules
+
+# Fichiers compilés (seront recompilés dans le conteneur)
+dist
+
+# Git
+.git
+.gitignore
+
+# IDE
+.idea
+.vscode
+
+# Logs
+*.log
+npm-debug.log*
+
+# Fichiers système Mac
+.DS_Store
+
+# Variables d'environnement locales
+.env.local
+.env.development
