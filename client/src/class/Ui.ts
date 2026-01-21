@@ -131,13 +131,16 @@ Cordialement`
                 status: "",
                 date: date || "",
                 relanced: 1,
+                relance_count: 0,
                 email: email,
               });
               relanceActions.innerHTML = `
-                <a href="${mailtoLink}" class="btn-relance">
+                <a href="${mailtoLink}" class="btn-relance" data-id="${id}">
                   Envoyer la relance
                 </a>
               `;
+              // Réattacher l'événement au nouveau bouton
+              this.attachSendRelanceEventToButton(relanceActions.querySelector(".btn-relance") as HTMLAnchorElement);
               relanceActions.style.display = "block";
               boxCandidature?.classList.add("needs-relance");
             } else {
@@ -176,6 +179,37 @@ Cordialement`
     } catch (error) {
       console.error("Erreur lors de la mise à jour du statut:", error);
       alert("Erreur lors de la mise à jour du statut de relance");
+    }
+  }
+
+  // Méthode pour enregistrer l'envoi d'une relance (incrémente le compteur)
+  private async recordRelanceSent(id: number): Promise<number | null> {
+    try {
+      const API_URL = "http://localhost:3000/api";
+      const response = await fetch(`${API_URL}/applications/${id}/send-relance`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Erreur lors de l'enregistrement de la relance");
+      }
+
+      const data = await response.json();
+      console.log("Relance enregistrée:", data);
+
+      // Mettre à jour le compteur dans allApplications
+      const app = this.allApplications.find(a => a.id === id);
+      if (app) {
+        app.relance_count = data.relance_count;
+      }
+
+      return data.relance_count;
+    } catch (error) {
+      console.error("Erreur lors de l'enregistrement de la relance:", error);
+      return null;
     }
   }
 
@@ -375,10 +409,11 @@ Cordialement`
           </li>
         </ul>
         <div class="relance-actions" id="relance-actions-${element.id}" style="display: ${showRelanceButton ? "block" : "none"};">
-          <a href="${this.generateMailtoLink(element)}" class="btn-relance">
+          <a href="${this.generateMailtoLink(element)}" class="btn-relance" data-id="${element.id}">
             Envoyer la relance
           </a>
         </div>
+        ${(element.relance_count ?? 0) > 0 ? `<span class="badge-relance-count">Relancé ${element.relance_count} fois</span>` : ""}
         ${!hasEmail && isChecked ? '<span class="badge-no-email">Email manquant</span>' : ""}
         <button class="btn-delete" data-id="${element.id}">Supprimer</button>
         </div>
@@ -388,6 +423,51 @@ Cordialement`
 
     this.attachRelanceEvents();
     this.attachDeleteEvents();
+    this.attachSendRelanceEvents();
+  }
+
+  // Méthode pour attacher l'événement à un seul bouton de relance
+  private attachSendRelanceEventToButton(button: HTMLAnchorElement | null) {
+    if (!button) return;
+
+    button.addEventListener("click", async (e) => {
+      const target = e.currentTarget as HTMLAnchorElement;
+      const id = target.getAttribute("data-id");
+
+      if (id) {
+        // Enregistrer l'envoi de la relance
+        const newCount = await this.recordRelanceSent(parseInt(id));
+
+        if (newCount !== null) {
+          // Mettre à jour l'affichage du badge
+          const card = target.closest(".box-candidature");
+          if (card) {
+            // Supprimer l'ancien badge s'il existe
+            const oldBadge = card.querySelector(".badge-relance-count");
+            if (oldBadge) {
+              oldBadge.textContent = `Relancé ${newCount} fois`;
+            } else {
+              // Créer un nouveau badge
+              const badge = document.createElement("span");
+              badge.className = "badge-relance-count";
+              badge.textContent = `Relancé ${newCount} fois`;
+              const deleteBtn = card.querySelector(".btn-delete");
+              if (deleteBtn) {
+                card.insertBefore(badge, deleteBtn);
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // Méthode pour gérer les clics sur "Envoyer la relance"
+  private attachSendRelanceEvents() {
+    const buttons = document.querySelectorAll(".btn-relance");
+    buttons.forEach((button) => {
+      this.attachSendRelanceEventToButton(button as HTMLAnchorElement);
+    });
   }
 
   // Obtenir la classe CSS du statut

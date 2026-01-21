@@ -43,10 +43,13 @@ export async function checkAndUpdateRelances(): Promise<number> {
 
     // Récupérer toutes les candidatures non relancées
     const applications = db
-      .prepare("SELECT id, date, company, poste FROM applications WHERE relanced = 0")
-      .all() as Array<{ id: number; date: string; company: string; poste: string }>;
+      .prepare("SELECT id, date, company, poste, userEmail FROM applications WHERE relanced = 0")
+      .all() as Array<{ id: number; date: string; company: string; poste: string; userEmail: string | null }>;
 
-    const applicationsToRelance: Array<{ company: string; poste: string; date: string }> = [];
+    // Grouper les candidatures par userEmail
+    const applicationsByUser: Map<string, Array<{ company: string; poste: string; date: string }>> = new Map();
+
+    let totalRelanced = 0;
 
     for (const app of applications) {
       const applicationDate = parseDate(app.date);
@@ -61,24 +64,35 @@ export async function checkAndUpdateRelances(): Promise<number> {
       if (daysPassed >= DAYS_BEFORE_RELANCE) {
         // Marquer comme à relancer
         db.prepare("UPDATE applications SET relanced = 1 WHERE id = ?").run(app.id);
-        applicationsToRelance.push({
+
+        // Grouper par userEmail (ou utiliser EMAIL_TO si pas de userEmail)
+        const userEmail = app.userEmail || process.env.EMAIL_TO || "default";
+
+        if (!applicationsByUser.has(userEmail)) {
+          applicationsByUser.set(userEmail, []);
+        }
+        applicationsByUser.get(userEmail)!.push({
           company: app.company,
           poste: app.poste,
           date: app.date,
         });
+
+        totalRelanced++;
         console.log(
-          `📧 Auto-relance: ${app.company} - ${app.poste} (${daysPassed} jours écoulés)`
+          `📧 Auto-relance: ${app.company} - ${app.poste} (${daysPassed} jours écoulés) -> ${userEmail}`
         );
       }
     }
 
-    // Envoyer un email si des candidatures ont été marquées
-    if (applicationsToRelance.length > 0) {
-      console.log(`✅ ${applicationsToRelance.length} candidature(s) marquée(s) à relancer`);
-      await sendRelanceReminder(applicationsToRelance);
+    // Envoyer un email à chaque utilisateur avec ses candidatures à relancer
+    for (const [userEmail, apps] of applicationsByUser) {
+      if (apps.length > 0 && userEmail !== "default") {
+        console.log(`✅ ${apps.length} candidature(s) à relancer pour ${userEmail}`);
+        await sendRelanceReminder(apps, userEmail);
+      }
     }
 
-    return applicationsToRelance.length;
+    return totalRelanced;
   } catch (error) {
     console.error("❌ Erreur lors de la vérification auto-relance:", error);
     return 0;

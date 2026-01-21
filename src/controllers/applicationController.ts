@@ -16,7 +16,7 @@ export const createApplication = (req: Request, res: Response) => {
   try {
     console.log('📥 Requête POST reçue:', JSON.stringify(req.body, null, 2));
     
-    const { company, poste, status, email, isRelance } = req.body;
+    const { company, poste, status, email, isRelance, userEmail } = req.body;
 
     // Vérifier que les champs obligatoires sont présents
     if (!company || !poste || !status) {
@@ -33,7 +33,7 @@ export const createApplication = (req: Request, res: Response) => {
     const year = today.getFullYear();
     const date = `${day}/${month}/${year}`;
 
-    console.log('📝 Données à insérer:', { company, poste, status, date, email, isRelance });
+    console.log('📝 Données à insérer:', { company, poste, status, date, email, isRelance, userEmail });
 
     // Vérifier la structure de la table
     try {
@@ -44,13 +44,13 @@ export const createApplication = (req: Request, res: Response) => {
     }
 
     const stmt = db.prepare(
-      `INSERT INTO applications (company, poste, status, date, relanced, email)
-       VALUES (?, ?, ?, ?, ?, ?)`
+      `INSERT INTO applications (company, poste, status, date, relanced, email, userEmail)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`
     );
 
     // Convertir isRelance en booléen (0 ou 1)
     const relancedValue = isRelance ? 1 : 0;
-    const result = stmt.run(company, poste, status, date, relancedValue, email || null);
+    const result = stmt.run(company, poste, status, date, relancedValue, email || null, userEmail || null);
 
     console.log('✅ Insert résultat - lastInsertRowid:', result.lastInsertRowid, '- changes:', result.changes);
 
@@ -101,6 +101,41 @@ export const updateRelanceStatus = (req: Request, res: Response) => {
       data: updatedApplication,
     });
   } catch (error) {
+    res.status(500).json({ message: "Erreur serveur" });
+  }
+};
+
+// PUT /applications/:id/send-relance - Incrémenter le compteur de relances (appelé quand on envoie une relance)
+export const sendRelance = (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    // Vérifier que l'application existe
+    const application = db.prepare("SELECT * FROM applications WHERE id = ?").get(id) as { relance_count?: number } | undefined;
+
+    if (!application) {
+      return res.status(404).json({ message: "Aucune candidature trouvée" });
+    }
+
+    // Incrémenter le compteur de relances
+    const currentCount = application.relance_count ?? 0;
+    const newCount = currentCount + 1;
+
+    const stmt = db.prepare("UPDATE applications SET relance_count = ? WHERE id = ?");
+    stmt.run(newCount, id);
+
+    // Récupérer l'application mise à jour
+    const updatedApplication = db.prepare("SELECT * FROM applications WHERE id = ?").get(id);
+
+    console.log(`📧 Relance envoyée pour candidature #${id} - Total relances: ${newCount}`);
+
+    res.json({
+      message: `Relance #${newCount} enregistrée`,
+      relance_count: newCount,
+      data: updatedApplication,
+    });
+  } catch (error) {
+    console.error("❌ Erreur lors de l'enregistrement de la relance:", error);
     res.status(500).json({ message: "Erreur serveur" });
   }
 };

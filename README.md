@@ -15,7 +15,7 @@
 - ✅ **Supprimer** une candidature par son ID
 - ✅ **Persister** les données dans une base PostgreSQL
 - ✅ **Interface web** pour gérer les candidatures
-
+- Possibilité de pouvoir dire non a une candidature si elle a ete refusé
 ---
 
 ## 🛠️ Stack Technique

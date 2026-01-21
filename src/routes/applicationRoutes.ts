@@ -3,6 +3,7 @@ import {
   getAllApplications,
   createApplication,
   updateRelanceStatus,
+  sendRelance,
   deleteApplication,
 } from "../controllers/applicationController";
 
@@ -16,6 +17,9 @@ router.post("/application", createApplication);
 
 // PUT /applications/:id/relance - Mettre à jour le statut de relance
 router.put("/applications/:id/relance", updateRelanceStatus);
+
+// PUT /applications/:id/send-relance - Enregistrer l'envoi d'une relance (incrémente le compteur)
+router.put("/applications/:id/send-relance", sendRelance);
 
 // DELETE /applications/:id - Supprimer une application par ID
 router.delete("/applications/:id", deleteApplication);

@@ -121,30 +121,101 @@ function showNotification(message, type = 'success') {
 let lastSubjectBeforeSend = null;
 let lastRecipientEmail = null;
 
-// Récupérer l'email de l'expéditeur (ton email) pour l'exclure
+// Récupérer l'email de l'expéditeur (ton email)
 function getMyEmail() {
-  // Gmail affiche ton email dans plusieurs endroits, on le récupère pour l'exclure
-  // Chercher dans le header de compte Google
-  const accountEmail = document.querySelector('[data-email][aria-label*="Compte Google"]');
-  if (accountEmail) {
-    return accountEmail.getAttribute('data-email');
-  }
+  console.log('🔍 Recherche de l\'email de l\'utilisateur...');
 
-  // Chercher dans le champ "De" (From) de la composition
-  const fromField = document.querySelector('[aria-label*="De"], [aria-label*="From"]');
-  if (fromField) {
-    const emailSpan = fromField.querySelector('[email]');
-    if (emailSpan) {
-      return emailSpan.getAttribute('email');
+  // Méthode 1: Chercher dans le bouton de compte Google (coin supérieur droit)
+  const accountButton = document.querySelector('a[href*="SignOutOptions"], a[aria-label*="Compte Google"]');
+  if (accountButton) {
+    const email = accountButton.getAttribute('aria-label')?.match(/[\w.-]+@[\w.-]+\.\w+/)?.[0];
+    if (email) {
+      console.log('✅ Email trouvé via bouton compte:', email);
+      return email;
     }
   }
 
-  // Chercher l'email dans le profil utilisateur Gmail
-  const profileEmail = document.querySelector('[data-hovercard-id][href*="SignOutOptions"]');
-  if (profileEmail) {
-    return profileEmail.getAttribute('data-hovercard-id');
+  // Méthode 2: Chercher l'attribut data-email
+  const dataEmailElement = document.querySelector('[data-email]');
+  if (dataEmailElement) {
+    const email = dataEmailElement.getAttribute('data-email');
+    if (email) {
+      console.log('✅ Email trouvé via data-email:', email);
+      return email;
+    }
   }
 
+  // Méthode 3: Chercher dans le champ "De" (From) de la fenêtre de composition
+  const fromSelectors = [
+    '.aoD.hl [email]',  // Gmail compose "From" field
+    '[data-hovercard-owner-id]',
+    '.gD [email]',
+    'span[email][name]'
+  ];
+
+  for (const selector of fromSelectors) {
+    const elements = document.querySelectorAll(selector);
+    for (const el of elements) {
+      const email = el.getAttribute('email');
+      if (email && email.includes('@')) {
+        // Vérifier que c'est dans une zone "De" pas "À"
+        const isInFromArea = el.closest('.aoD, .gD, [aria-label*="De"], [aria-label*="From"]');
+        if (isInFromArea) {
+          console.log('✅ Email trouvé via champ De:', email);
+          return email;
+        }
+      }
+    }
+  }
+
+  // Méthode 4: Chercher dans le header Gmail (zone utilisateur)
+  const headerEmail = document.querySelector('header [data-email], [role="banner"] [data-email]');
+  if (headerEmail) {
+    const email = headerEmail.getAttribute('data-email');
+    if (email) {
+      console.log('✅ Email trouvé via header:', email);
+      return email;
+    }
+  }
+
+  // Méthode 5: Chercher via l'image de profil qui contient souvent l'email
+  const profileImg = document.querySelector('img[data-hovercard-id*="@"]');
+  if (profileImg) {
+    const email = profileImg.getAttribute('data-hovercard-id');
+    if (email && email.includes('@')) {
+      console.log('✅ Email trouvé via image profil:', email);
+      return email;
+    }
+  }
+
+  // Méthode 6: Chercher dans le texte du menu utilisateur
+  const userMenu = document.querySelector('[aria-label*="@"], [title*="@"]');
+  if (userMenu) {
+    const text = userMenu.getAttribute('aria-label') || userMenu.getAttribute('title') || '';
+    const emailMatch = text.match(/[\w.-]+@[\w.-]+\.\w+/);
+    if (emailMatch) {
+      console.log('✅ Email trouvé via menu utilisateur:', emailMatch[0]);
+      return emailMatch[0];
+    }
+  }
+
+  // Méthode 7: Chercher tous les éléments avec un attribut contenant un email
+  const allElements = document.querySelectorAll('[aria-label], [title], [alt]');
+  for (const el of allElements) {
+    const attrs = ['aria-label', 'title', 'alt'];
+    for (const attr of attrs) {
+      const value = el.getAttribute(attr);
+      if (value) {
+        const emailMatch = value.match(/[\w.-]+@gmail\.com/);
+        if (emailMatch) {
+          console.log('✅ Email trouvé via attribut', attr + ':', emailMatch[0]);
+          return emailMatch[0];
+        }
+      }
+    }
+  }
+
+  console.log('⚠️ Aucun email utilisateur trouvé');
   return null;
 }
 
@@ -378,6 +449,13 @@ async function processEmailSubject(subject, recipientEmail) {
   // Ajouter l'email du destinataire aux données
   if (recipientEmail) {
     parsed.email = recipientEmail;
+  }
+
+  // Ajouter l'email de l'expéditeur (utilisateur) pour les rappels
+  const userEmail = getMyEmail();
+  if (userEmail) {
+    parsed.userEmail = userEmail;
+    console.log('👤 Email utilisateur ajouté:', userEmail);
   }
 
   try {

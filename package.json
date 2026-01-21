@@ -7,6 +7,7 @@
     "create-table": "ts-node src/scripts/createTable.ts",
     "add-relanced-column": "ts-node src/scripts/addRelancedColumn.ts",
     "add-email-column": "ts-node src/scripts/addEmailColumn.ts",
+    "add-relance-count-column": "ts-node src/scripts/addRelanceCountColumn.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc -p tsconfig.backend.json",
     "start": "node ./dist/server.js",
