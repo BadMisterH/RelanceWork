@@ -6,90 +6,256 @@
     <title>RelanceWork - Suivi de candidatures</title>
   </head>
   <body>
-    <div class="container">
-      <header>
-        <h1>RelanceWork</h1>
-        <p>Gérez vos candidatures professionnelles</p>
-      </header>
+    <div class="app-wrapper">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <div class="logo">
+            <span class="logo-icon">R</span>
+            <span class="logo-text">RelanceWork</span>
+          </div>
+        </div>
+        <nav class="sidebar-nav">
+          <a href="#" class="nav-item active" data-section="dashboard">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="7" height="7" rx="1"/>
+              <rect x="14" y="3" width="7" height="7" rx="1"/>
+              <rect x="3" y="14" width="7" height="7" rx="1"/>
+              <rect x="14" y="14" width="7" height="7" rx="1"/>
+            </svg>
+            Dashboard
+          </a>
+          <a href="#" class="nav-item" data-section="applications">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/>
+              <line x1="16" y1="17" x2="8" y2="17"/>
+            </svg>
+            Candidatures
+          </a>
+        </nav>
+        <div class="sidebar-footer">
+          <div class="quick-add-btn" id="quickAddBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Nouvelle candidature
+          </div>
+        </div>
+      </aside>
 
-      <main>
-        <!-- Statistiques -->
-        <section class="stats-section">
-          <div class="stat-card" id="stat-total">
-            <span class="stat-number">0</span>
-            <span class="stat-label">Total</span>
+      <!-- Main Content -->
+      <div class="main-content">
+        <header class="top-header">
+          <div class="header-left">
+            <h1 class="page-title">Dashboard</h1>
+            <p class="page-subtitle">Vue d'ensemble de vos candidatures</p>
           </div>
-          <div class="stat-card stat-pending" id="stat-pending">
-            <span class="stat-number">0</span>
-            <span class="stat-label">En attente</span>
+          <div class="header-right">
+            <div class="date-display">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                <line x1="16" y1="2" x2="16" y2="6"/>
+                <line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+              <span id="currentDate"></span>
+            </div>
           </div>
-          <div class="stat-card stat-relance" id="stat-relance">
-            <span class="stat-number">0</span>
-            <span class="stat-label">À relancer</span>
-          </div>
-          <div class="stat-card stat-nomail" id="stat-nomail">
-            <span class="stat-number">0</span>
-            <span class="stat-label">Sans email</span>
-          </div>
-        </section>
+        </header>
 
-        <!-- Filtres et recherche -->
-        <section class="filters-section">
-          <div class="search-box">
-            <input type="text" id="searchInput" placeholder="Rechercher une entreprise ou un poste..." />
-          </div>
-          <div class="filter-buttons">
-            <button class="filter-btn active" data-filter="all">Toutes</button>
-            <button class="filter-btn" data-filter="pending">En attente</button>
-            <button class="filter-btn" data-filter="relance">À relancer</button>
-          </div>
-        </section>
-
-        <!-- Formulaire d'ajout -->
-        <section class="form-section">
-          <button class="btn-toggle-form" id="toggleFormBtn">+ Ajouter une candidature</button>
-          <form id="addApplicationForm" class="add-form hidden">
-            <div class="form-row">
-              <div class="form-group">
-                <label for="company">Entreprise *</label>
-                <input type="text" id="company" name="company" required />
+        <main class="dashboard-content">
+          <!-- Stats Cards -->
+          <section class="stats-grid">
+            <div class="stat-card stat-total" id="stat-total">
+              <div class="stat-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+                  <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+                </svg>
               </div>
-              <div class="form-group">
-                <label for="poste">Poste *</label>
-                <input type="text" id="poste" name="poste" required />
+              <div class="stat-info">
+                <span class="stat-number" data-count="0">0</span>
+                <span class="stat-label">Total candidatures</span>
+              </div>
+              <div class="stat-trend">
+                <span class="trend-badge trend-neutral">Cette semaine</span>
               </div>
             </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label for="email">Email</label>
-                <input type="email" id="email" name="email" placeholder="recruteur@entreprise.com" />
-              </div>
-              <div class="form-group">
-                <label for="status">Statut *</label>
-                <select id="status" name="status" required>
-                  <option value="En attente">En attente</option>
-                  <option value="Entretien prévu">Entretien prévu</option>
-                  <option value="Relancé">Relancé</option>
-                  <option value="Refusé">Refusé</option>
-                  <option value="Accepté">Accepté</option>
-                </select>
-              </div>
-            </div>
-            <div class="form-actions">
-              <button type="submit" class="btn-submit">Ajouter</button>
-              <button type="button" class="btn-cancel" id="cancelFormBtn">Annuler</button>
-            </div>
-          </form>
-        </section>
 
-        <!-- Liste des candidatures -->
-        <section class="list-section">
-          <h2 class="Title-h2">Mes candidatures</h2>
-          <div id="applicationsList">
-            <p class="loading">Chargement...</p>
+            <div class="stat-card stat-pending" id="stat-pending">
+              <div class="stat-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <polyline points="12 6 12 12 16 14"/>
+                </svg>
+              </div>
+              <div class="stat-info">
+                <span class="stat-number" data-count="0">0</span>
+                <span class="stat-label">En attente</span>
+              </div>
+              <div class="stat-trend">
+                <span class="trend-badge trend-info">En cours</span>
+              </div>
+            </div>
+
+            <div class="stat-card stat-relance" id="stat-relance">
+              <div class="stat-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                  <polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+              </div>
+              <div class="stat-info">
+                <span class="stat-number" data-count="0">0</span>
+                <span class="stat-label">À relancer</span>
+              </div>
+              <div class="stat-trend">
+                <span class="trend-badge trend-warning">Action requise</span>
+              </div>
+            </div>
+
+            <div class="stat-card stat-nomail" id="stat-nomail">
+              <div class="stat-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                  <polyline points="22,6 12,13 2,6"/>
+                  <line x1="2" y1="2" x2="22" y2="22" stroke-width="2"/>
+                </svg>
+              </div>
+              <div class="stat-info">
+                <span class="stat-number" data-count="0">0</span>
+                <span class="stat-label">Sans email</span>
+              </div>
+              <div class="stat-trend">
+                <span class="trend-badge trend-danger">À compléter</span>
+              </div>
+            </div>
+          </section>
+
+          <!-- Charts Row -->
+          <section class="charts-row">
+            <div class="chart-card">
+              <div class="chart-header">
+                <h3>Répartition des statuts</h3>
+              </div>
+              <div class="chart-content">
+                <div class="donut-chart" id="statusChart">
+                  <svg viewBox="0 0 100 100" class="donut-svg">
+                    <circle cx="50" cy="50" r="40" fill="none" stroke="#e2e8f0" stroke-width="12"/>
+                  </svg>
+                  <div class="donut-center">
+                    <span class="donut-value" id="donutTotal">0</span>
+                    <span class="donut-label">Total</span>
+                  </div>
+                </div>
+                <div class="chart-legend" id="chartLegend"></div>
+              </div>
+            </div>
+
+            <div class="chart-card">
+              <div class="chart-header">
+                <h3>Activité récente</h3>
+              </div>
+              <div class="chart-content">
+                <div class="activity-list" id="activityList">
+                  <p class="loading-text">Chargement...</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="chart-card">
+              <div class="chart-header">
+                <h3>Prochaines actions</h3>
+              </div>
+              <div class="chart-content">
+                <div class="actions-list" id="actionsList">
+                  <p class="loading-text">Chargement...</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Applications Section -->
+          <section class="applications-section">
+            <div class="section-header">
+              <h2>Mes candidatures</h2>
+              <div class="section-controls">
+                <div class="search-box">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"/>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                  </svg>
+                  <input type="text" id="searchInput" placeholder="Rechercher..." />
+                </div>
+                <div class="filter-buttons">
+                  <button class="filter-btn active" data-filter="all">Toutes</button>
+                  <button class="filter-btn" data-filter="pending">En attente</button>
+                  <button class="filter-btn" data-filter="relance">À relancer</button>
+                </div>
+              </div>
+            </div>
+            <div id="applicationsList" class="applications-grid">
+              <p class="loading-text">Chargement...</p>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+
+    <!-- Modal pour ajouter une candidature -->
+    <div class="modal-overlay" id="addModal">
+      <div class="modal">
+        <div class="modal-header">
+          <h3>Nouvelle candidature</h3>
+          <button class="modal-close" id="closeModalBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+        <form id="addApplicationForm" class="modal-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="company">Entreprise</label>
+              <input type="text" id="company" name="company" required placeholder="Ex: Google" />
+            </div>
+            <div class="form-group">
+              <label for="poste">Poste</label>
+              <input type="text" id="poste" name="poste" required placeholder="Ex: Développeur Full Stack" />
+            </div>
           </div>
-        </section>
-      </main>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="email">Email du recruteur</label>
+              <input type="email" id="email" name="email" placeholder="recruteur@entreprise.com" />
+            </div>
+            <div class="form-group">
+              <label for="status">Statut</label>
+              <select id="status" name="status" required>
+                <option value="En attente">En attente</option>
+                <option value="Entretien prévu">Entretien prévu</option>
+                <option value="Relancé">Relancé</option>
+                <option value="Refusé">Refusé</option>
+                <option value="Accepté">Accepté</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn-secondary" id="cancelFormBtn">Annuler</button>
+            <button type="submit" class="btn-primary">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              Ajouter
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
 
     <script type="module" src="/src/main.ts"></script>
