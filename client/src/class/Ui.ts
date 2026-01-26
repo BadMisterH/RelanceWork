@@ -10,7 +10,6 @@ export class UI {
     this.applicationsList = document.getElementById("applicationsList");
     this.initFilters();
     this.initSearch();
-    this.initForm();
   }
 
   // Vérifier si la candidature a plus de X jours
@@ -285,83 +284,6 @@ Cordialement`
     this.renderApplications(filtered);
   }
 
-  // Initialiser le formulaire
-  private initForm() {
-    const toggleBtn = document.getElementById("toggleFormBtn");
-    const form = document.getElementById("addApplicationForm") as HTMLFormElement;
-    const cancelBtn = document.getElementById("cancelFormBtn");
-
-    if (toggleBtn && form) {
-      toggleBtn.addEventListener("click", () => {
-        form.classList.toggle("hidden");
-        toggleBtn.textContent = form.classList.contains("hidden")
-          ? "+ Ajouter une candidature"
-          : "- Fermer le formulaire";
-      });
-    }
-
-    if (cancelBtn && form) {
-      cancelBtn.addEventListener("click", () => {
-        form.classList.add("hidden");
-        form.reset();
-        if (toggleBtn) toggleBtn.textContent = "+ Ajouter une candidature";
-      });
-    }
-
-    if (form) {
-      form.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        await this.handleFormSubmit(form);
-      });
-    }
-  }
-
-  // Gérer la soumission du formulaire
-  private async handleFormSubmit(form: HTMLFormElement) {
-    const formData = new FormData(form);
-    const data = {
-      company: formData.get("company") as string,
-      poste: formData.get("poste") as string,
-      email: formData.get("email") as string || undefined,
-      status: formData.get("status") as string,
-      isRelance: false,
-    };
-
-    try {
-      const API_URL = "http://localhost:3000/api";
-      const response = await fetch(`${API_URL}/application`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) {
-        throw new Error("Erreur lors de l'ajout");
-      }
-
-      const result = await response.json();
-      console.log("Candidature ajoutée:", result);
-
-      // Ajouter à la liste et rafraîchir
-      if (result.data) {
-        this.allApplications.unshift(result.data);
-        this.updateStats();
-        this.applyFilters();
-      }
-
-      // Réinitialiser le formulaire
-      form.reset();
-      form.classList.add("hidden");
-      const toggleBtn = document.getElementById("toggleFormBtn");
-      if (toggleBtn) toggleBtn.textContent = "+ Ajouter une candidature";
-
-    } catch (error) {
-      console.error("Erreur lors de l'ajout:", error);
-      alert("Erreur lors de l'ajout de la candidature");
-    }
-  }
 
   // Rendre les candidatures (séparé de getAffichage pour les filtres)
   private renderApplications(applications: Application[]) {

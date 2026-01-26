@@ -1,4 +1,5 @@
 import { UI } from "./class/Ui.ts";
+import { MapsSearch } from "./class/MapsSearch.ts";
 import "./style.css";
 import axios from "axios";
 
@@ -28,5 +29,56 @@ async function GetAllDataPost() {
     console.error("ERREUR AXIOS", error);
   }
 }
+
+// Instancier MapsSearch immédiatement pour que les événements soient attachés
+const mapsSearch = new MapsSearch();
+
+// Fonction globale pour initialiser Google Maps (appelée par le script Google Maps)
+declare global {
+  interface Window {
+    initMap: () => void;
+    mapsSearchInstance: MapsSearch;
+    google?: any;
+  }
+}
+
+window.mapsSearchInstance = mapsSearch;
+
+// Fonction d'initialisation Google Maps
+window.initMap = function() {
+  console.log('✅ Google Maps script chargé, initialisation...');
+  mapsSearch.onGoogleMapsLoaded();
+};
+
+// Charger le script Google Maps dynamiquement avec la clé API depuis .env
+function loadGoogleMapsScript() {
+  const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+
+  if (!apiKey) {
+    console.error('❌ VITE_GOOGLE_MAPS_API_KEY non trouvée dans le fichier .env');
+    console.error('Créez un fichier .env dans le dossier client/ avec :');
+    console.error('VITE_GOOGLE_MAPS_API_KEY=votre_cle_api_ici');
+    return;
+  }
+
+  console.log('🔑 Chargement de Google Maps avec la clé API depuis .env...');
+
+  const script = document.createElement('script');
+  script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=initMap`;
+  script.async = true;
+  script.defer = true;
+  script.onerror = () => {
+    console.error('❌ Erreur lors du chargement du script Google Maps');
+    console.error('Vérifiez que :');
+    console.error('1. Votre clé API est valide');
+    console.error('2. Places API est activée dans Google Cloud Console');
+    console.error('3. La facturation est configurée sur votre projet Google Cloud');
+  };
+
+  document.head.appendChild(script);
+}
+
+// Charger Google Maps au démarrage
+loadGoogleMapsScript();
 
 GetAllDataPost();
