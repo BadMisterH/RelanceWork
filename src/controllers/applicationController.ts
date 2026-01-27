@@ -159,3 +159,50 @@ export const deleteApplication = (req: Request, res: Response) => {
     res.status(500).json({ message: "Erreur serveur" });
   }
 };
+
+// Fonction utilitaire pour ajouter une application programmatiquement (depuis Gmail service)
+export const addApplication = async (data: {
+  company?: string;
+  poste: string;
+  status: string;
+  email?: string;
+  userEmail?: string;
+  isRelance?: boolean;
+}): Promise<any> => {
+  try {
+    const { company, poste, status, email, isRelance, userEmail } = data;
+
+    // Vérifier que les champs obligatoires sont présents
+    if (!poste || !status) {
+      throw new Error("Missing required fields: poste, status");
+    }
+
+    // Générer automatiquement la date au format JJ/MM/AAAA
+    const today = new Date();
+    const day = String(today.getDate()).padStart(2, '0');
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const year = today.getFullYear();
+    const date = `${day}/${month}/${year}`;
+
+    console.log('📝 Adding application:', { company, poste, status, date, email, isRelance, userEmail });
+
+    const stmt = db.prepare(
+      `INSERT INTO applications (company, poste, status, date, relanced, email, userEmail)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`
+    );
+
+    // Convertir isRelance en booléen (0 ou 1)
+    const relancedValue = isRelance ? 1 : 0;
+    const result = stmt.run(company || '', poste, status, date, relancedValue, email || null, userEmail || null);
+
+    // Récupérer l'application créée
+    const newApplication = db.prepare("SELECT * FROM applications WHERE id = ?").get(result.lastInsertRowid);
+
+    console.log(`✅ Application created:`, newApplication);
+
+    return newApplication;
+  } catch (error) {
+    console.error("❌ Error creating application:", error);
+    throw error;
+  }
+};

@@ -1,6 +1,7 @@
 import express, { Request, Response } from "express";
 import path from "path";
 import applicationRoutes from "./routes/applicationRoutes";
+import gmailRoutes from "./routes/gmailRoutes";
 
 const app = express();
 
@@ -38,5 +39,6 @@ app.get("/health", (req: Request, res: Response) => {
 
 // Routes API
 app.use("/api", applicationRoutes);
+app.use("/api/gmail", gmailRoutes);
 
 export default app;

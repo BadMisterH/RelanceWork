@@ -2,6 +2,7 @@ import "dotenv/config";
 import app from "./app";
 import db from "./config/database";
 import { startAutoRelanceService } from "./services/autoRelanceService";
+import { gmailPollingService } from "./services/gmailPollingService";
 
 const PORT = 3000;
 
@@ -16,6 +17,9 @@ app.listen(PORT, () => {
 
     // Démarrer le service de vérification automatique des relances
     startAutoRelanceService();
+
+    // Démarrer le service de détection automatique des emails Gmail
+    gmailPollingService.start();
   } catch (err) {
     console.error("❌ Database connection error:", (err as Error).message);
   }
