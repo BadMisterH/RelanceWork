@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Connexion - RelanceWork</title>
+    <link rel="stylesheet" href="/src/styles/auth.css" />
+  </head>
+  <body>
+    <div class="auth-container">
+      <!-- Left Side: Branding & Inspiration -->
+      <div class="auth-side-panel">
+        <div class="panel-content">
+          <div class="brand-section">
+            <div class="brand-logo">
+              <span class="logo-icon">R</span>
+              <span class="logo-text">RelanceWork</span>
+            </div>
+            <p class="brand-tagline">
+              Gérez vos candidatures professionnelles avec confiance
+            </p>
+          </div>
+
+          <div class="testimonial-section">
+            <div class="testimonial-card">
+              <div class="quote-icon">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M6 17h3l2-4V7H5v6h3zm8 0h3l2-4V7h-6v6h3z" />
+                </svg>
+              </div>
+              <p class="testimonial-text">
+                "RelanceWork a transformé ma recherche d'emploi. Je suis enfin
+                organisé et j'obtiens plus de réponses."
+              </p>
+              <div class="testimonial-author">
+                <strong>Marie Dubois</strong>
+                <span>Product Manager</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="features-list">
+            <div class="feature-item">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              <span>Suivi complet de vos candidatures</span>
+            </div>
+            <div class="feature-item">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              <span>Relances automatisées par email</span>
+            </div>
+            <div class="feature-item">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              <span>Recherche intelligente d'entreprises</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-footer">
+          <p>Rejoignez plus de 10,000+ professionnels</p>
+        </div>
+      </div>
+
+      <!-- Right Side: Authentication Forms -->
+      <div class="auth-main">
+        <div class="auth-wrapper">
+          <!-- Login Form -->
+          <div class="auth-form-container active" id="loginForm">
+            <div class="form-header">
+              <h1>Bon retour</h1>
+              <p class="form-subtitle">
+                Connectez-vous pour accéder à votre tableau de bord
+              </p>
+            </div>
+
+            <form class="auth-form" id="loginFormElement">
+              <div class="form-group">
+                <div class="input-wrapper">
+                  <input
+                    type="email"
+                    id="loginEmail"
+                    class="form-input"
+                    placeholder=" "
+                    required
+                  />
+                  <label for="loginEmail" class="form-label">
+                    Adresse email
+                  </label>
+                  <div class="input-icon">
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path
+                        d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
+                      />
+                      <polyline points="22,6 12,13 2,6" />
+                    </svg>
+                  </div>
+                </div>
+                <span class="form-error" id="loginEmailError"></span>
+              </div>
+
+              <div class="form-group">
+                <div class="input-wrapper">
+                  <input
+                    type="password"
+                    id="loginPassword"
+                    class="form-input"
+                    placeholder=" "
+                    required
+                  />
+                  <label for="loginPassword" class="form-label">
+                    Mot de passe
+                  </label>
+                  <button
+                    type="button"
+                    class="password-toggle"
+                    data-target="loginPassword"
+                  >
+                    <svg
+                      class="eye-open"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path
+                        d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
+                      />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                    <svg
+                      class="eye-closed"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      style="display: none"
+                    >
+                      <path
+                        d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+                      />
+                      <line x1="1" y1="1" x2="23" y2="23" />
+                    </svg>
+                  </button>
+                </div>
+                <span class="form-error" id="loginPasswordError"></span>
+              </div>
+
+              <div class="form-options">
+                <label class="checkbox-wrapper">
+                  <input type="checkbox" id="rememberMe" />
+                  <span class="checkbox-label">Se souvenir de moi</span>
+                </label>
+                <a href="#" class="forgot-link">Mot de passe oublié ?</a>
+              </div>
+
+              <button type="submit" class="btn-primary" id="loginBtn">
+                <span class="btn-text">Se connecter</span>
+                <span class="btn-loader" style="display: none">
+                  <svg viewBox="0 0 24 24" class="spinner">
+                    <circle
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="3"
+                    />
+                  </svg>
+                </span>
+              </button>
+
+              <div class="form-footer">
+                <p>
+                  Pas encore de compte ?
+                  <button type="button" class="toggle-form" data-target="signup">
+                    Créer un compte
+                  </button>
+                </p>
+              </div>
+            </form>
+          </div>
+
+          <!-- Signup Form -->
+          <div class="auth-form-container" id="signupForm">
+            <div class="form-header">
+              <h1>Créer un compte</h1>
+              <p class="form-subtitle">
+                Commencez à organiser vos candidatures dès aujourd'hui
+              </p>
+            </div>
+
+            <form class="auth-form" id="signupFormElement">
+              <div class="form-group">
+                <div class="input-wrapper">
+                  <input
+                    type="text"
+                    id="signupName"
+                    class="form-input"
+                    placeholder=" "
+                    required
+                  />
+                  <label for="signupName" class="form-label">
+                    Nom complet
+                  </label>
+                  <div class="input-icon">
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path
+                        d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"
+                      />
+                      <circle cx="12" cy="7" r="4" />
+                    </svg>
+                  </div>
+                </div>
+                <span class="form-error" id="signupNameError"></span>
+              </div>
+
+              <div class="form-group">
+                <div class="input-wrapper">
+                  <input
+                    type="email"
+                    id="signupEmail"
+                    class="form-input"
+                    placeholder=" "
+                    required
+                  />
+                  <label for="signupEmail" class="form-label">
+                    Adresse email
+                  </label>
+                  <div class="input-icon">
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path
+                        d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
+                      />
+                      <polyline points="22,6 12,13 2,6" />
+                    </svg>
+                  </div>
+                </div>
+                <span class="form-error" id="signupEmailError"></span>
+              </div>
+
+              <div class="form-group">
+                <div class="input-wrapper">
+                  <input
+                    type="password"
+                    id="signupPassword"
+                    class="form-input"
+                    placeholder=" "
+                    required
+                  />
+                  <label for="signupPassword" class="form-label">
+                    Mot de passe
+                  </label>
+                  <button
+                    type="button"
+                    class="password-toggle"
+                    data-target="signupPassword"
+                  >
+                    <svg
+                      class="eye-open"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path
+                        d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
+                      />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                    <svg
+                      class="eye-closed"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      style="display: none"
+                    >
+                      <path
+                        d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+                      />
+                      <line x1="1" y1="1" x2="23" y2="23" />
+                    </svg>
+                  </button>
+                </div>
+                <div class="password-strength" id="passwordStrength">
+                  <div class="strength-bar">
+                    <div class="strength-fill"></div>
+                  </div>
+                  <span class="strength-text">Minimum 8 caractères</span>
+                </div>
+                <span class="form-error" id="signupPasswordError"></span>
+              </div>
+
+              <div class="form-group">
+                <div class="input-wrapper">
+                  <input
+                    type="password"
+                    id="signupConfirmPassword"
+                    class="form-input"
+                    placeholder=" "
+                    required
+                  />
+                  <label for="signupConfirmPassword" class="form-label">
+                    Confirmer le mot de passe
+                  </label>
+                  <button
+                    type="button"
+                    class="password-toggle"
+                    data-target="signupConfirmPassword"
+                  >
+                    <svg
+                      class="eye-open"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path
+                        d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
+                      />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                    <svg
+                      class="eye-closed"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      style="display: none"
+                    >
+                      <path
+                        d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+                      />
+                      <line x1="1" y1="1" x2="23" y2="23" />
+                    </svg>
+                  </button>
+                </div>
+                <span class="form-error" id="signupConfirmPasswordError"></span>
+              </div>
+
+              <div class="terms-wrapper">
+                <label class="checkbox-wrapper">
+                  <input type="checkbox" id="acceptTerms" required />
+                  <span class="checkbox-label">
+                    J'accepte les
+                    <a href="#">conditions d'utilisation</a> et la
+                    <a href="#">politique de confidentialité</a>
+                  </span>
+                </label>
+              </div>
+
+              <button type="submit" class="btn-primary" id="signupBtn">
+                <span class="btn-text">Créer mon compte</span>
+                <span class="btn-loader" style="display: none">
+                  <svg viewBox="0 0 24 24" class="spinner">
+                    <circle
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="3"
+                    />
+                  </svg>
+                </span>
+              </button>
+
+              <div class="form-footer">
+                <p>
+                  Déjà un compte ?
+                  <button type="button" class="toggle-form" data-target="login">
+                    Se connecter
+                  </button>
+                </p>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/auth.ts"></script>
+  </body>
+</html>

@@ -1,6 +1,7 @@
 import { UI } from "./class/Ui.ts";
 import { MapsSearch } from "./class/MapsSearch.ts";
 import "./style.css";
+import "./styles/business-cards.css";
 import axios from "axios";
 
 // URL de base de ton API backend
@@ -82,3 +83,47 @@ function loadGoogleMapsScript() {
 loadGoogleMapsScript();
 
 GetAllDataPost();
+
+// ============================================
+// MOBILE MENU FUNCTIONALITY
+// ============================================
+
+const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+const mobileOverlay = document.getElementById('mobileOverlay');
+const sidebar = document.querySelector('.sidebar') as HTMLElement;
+
+function toggleMobileMenu() {
+  mobileMenuToggle?.classList.toggle('active');
+  mobileOverlay?.classList.toggle('active');
+  sidebar?.classList.toggle('active');
+
+  // Prevent body scroll when menu is open
+  if (sidebar?.classList.contains('active')) {
+    document.body.style.overflow = 'hidden';
+  } else {
+    document.body.style.overflow = '';
+  }
+}
+
+// Toggle menu on button click
+mobileMenuToggle?.addEventListener('click', toggleMobileMenu);
+
+// Close menu when clicking overlay
+mobileOverlay?.addEventListener('click', toggleMobileMenu);
+
+// Close menu when clicking nav items (mobile)
+const navItems = document.querySelectorAll('.nav-item');
+navItems.forEach(item => {
+  item.addEventListener('click', () => {
+    if (window.innerWidth <= 768 && sidebar?.classList.contains('active')) {
+      toggleMobileMenu();
+    }
+  });
+});
+
+// Close menu on window resize if going to desktop
+window.addEventListener('resize', () => {
+  if (window.innerWidth > 768 && sidebar?.classList.contains('active')) {
+    toggleMobileMenu();
+  }
+});

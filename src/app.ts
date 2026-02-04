@@ -2,6 +2,8 @@ import express, { Request, Response } from "express";
 import path from "path";
 import applicationRoutes from "./routes/applicationRoutes";
 import gmailRoutes from "./routes/gmailRoutes";
+import emailEnrichmentRoutes from "./routes/emailEnrichmentRoutes";
+import authRoutes from "./routes/authRoutes";
 
 const app = express();
 
@@ -29,16 +31,37 @@ app.use((req, res, next) => {
 // Middleware
 app.use(express.json());
 
-// Servir les fichiers statiques (HTML, CSS, JS)
-app.use(express.static(path.join(__dirname, "../public")));
-
 // Health check
 app.get("/health", (req: Request, res: Response) => {
   res.json({ status: "ok" });
 });
 
 // Routes API
+app.use("/api/auth", authRoutes);
 app.use("/api", applicationRoutes);
 app.use("/api/gmail", gmailRoutes);
+app.use("/api/email-enrichment", emailEnrichmentRoutes);
+
+// Servir l'application client à /app
+const clientPath = path.join(__dirname, "../client/dist");
+app.use("/app", express.static(clientPath));
+app.use("/app", (_req: Request, res: Response) => {
+  res.sendFile(path.join(clientPath, "index.html"));
+});
+
+// Servir la landing page à la racine
+const publicPath = path.join(__dirname, "../public");
+app.use(express.static(publicPath));
+
+// Fallback pour toutes les autres routes (SPA)
+app.use((req: Request, res: Response) => {
+  // Si la route commence par /app, servir l'application client
+  if (req.path.startsWith('/app')) {
+    res.sendFile(path.join(clientPath, "index.html"));
+  } else {
+    // Sinon, servir la landing page
+    res.sendFile(path.join(publicPath, "index.html"));
+  }
+});
 
 export default app;

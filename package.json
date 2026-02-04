@@ -5,6 +5,7 @@
   "main": "index.ts",
   "scripts": {
     "create-table": "ts-node src/scripts/createTable.ts",
+    "create-users-table": "ts-node src/scripts/createUsersTable.ts",
     "add-relanced-column": "ts-node src/scripts/addRelancedColumn.ts",
     "add-email-column": "ts-node src/scripts/addEmailColumn.ts",
     "add-relance-count-column": "ts-node src/scripts/addRelanceCountColumn.ts",
@@ -17,10 +18,15 @@
   "license": "ISC",
   "dependencies": {
     "@google-cloud/pubsub": "^5.2.2",
+    "@types/bcrypt": "^6.0.0",
+    "@types/jsonwebtoken": "^9.0.10",
+    "axios": "^1.13.4",
+    "bcrypt": "^6.0.0",
     "better-sqlite3": "^12.6.0",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "googleapis": "^170.1.0",
+    "jsonwebtoken": "^9.0.3",
     "nodemon": "^3.1.11",
     "postgres": "^3.4.7",
     "prettier": "^3.7.4",

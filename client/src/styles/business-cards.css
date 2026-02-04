@@ -1,0 +1,520 @@
+/* ============================================
+   BUSINESS CARDS - Information Luxury
+
+   Aesthetic: Refined Density, Editorial Precision
+   Typography: DM Sans + Space Grotesk
+   Colors: Cool Grays + Strategic Accents
+   ============================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+/* Core Design Tokens */
+:root {
+  --business-card-bg: #ffffff;
+  --business-card-border: #e5e7eb;
+  --business-card-hover-border: #3b82f6;
+  --business-text-primary: #111827;
+  --business-text-secondary: #6b7280;
+  --business-text-muted: #9ca3af;
+  --business-accent-blue: #3b82f6;
+  --business-accent-emerald: #10b981;
+  --business-accent-amber: #f59e0b;
+  --business-accent-rose: #f43f5e;
+  --business-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --business-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --business-shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.12);
+}
+
+/* ============================================
+   BUSINESS CARD - Compact Premium
+   ============================================ */
+
+.business-card {
+  background: var(--business-card-bg);
+  border: 1px solid var(--business-card-border);
+  border-radius: 10px;
+  padding: 16px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.business-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 3px;
+  height: 100%;
+  background: var(--business-accent-blue);
+  transform: scaleY(0);
+  transform-origin: bottom;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.business-card:hover::before {
+  transform: scaleY(1);
+  transform-origin: top;
+}
+
+.business-card:hover {
+  border-color: var(--business-card-hover-border);
+  box-shadow: var(--business-shadow-md);
+  transform: translateX(2px);
+}
+
+/* ============================================
+   CARD HEADER - Name & Rating
+   ============================================ */
+
+.business-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.business-name,
+.business-header h3,
+.business-header h4 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: var(--business-text-primary);
+  margin: 0;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  flex: 1;
+  min-width: 0;
+  word-wrap: break-word;
+}
+
+.business-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 9px;
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  border-radius: 6px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #78350f;
+  white-space: nowrap;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(251, 191, 36, 0.25);
+}
+
+/* ============================================
+   CARD BODY - Dense Information Layout
+   ============================================ */
+
+.business-address {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.8125rem;
+  color: var(--business-text-secondary);
+  margin: 0 0 12px 0;
+  line-height: 1.5;
+  font-weight: 400;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.business-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.8125rem;
+  color: var(--business-text-secondary);
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.info-item svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  color: var(--business-text-muted);
+}
+
+.info-item a {
+  color: var(--business-accent-blue);
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.info-item a:hover {
+  color: #2563eb;
+  text-decoration: underline;
+}
+
+/* Phone number styling */
+.business-phone {
+  color: var(--business-text-secondary);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.business-phone:hover {
+  color: var(--business-accent-blue);
+}
+
+/* ============================================
+   STATUS BADGES - Compact & Semantic
+   ============================================ */
+
+.business-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.badge-no-website,
+.badge-no-email,
+.badge-with-email,
+.badge-finding-email {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 5px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  line-height: 1;
+}
+
+.badge-no-website {
+  background: rgba(239, 68, 68, 0.08);
+  color: #dc2626;
+  border: 1px solid rgba(239, 68, 68, 0.15);
+}
+
+.badge-no-email {
+  background: rgba(245, 158, 11, 0.08);
+  color: #d97706;
+  border: 1px solid rgba(245, 158, 11, 0.15);
+}
+
+.badge-with-email {
+  background: rgba(16, 185, 129, 0.08);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.15);
+}
+
+.badge-finding-email {
+  background: rgba(59, 130, 246, 0.08);
+  color: #2563eb;
+  border: 1px solid rgba(59, 130, 246, 0.15);
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+/* Email display in info section */
+.business-email {
+  color: var(--business-accent-emerald);
+  font-weight: 600;
+  word-break: break-all;
+}
+
+.business-email-loading {
+  color: var(--business-text-muted);
+  font-style: italic;
+  font-size: 0.75rem;
+}
+
+/* ============================================
+   CARD ACTIONS - Subtle Primary CTA
+   ============================================ */
+
+.business-actions {
+  display: flex;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid #f3f4f6;
+}
+
+.btn-view-map,
+.btn-add-to-favorites {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 14px;
+  border-radius: 7px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-view-map::before,
+.btn-add-to-favorites::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.4s ease, height 0.4s ease;
+}
+
+.btn-view-map:hover::before,
+.btn-add-to-favorites:hover::before {
+  width: 200%;
+  height: 200%;
+}
+
+.btn-view-map {
+  background: linear-gradient(135deg, var(--business-accent-blue) 0%, #2563eb 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
+}
+
+.btn-view-map:hover {
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
+  transform: translateY(-1px);
+}
+
+.btn-view-map svg {
+  width: 14px;
+  height: 14px;
+  position: relative;
+  z-index: 1;
+}
+
+.btn-add-to-favorites {
+  background: #f9fafb;
+  color: var(--business-text-secondary);
+  border: 1px solid var(--business-card-border);
+}
+
+.btn-add-to-favorites:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+  transform: translateY(-1px);
+}
+
+.btn-add-to-favorites.is-favorite {
+  background: linear-gradient(135deg, var(--business-accent-rose) 0%, #dc2626 100%);
+  color: white;
+  border: none;
+  box-shadow: 0 2px 8px rgba(244, 63, 94, 0.25);
+}
+
+.btn-add-to-favorites.is-favorite:hover {
+  box-shadow: 0 4px 12px rgba(244, 63, 94, 0.35);
+}
+
+.btn-add-to-favorites svg {
+  width: 15px;
+  height: 15px;
+  position: relative;
+  z-index: 1;
+  transition: transform 0.2s ease;
+}
+
+.btn-add-to-favorites:hover svg {
+  transform: scale(1.1);
+}
+
+/* ============================================
+   GRID LAYOUTS
+   ============================================ */
+
+.businesses-grid,
+.search-results-grid,
+.business-results {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* For wider layouts (dashboard) */
+.businesses-grid.grid-mode {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: 20px;
+}
+
+/* ============================================
+   LOADING STATES
+   ============================================ */
+
+.business-card.loading {
+  pointer-events: none;
+  animation: shimmer 1.5s infinite;
+  background: linear-gradient(
+    90deg,
+    #f9fafb 0%,
+    #f3f4f6 50%,
+    #f9fafb 100%
+  );
+  background-size: 200% 100%;
+  min-height: 180px;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* ============================================
+   RESPONSIVE - Mobile Optimization
+   ============================================ */
+
+@media (max-width: 768px) {
+  .business-card {
+    padding: 14px;
+  }
+
+  .business-name,
+  .business-header h3,
+  .business-header h4 {
+    font-size: 0.9375rem;
+  }
+
+  .business-actions {
+    flex-direction: column;
+  }
+
+  .businesses-grid.grid-mode {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================
+   STAGGER ANIMATIONS - Cinematic Reveal
+   ============================================ */
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.business-card {
+  animation: slideInUp 0.3s cubic-bezier(0.4, 0, 0.2, 1) backwards;
+}
+
+.business-card:nth-child(1) { animation-delay: 0s; }
+.business-card:nth-child(2) { animation-delay: 0.03s; }
+.business-card:nth-child(3) { animation-delay: 0.06s; }
+.business-card:nth-child(4) { animation-delay: 0.09s; }
+.business-card:nth-child(5) { animation-delay: 0.12s; }
+.business-card:nth-child(6) { animation-delay: 0.15s; }
+.business-card:nth-child(7) { animation-delay: 0.18s; }
+.business-card:nth-child(8) { animation-delay: 0.21s; }
+.business-card:nth-child(9) { animation-delay: 0.24s; }
+.business-card:nth-child(10) { animation-delay: 0.27s; }
+
+/* ============================================
+   TYPE BADGES & DISTANCE (if needed)
+   ============================================ */
+
+.business-types {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 8px;
+}
+
+.type-badge {
+  display: inline-flex;
+  padding: 3px 7px;
+  background: rgba(59, 130, 246, 0.06);
+  border: 1px solid rgba(59, 130, 246, 0.12);
+  border-radius: 4px;
+  color: var(--business-accent-blue);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.business-distance {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 7px;
+  background: rgba(99, 102, 241, 0.06);
+  border: 1px solid rgba(99, 102, 241, 0.12);
+  border-radius: 4px;
+  color: #6366f1;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* ============================================
+   WEBSITE LINK STYLING
+   ============================================ */
+
+.business-website {
+  color: var(--business-accent-blue);
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.business-website:hover {
+  color: #2563eb;
+  text-decoration: underline;
+}
+
+/* ============================================
+   FOCUS STATES - Accessibility
+   ============================================ */
+
+.business-card:focus-within {
+  outline: 2px solid var(--business-accent-blue);
+  outline-offset: 2px;
+}
+
+.btn-view-map:focus-visible,
+.btn-add-to-favorites:focus-visible {
+  outline: 2px solid var(--business-accent-blue);
+  outline-offset: 2px;
+}

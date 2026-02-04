@@ -4,8 +4,19 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>RelanceWork - Suivi de candidatures</title>
+    <link rel="stylesheet" href="/src/styles/business-cards.css" />
   </head>
   <body>
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Toggle menu">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+
+    <!-- Mobile Overlay -->
+    <div class="mobile-overlay" id="mobileOverlay"></div>
+
     <div class="app-wrapper">
       <!-- Sidebar -->
       <aside class="sidebar">
@@ -183,55 +194,6 @@
             </div>
           </section>
 
-          <!-- Charts Row -->
-          <section class="charts-row">
-            <div class="chart-card">
-              <div class="chart-header">
-                <h3>Répartition des statuts</h3>
-              </div>
-              <div class="chart-content">
-                <div class="donut-chart" id="statusChart">
-                  <svg viewBox="0 0 100 100" class="donut-svg">
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="40"
-                      fill="none"
-                      stroke="#e2e8f0"
-                      stroke-width="12"
-                    />
-                  </svg>
-                  <div class="donut-center">
-                    <span class="donut-value" id="donutTotal">0</span>
-                    <span class="donut-label">Total</span>
-                  </div>
-                </div>
-                <div class="chart-legend" id="chartLegend"></div>
-              </div>
-            </div>
-
-            <div class="chart-card">
-              <div class="chart-header">
-                <h3>Activité récente</h3>
-              </div>
-              <div class="chart-content">
-                <div class="activity-list" id="activityList">
-                  <p class="loading-text">Chargement...</p>
-                </div>
-              </div>
-            </div>
-
-            <div class="chart-card">
-              <div class="chart-header">
-                <h3>Prochaines actions</h3>
-              </div>
-              <div class="chart-content">
-                <div class="actions-list" id="actionsList">
-                  <p class="loading-text">Chargement...</p>
-                </div>
-              </div>
-            </div>
-          </section>
 
           <!-- Applications Section -->
           <section class="applications-section">
@@ -326,6 +288,10 @@
               <label class="filter-checkbox">
                 <input type="checkbox" id="filterNoEmail" />
                 <span>Uniquement les entreprises sans email</span>
+              </label>
+              <label class="filter-checkbox filter-with-email">
+                <input type="checkbox" id="filterWithEmail" />
+                <span>✉️ Uniquement avec emails trouvés</span>
               </label>
             </div>
           </div>

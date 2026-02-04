@@ -24,20 +24,20 @@ export class MapsSearch {
   private googleMapsLoaded: boolean = false;
   private userLocation: { lat: number; lng: number } | null = null;
 
-  // Catégories d'entreprises à chercher automatiquement
-  private businessCategories = [
-    "agences web",
-    "développeurs freelance",
-    "graphistes",
-    "photographes",
-    "artisans",
-    "plombiers",
-    "électriciens",
-    "menuisiers",
-    "coiffeurs",
-    "restaurants",
-    "cafés",
-    "boutiques"
+  // Types d'entreprises qui ont MOINS souvent de site web (petits commerces, artisans)
+  private businessTypesWithoutWebsite = [
+    "locksmith",        // Serrurier
+    "plumber",          // Plombier
+    "electrician",      // Électricien
+    "painter",          // Peintre
+    "general_contractor", // Entrepreneur général
+    "roofing_contractor", // Couvreur
+    "moving_company",   // Déménageur
+    "car_wash",         // Lavage auto
+    "laundry",          // Blanchisserie
+    "hair_care",        // Coiffeur
+    "beauty_salon",     // Salon de beauté
+    "local_business"    // Commerce local
   ];
 
   constructor() {
@@ -127,7 +127,7 @@ export class MapsSearch {
     }
   }
 
-  // Effectuer la recherche automatique de plusieurs catégories
+  // Effectuer la recherche automatique de plusieurs catégories avec pagination
   private async performAutoSearch() {
     console.log('performAutoSearch appelé', {
       googleMapsLoaded: this.googleMapsLoaded,
@@ -147,37 +147,155 @@ export class MapsSearch {
         <div class="loading-text">
           <p style="margin-bottom: 12px;">🔍 Recherche automatique en cours...</p>
           <p style="font-size: 0.8rem;">Détection des entreprises locales sans site web...</p>
+          <p style="font-size: 0.7rem; margin-top: 8px; color: var(--text-secondary);">Récupération de plusieurs pages de résultats...</p>
         </div>
       `;
     }
 
-    // Chercher les entreprises locales (toutes catégories confondues)
-    const request: google.maps.places.PlaceSearchRequest = {
-      location: this.userLocation,
-      radius: 5000, // 5km de rayon
-      type: "establishment" // Tous types d'établissements
-    };
+    // Chercher des types spécifiques d'entreprises qui ont moins souvent de site web
+    // On fait plusieurs recherches pour augmenter les chances
+    console.log(`🎯 Recherche ciblée sur ${this.businessTypesWithoutWebsite.length} types d'entreprises locales`);
 
-    console.log('Lancement nearbySearch avec:', request);
+    try {
+      const allResults: google.maps.places.PlaceResult[] = [];
 
-    this.service.nearbySearch(request, (results, status) => {
-      console.log('nearbySearch réponse:', { status, resultCount: results?.length });
+      // Prendre les 3 premiers types pour ne pas surcharger
+      const typesToSearch = this.businessTypesWithoutWebsite.slice(0, 3);
 
-      if (status === google.maps.places.PlacesServiceStatus.OK && results) {
-        console.log(`✅ ${results.length} entreprises trouvées dans un rayon de 5km`);
-        this.handleSearchResults(results);
+      for (let i = 0; i < typesToSearch.length; i++) {
+        const businessType = typesToSearch[i];
+        console.log(`🔍 Recherche type ${i + 1}/${typesToSearch.length}: ${businessType}`);
+
+        if (resultsContainer) {
+          resultsContainer.innerHTML = `
+            <div class="loading-text">
+              <p style="margin-bottom: 12px;">🔍 Recherche automatique en cours...</p>
+              <p style="font-size: 0.8rem;">Type: ${businessType} (${i + 1}/${typesToSearch.length})</p>
+              <p style="font-size: 0.7rem; margin-top: 8px; color: var(--text-secondary);">${allResults.length} entreprises trouvées jusqu'à présent...</p>
+            </div>
+          `;
+        }
+
+        const request: google.maps.places.PlaceSearchRequest = {
+          location: this.userLocation,
+          radius: 3000, // 3km de rayon (réduit pour plus de précision)
+          type: businessType as any
+        };
+
+        const typeResults = await this.searchWithPagination(request);
+        console.log(`  ✅ ${typeResults.length} résultats pour ${businessType}`);
+
+        // Ajouter les résultats en évitant les doublons (par place_id)
+        const existingIds = new Set(allResults.map(r => r.place_id));
+        const newResults = typeResults.filter(r => !existingIds.has(r.place_id));
+        allResults.push(...newResults);
+
+        // Pause entre les types pour respecter les limites de l'API
+        if (i < typesToSearch.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+      }
+
+      console.log(`✅ Total: ${allResults.length} entreprises trouvées (recherche ciblée)`);
+
+      if (allResults.length > 0) {
+        this.handleSearchResults(allResults);
       } else {
-        console.error('Erreur nearbySearch:', status);
         if (resultsContainer) {
           resultsContainer.innerHTML = `
             <div class="error-text">
               <p>❌ Aucune entreprise trouvée dans votre zone</p>
-              <p style="font-size: 0.8rem; margin-top: 8px;">Status: ${status}</p>
-              <p style="font-size: 0.8rem;">Essayez une recherche manuelle</p>
+              <p style="font-size: 0.8rem; margin-top: 8px;">Essayez d'élargir la zone ou une recherche manuelle</p>
             </div>
           `;
         }
       }
+    } catch (error) {
+      console.error('Erreur lors de la recherche ciblée:', error);
+      if (resultsContainer) {
+        resultsContainer.innerHTML = `
+          <div class="error-text">
+            <p>❌ Erreur lors de la recherche</p>
+            <p style="font-size: 0.8rem; margin-top: 8px;">Essayez une recherche manuelle</p>
+          </div>
+        `;
+      }
+    }
+  }
+
+  // Méthode pour gérer la pagination (récupère jusqu'à 60 résultats)
+  private async searchWithPagination(
+    request: google.maps.places.PlaceSearchRequest,
+    accumulatedResults: google.maps.places.PlaceResult[] = [],
+    pageNumber: number = 1
+  ): Promise<google.maps.places.PlaceResult[]> {
+    return new Promise((resolve, reject) => {
+      if (!this.service) {
+        reject(new Error('Service Places non disponible'));
+        return;
+      }
+
+      console.log(`📄 Récupération de la page ${pageNumber}...`);
+
+      this.service.nearbySearch(request, async (results, status, pagination) => {
+        console.log(`Page ${pageNumber} - Status: ${status}, Résultats: ${results?.length || 0}`);
+
+        if (status === google.maps.places.PlacesServiceStatus.OK && results) {
+          const newResults = [...accumulatedResults, ...results];
+          console.log(`📊 Total accumulé: ${newResults.length} entreprises`);
+
+          // Mettre à jour l'affichage du loading avec le nombre actuel
+          const resultsContainer = document.getElementById("businessResults");
+          if (resultsContainer && pageNumber < 3) {
+            resultsContainer.innerHTML = `
+              <div class="loading-text">
+                <p style="margin-bottom: 12px;">🔍 Recherche automatique en cours...</p>
+                <p style="font-size: 0.8rem;">${newResults.length} entreprises trouvées...</p>
+                <p style="font-size: 0.7rem; margin-top: 8px; color: var(--text-secondary);">Récupération de la page ${pageNumber + 1}/3...</p>
+              </div>
+            `;
+          }
+
+          // Vérifier s'il y a une page suivante et si on n'a pas atteint la limite
+          if (pagination?.hasNextPage && pageNumber < 3) {
+            console.log('➡️ Page suivante disponible, attente de 2 secondes...');
+
+            // Google Places API nécessite un délai de ~2 secondes entre les requêtes paginées
+            setTimeout(async () => {
+              try {
+                pagination.nextPage();
+                // On doit refaire l'appel avec le nouveau token
+                const nextResults = await this.searchWithPagination(
+                  request,
+                  newResults,
+                  pageNumber + 1
+                );
+                resolve(nextResults);
+              } catch (error) {
+                console.error('Erreur lors de la pagination:', error);
+                // Retourner les résultats déjà obtenus en cas d'erreur
+                resolve(newResults);
+              }
+            }, 2000);
+          } else {
+            if (pageNumber >= 3) {
+              console.log('✅ Limite de 3 pages atteinte (max ~60 résultats)');
+            } else {
+              console.log('✅ Pas de page suivante disponible');
+            }
+            resolve(newResults);
+          }
+        } else {
+          console.error(`Erreur nearbySearch page ${pageNumber}:`, status);
+          // Retourner les résultats déjà accumulés en cas d'erreur
+          if (accumulatedResults.length > 0) {
+            console.log(`⚠️ Erreur mais ${accumulatedResults.length} résultats déjà obtenus`);
+            resolve(accumulatedResults);
+          } else {
+            reject(new Error(`Erreur Places API: ${status}`));
+          }
+        }
+      });
     });
   }
 
@@ -239,6 +357,7 @@ export class MapsSearch {
     // Filtres
     const filterNoWebsite = document.getElementById("filterNoWebsite") as HTMLInputElement;
     const filterNoEmail = document.getElementById("filterNoEmail") as HTMLInputElement;
+    const filterWithEmail = document.getElementById("filterWithEmail") as HTMLInputElement;
 
     if (filterNoWebsite) {
       filterNoWebsite.addEventListener("change", () => {
@@ -248,6 +367,12 @@ export class MapsSearch {
 
     if (filterNoEmail) {
       filterNoEmail.addEventListener("change", () => {
+        this.applyFilters();
+      });
+    }
+
+    if (filterWithEmail) {
+      filterWithEmail.addEventListener("change", () => {
         this.applyFilters();
       });
     }
@@ -386,10 +511,12 @@ export class MapsSearch {
   private applyFilters() {
     const filterNoWebsite = document.getElementById("filterNoWebsite") as HTMLInputElement;
     const filterNoEmail = document.getElementById("filterNoEmail") as HTMLInputElement;
+    const filterWithEmail = document.getElementById("filterWithEmail") as HTMLInputElement;
 
     console.log('🔍 Application des filtres:', {
       filterNoWebsite: filterNoWebsite?.checked,
       filterNoEmail: filterNoEmail?.checked,
+      filterWithEmail: filterWithEmail?.checked,
       totalResults: this.currentResults.length
     });
 
@@ -403,6 +530,11 @@ export class MapsSearch {
     if (filterNoEmail?.checked) {
       filteredResults = filteredResults.filter((r) => !r.email);
       console.log(`Filtre sans email: ${filteredResults.length} résultats`);
+    }
+
+    if (filterWithEmail?.checked) {
+      filteredResults = filteredResults.filter((r) => r.email);
+      console.log(`Filtre avec email: ${filteredResults.length} résultats`);
     }
 
     console.log(`📊 Résultats après filtres: ${filteredResults.length}`);
@@ -436,7 +568,34 @@ export class MapsSearch {
     // Nettoyer les marqueurs et en créer de nouveaux
     this.clearMarkers();
 
-    resultsContainer.innerHTML = results
+    // Compter les entreprises sans email
+    const noEmailCount = results.filter(r => !r.email).length;
+
+    // Ajouter un bouton d'enrichissement si des entreprises n'ont pas d'email
+    const enrichButton = noEmailCount > 0 ? `
+      <div class="enrich-section" style="margin-bottom: 20px; padding: 20px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%); border-radius: 12px; border: 2px solid rgba(99, 102, 241, 0.2); backdrop-filter: blur(10px);">
+        <button class="btn-enrich-emails" id="btnEnrichEmails" style="width: 100%; padding: 16px 24px; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: white; border: none; border-radius: 10px; font-weight: 600; font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3); position: relative; overflow: hidden;">
+          <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.1) 100%); pointer-events: none;"></div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width: 22px; height: 22px; position: relative; z-index: 1;">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+            <polyline points="22,6 12,13 2,6"/>
+            <circle cx="18" cy="8" r="3" fill="currentColor" opacity="0.3"/>
+          </svg>
+          <span style="position: relative; z-index: 1;">
+            Enrichir avec Hunter.io
+            <span style="display: inline-block; margin-left: 8px; padding: 4px 10px; background: rgba(255,255,255,0.2); border-radius: 20px; font-size: 12px; font-weight: 700;">${noEmailCount}</span>
+          </span>
+        </button>
+        <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 12px; font-size: 13px; color: #6366f1; font-weight: 500;">
+          <svg viewBox="0 0 24 24" fill="currentColor" style="width: 16px; height: 16px;">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+          </svg>
+          <span>Emails professionnels vérifiés • Plan gratuit: 25/mois</span>
+        </div>
+      </div>
+    ` : '';
+
+    resultsContainer.innerHTML = enrichButton + results
       .map(
         (business, index) => `
       <div class="business-card" data-index="${index}">
@@ -448,7 +607,7 @@ export class MapsSearch {
         <div class="business-info">
           ${business.phone ? `<span class="info-item">📞 ${business.phone}</span>` : ""}
           ${!business.website ? '<span class="info-item badge-no-website">❌ Pas de site web</span>' : '<span class="info-item">✅ Site web existant</span>'}
-          ${!business.email ? '<span class="info-item">❌ Pas d\'email</span>' : ""}
+          ${business.email ? `<span class="info-item" style="color: #10b981;">✅ ${business.email}</span>` : '<span class="info-item">❌ Pas d\'email</span>'}
         </div>
         <div class="business-actions">
           <button class="btn-view-map" data-index="${index}">
@@ -458,12 +617,11 @@ export class MapsSearch {
             </svg>
             Voir sur la carte
           </button>
-          <button class="btn-add-to-candidates" data-index="${index}">
+          <button class="btn-add-to-favorites" data-index="${index}">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="12" y1="5" x2="12" y2="19"/>
-              <line x1="5" y1="12" x2="19" y2="12"/>
+              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
             </svg>
-            Ajouter comme candidature
+            Ajouter aux favoris
           </button>
         </div>
       </div>
@@ -478,6 +636,14 @@ export class MapsSearch {
 
     // Attacher les événements
     this.attachResultEvents(results);
+
+    // Attacher l'événement au bouton d'enrichissement
+    if (noEmailCount > 0) {
+      const enrichBtn = document.getElementById("btnEnrichEmails");
+      if (enrichBtn) {
+        enrichBtn.addEventListener("click", () => this.enrichWithEmails(results));
+      }
+    }
   }
 
   private createMarker(business: BusinessPlace, index: number) {
@@ -532,53 +698,185 @@ export class MapsSearch {
       });
     });
 
-    // Boutons "Ajouter comme candidature"
-    const addButtons = document.querySelectorAll(".btn-add-to-candidates");
+    // Boutons "Ajouter aux favoris"
+    const addButtons = document.querySelectorAll(".btn-add-to-favorites");
     addButtons.forEach((btn) => {
       btn.addEventListener("click", async (e) => {
         const target = e.currentTarget as HTMLButtonElement;
         const index = parseInt(target.getAttribute("data-index") || "0");
         const business = results[index];
         if (business) {
-          await this.addToApplications(business);
+          this.addToFavorites(business, target);
         }
       });
     });
   }
 
-  private async addToApplications(business: BusinessPlace) {
+
+  /**
+   * Ajouter une entreprise aux favoris (stocké dans localStorage)
+   */
+  private addToFavorites(business: BusinessPlace, button: HTMLButtonElement) {
     try {
-      const API_URL = "http://localhost:3000/api";
+      // Récupérer les favoris existants
+      const favoritesStr = localStorage.getItem('businessFavorites');
+      const favorites: BusinessPlace[] = favoritesStr ? JSON.parse(favoritesStr) : [];
 
-      // Extraire un email s'il existe (Google Places API ne fournit pas toujours d'email)
-      const data = {
-        company: business.name,
-        poste: "Développeur", // Poste par défaut, l'utilisateur pourra le modifier
-        email: business.email || undefined,
-        phone: business.phone || undefined,
-        status: "En attente",
-        isRelance: false,
-      };
+      // Vérifier si déjà dans les favoris
+      const alreadyFavorite = favorites.some(f => f.placeId === business.placeId);
 
-      const response = await fetch(`${API_URL}/application`, {
+      if (alreadyFavorite) {
+        // Retirer des favoris
+        const newFavorites = favorites.filter(f => f.placeId !== business.placeId);
+        localStorage.setItem('businessFavorites', JSON.stringify(newFavorites));
+
+        // Mettre à jour le bouton
+        button.innerHTML = `
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+          </svg>
+          Ajouter aux favoris
+        `;
+        button.style.background = '';
+        button.style.color = '';
+
+        console.log(`❤️ ${business.name} retiré des favoris`);
+      } else {
+        // Ajouter aux favoris
+        favorites.push(business);
+        localStorage.setItem('businessFavorites', JSON.stringify(favorites));
+
+        // Mettre à jour le bouton
+        button.innerHTML = `
+          <svg viewBox="0 0 24 24" fill="currentColor" stroke="none">
+            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+          </svg>
+          ❤️ Dans les favoris
+        `;
+        button.style.background = '#ef4444';
+        button.style.color = 'white';
+
+        console.log(`✅ ${business.name} ajouté aux favoris`);
+
+        // Afficher une notification temporaire
+        const notification = document.createElement('div');
+        notification.textContent = `❤️ ${business.name} ajouté aux favoris`;
+        notification.style.cssText = `
+          position: fixed;
+          bottom: 20px;
+          right: 20px;
+          background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+          color: white;
+          padding: 16px 24px;
+          border-radius: 12px;
+          box-shadow: 0 10px 25px rgba(239, 68, 68, 0.3);
+          z-index: 10000;
+          animation: slideIn 0.3s ease-out;
+          font-weight: 600;
+        `;
+        document.body.appendChild(notification);
+
+        setTimeout(() => {
+          notification.style.animation = 'slideOut 0.3s ease-out';
+          setTimeout(() => notification.remove(), 300);
+        }, 2000);
+      }
+    } catch (error) {
+      console.error("Erreur lors de l'ajout aux favoris:", error);
+      alert("❌ Erreur lors de l'ajout aux favoris");
+    }
+  }
+
+  /**
+   * Enrichir les résultats avec les emails via Hunter.io
+   */
+  private async enrichWithEmails(results: BusinessPlace[]) {
+    const API_URL = "http://localhost:3000/api";
+
+    // Filtrer les entreprises sans email
+    const businessesWithoutEmail = results.filter(b => !b.email);
+
+    if (businessesWithoutEmail.length === 0) {
+      alert("Toutes les entreprises ont déjà un email!");
+      return;
+    }
+
+    console.log(`🤖 Enrichissement de ${businessesWithoutEmail.length} entreprises avec Hyperbrowser...`);
+
+    // Mettre à jour le bouton pour afficher l'état de chargement
+    const enrichBtn = document.getElementById("btnEnrichEmails");
+    if (enrichBtn) {
+      enrichBtn.innerHTML = `
+        <div style="display: flex; align-items: center; justify-content: center;">
+          <div style="width: 18px; height: 18px; border: 3px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 1s linear infinite; margin-right: 8px;"></div>
+          Recherche en cours... (0/${businessesWithoutEmail.length})
+        </div>
+      `;
+      (enrichBtn as HTMLButtonElement).disabled = true;
+      (enrichBtn as HTMLButtonElement).style.cursor = 'not-allowed';
+      (enrichBtn as HTMLButtonElement).style.opacity = '0.7';
+    }
+
+    try {
+      // Préparer les données pour l'API
+      const companies = businessesWithoutEmail.map(b => ({
+        name: b.name,
+        location: b.address
+      }));
+
+      // Appeler l'API batch pour enrichir les emails via Hunter.io
+      const response = await fetch(`${API_URL}/email-enrichment/find-emails-batch`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          companies,
+          maxConcurrent: 2 // 2 recherches en parallèle pour Hunter.io
+        }),
       });
 
       if (!response.ok) {
-        throw new Error("Erreur lors de l'ajout");
+        throw new Error(`Erreur API: ${response.status}`);
       }
 
-      alert(`✅ ${business.name} a été ajouté à vos candidatures !`);
+      const data = await response.json();
+      console.log("📧 Résultats Hyperbrowser:", data);
 
-      // Optionnel: rafraîchir la liste des candidatures
-      window.location.reload();
+      // Mettre à jour les résultats avec les emails trouvés
+      let emailsFound = 0;
+      data.data.forEach((result: { companyName: string; emails: string[] }) => {
+        const business = this.currentResults.find(b => b.name === result.companyName);
+        if (business && result.emails.length > 0) {
+          business.email = result.emails[0]; // Prendre le premier email
+          emailsFound++;
+        }
+      });
+
+      console.log(`✅ ${emailsFound} email(s) trouvé(s) sur ${businessesWithoutEmail.length} entreprises`);
+
+      // Rafraîchir l'affichage
+      this.applyFilters();
+
+      // Afficher un message de succès
+      alert(`✅ Enrichissement terminé!\n\n${emailsFound} email(s) trouvé(s) sur ${businessesWithoutEmail.length} entreprises.\n\nLes résultats ont été mis à jour.`);
     } catch (error) {
-      console.error("Erreur lors de l'ajout:", error);
-      alert("❌ Erreur lors de l'ajout de la candidature");
+      console.error("❌ Erreur lors de l'enrichissement:", error);
+      alert(`❌ Erreur lors de l'enrichissement des emails.\n\nVérifiez que:\n1. Le backend est lancé (npm run dev)\n2. La clé API Hunter.io est configurée dans .env\n3. Votre connexion internet fonctionne\n4. Vous n'avez pas dépassé votre quota Hunter.io\n\nDétails: ${error instanceof Error ? error.message : 'Erreur inconnue'}`);
+
+      // Restaurer le bouton
+      if (enrichBtn) {
+        enrichBtn.innerHTML = `
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 18px; height: 18px; margin-right: 8px;">
+            <path d="M4 4h16c1.1 0 2 .9 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+            <polyline points="22,6 12,13 2,6"/>
+          </svg>
+          Enrichir avec emails (${businessesWithoutEmail.length} entreprise${businessesWithoutEmail.length > 1 ? 's' : ''} sans email)
+        `;
+        (enrichBtn as HTMLButtonElement).disabled = false;
+        (enrichBtn as HTMLButtonElement).style.cursor = 'pointer';
+        (enrichBtn as HTMLButtonElement).style.opacity = '1';
+      }
     }
   }
 
