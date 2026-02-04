@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { pool } from "../config/database";
+import db from "../config/database";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-in-production";
 const SALT_ROUNDS = 10;
@@ -25,12 +25,11 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
     }
 
     // Check if user already exists
-    const existingUser = await pool.query(
-      "SELECT id FROM users WHERE email = $1",
-      [email.toLowerCase()]
-    );
+    const existingUser = db
+      .prepare("SELECT id FROM users WHERE email = ?")
+      .get(email.toLowerCase());
 
-    if (existingUser.rows.length > 0) {
+    if (existingUser) {
       res.status(409).json({ message: "Cet email est déjà utilisé" });
       return;
     }
@@ -39,12 +38,13 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
 
     // Create user
-    const result = await pool.query(
-      "INSERT INTO users (name, email, password, created_at) VALUES ($1, $2, $3, NOW()) RETURNING id, name, email, created_at",
-      [name, email.toLowerCase(), hashedPassword]
-    );
+    const result = db
+      .prepare(
+        "INSERT INTO users (name, email, password, created_at) VALUES (?, ?, ?, datetime('now')) RETURNING id, name, email, created_at"
+      )
+      .get(name, email.toLowerCase(), hashedPassword) as any;
 
-    const user = result.rows[0];
+    const user = result;
 
     // Generate JWT token
     const token = jwt.sign(
@@ -81,17 +81,14 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     }
 
     // Find user
-    const result = await pool.query(
-      "SELECT id, name, email, password FROM users WHERE email = $1",
-      [email.toLowerCase()]
-    );
+    const user = db
+      .prepare("SELECT id, name, email, password FROM users WHERE email = ?")
+      .get(email.toLowerCase()) as any;
 
-    if (result.rows.length === 0) {
+    if (!user) {
       res.status(401).json({ message: "Email ou mot de passe incorrect" });
       return;
     }
-
-    const user = result.rows[0];
 
     // Verify password
     const isValidPassword = await bcrypt.compare(password, user.password);
@@ -110,9 +107,8 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     );
 
     // Update last login
-    await pool.query(
-      "UPDATE users SET last_login = NOW() WHERE id = $1",
-      [user.id]
+    db.prepare("UPDATE users SET last_login = datetime('now') WHERE id = ?").run(
+      user.id
     );
 
     res.status(200).json({
@@ -143,19 +139,22 @@ export const getCurrentUser = async (
   try {
     const userId = (req as any).user.id;
 
-    const result = await pool.query(
-      "SELECT id, name, email, created_at, last_login FROM users WHERE id = $1",
-      [userId]
-    );
+    const user = db
+      .prepare(
+        "SELECT id, name, email, created_at, last_login FROM users WHERE id = ?"
+      )
+      .get(userId) as any;
 
-    if (result.rows.length === 0) {
+    if (!user) {
       res.status(404).json({ message: "Utilisateur non trouvé" });
       return;
     }
 
-    res.status(200).json({ user: result.rows[0] });
+    res.status(200).json({ user });
   } catch (error) {
     console.error("Get current user error:", error);
-    res.status(500).json({ message: "Erreur lors de la récupération de l'utilisateur" });
+    res
+      .status(500)
+      .json({ message: "Erreur lors de la récupération de l'utilisateur" });
   }
 };

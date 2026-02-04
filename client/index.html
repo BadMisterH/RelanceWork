@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>RelanceWork - Suivi de candidatures</title>
     <link rel="stylesheet" href="/src/styles/business-cards.css" />
+    <link rel="stylesheet" href="/src/styles/slide-panel.css" />
   </head>
   <body>
     <!-- Mobile Menu Toggle -->
@@ -237,74 +238,87 @@
       </div>
     </div>
 
-    <!-- Modal pour chercher des entreprises -->
-    <div class="modal-overlay" id="searchModal">
-      <div class="modal modal-large">
-        <div class="modal-header">
-          <h3>Chercher des entreprises sans site web</h3>
-          <button class="modal-close" id="closeSearchModalBtn">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
+    <!-- Slide-in Panel pour chercher des entreprises -->
+    <div class="search-panel-overlay" id="searchModal">
+      <div class="search-panel">
+        <!-- Panel Header -->
+        <div class="search-panel-header">
+          <div class="search-panel-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <h3>Chercher des entreprises</h3>
+          </div>
+          <button class="panel-close-btn" id="closeSearchModalBtn" aria-label="Fermer le panneau">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <line x1="18" y1="6" x2="6" y2="18" />
               <line x1="6" y1="6" x2="18" y2="18" />
             </svg>
           </button>
         </div>
-        <div class="search-modal-content">
-          <div class="search-controls">
-            <div class="auto-search-info">
-              <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 12px;">
-                ✨ Recherche automatique des entreprises locales sans site web activée
-              </p>
+
+        <!-- Search Controls -->
+        <div class="panel-search-controls">
+          <div class="search-status-badge">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span>Recherche automatique activée</span>
+          </div>
+
+          <div class="panel-search-input-group">
+            <input
+              type="text"
+              id="mapsSearchInput"
+              placeholder="Recherche manuelle (Ex: Restaurants à Paris)..."
+            />
+            <button id="mapsSearchBtn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+              Rechercher
+            </button>
+          </div>
+
+          <div class="panel-filter-chips">
+            <label class="filter-chip active">
+              <input type="checkbox" id="filterNoWebsite" checked />
+              <span>Sans site web</span>
+            </label>
+            <label class="filter-chip">
+              <input type="checkbox" id="filterNoEmail" />
+              <span>Sans email</span>
+            </label>
+            <label class="filter-chip">
+              <input type="checkbox" id="filterWithEmail" />
+              <span>✉️ Avec emails trouvés</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Panel Content: Split View -->
+        <div class="panel-content">
+          <!-- Map Section -->
+          <div class="panel-map-section">
+            <div id="map" class="google-map"></div>
+          </div>
+
+          <!-- Results Section -->
+          <div class="panel-results-section">
+            <div class="panel-results-header">
+              <h4>Résultats</h4>
+              <span class="results-count-badge" id="resultsCount">0</span>
             </div>
-            <div class="search-input-group">
-              <input
-                type="text"
-                id="mapsSearchInput"
-                placeholder="Ou faites une recherche manuelle (Ex: Restaurants à Paris)..."
-              />
-              <button id="mapsSearchBtn" class="btn-primary">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
+            <div class="panel-results-list" id="businessResults">
+              <div class="panel-empty-state">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                   <circle cx="11" cy="11" r="8" />
                   <line x1="21" y1="21" x2="16.65" y2="16.65" />
                 </svg>
-                Rechercher
-              </button>
-            </div>
-            <div class="search-filters">
-              <label class="filter-checkbox">
-                <input type="checkbox" id="filterNoWebsite" checked />
-                <span>Uniquement les entreprises sans site web</span>
-              </label>
-              <label class="filter-checkbox">
-                <input type="checkbox" id="filterNoEmail" />
-                <span>Uniquement les entreprises sans email</span>
-              </label>
-              <label class="filter-checkbox filter-with-email">
-                <input type="checkbox" id="filterWithEmail" />
-                <span>✉️ Uniquement avec emails trouvés</span>
-              </label>
-            </div>
-          </div>
-          <div class="search-results-container">
-            <div id="map" class="google-map"></div>
-            <div class="results-list">
-              <div class="results-header">
-                <h4>Résultats <span id="resultsCount">(0)</span></h4>
-              </div>
-              <div id="businessResults" class="business-results">
-                <p class="empty-text">
-                  Effectuez une recherche pour voir les résultats
-                </p>
+                <h4>Aucun résultat pour le moment</h4>
+                <p>Effectuez une recherche pour voir les entreprises locales</p>
               </div>
             </div>
           </div>

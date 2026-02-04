@@ -144,10 +144,11 @@ export class MapsSearch {
     const resultsContainer = document.getElementById("businessResults");
     if (resultsContainer) {
       resultsContainer.innerHTML = `
-        <div class="loading-text">
-          <p style="margin-bottom: 12px;">🔍 Recherche automatique en cours...</p>
-          <p style="font-size: 0.8rem;">Détection des entreprises locales sans site web...</p>
-          <p style="font-size: 0.7rem; margin-top: 8px; color: var(--text-secondary);">Récupération de plusieurs pages de résultats...</p>
+        <div class="panel-empty-state">
+          <div style="width: 80px; height: 80px; border: 4px solid #e2e8f0; border-top-color: #2563eb; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+          <h4 style="margin-top: 20px;">Recherche en cours...</h4>
+          <p>Détection des entreprises locales sans site web</p>
+          <p style="font-size: 0.875rem; margin-top: 8px; color: #94a3b8;">Récupération de plusieurs pages de résultats...</p>
         </div>
       `;
     }
@@ -168,10 +169,11 @@ export class MapsSearch {
 
         if (resultsContainer) {
           resultsContainer.innerHTML = `
-            <div class="loading-text">
-              <p style="margin-bottom: 12px;">🔍 Recherche automatique en cours...</p>
-              <p style="font-size: 0.8rem;">Type: ${businessType} (${i + 1}/${typesToSearch.length})</p>
-              <p style="font-size: 0.7rem; margin-top: 8px; color: var(--text-secondary);">${allResults.length} entreprises trouvées jusqu'à présent...</p>
+            <div class="panel-empty-state">
+              <div style="width: 80px; height: 80px; border: 4px solid #e2e8f0; border-top-color: #2563eb; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+              <h4 style="margin-top: 20px;">Recherche en cours...</h4>
+              <p>Type: ${businessType} (${i + 1}/${typesToSearch.length})</p>
+              <p style="font-size: 0.875rem; margin-top: 8px; color: #94a3b8;">${allResults.length} entreprises trouvées</p>
             </div>
           `;
         }
@@ -203,9 +205,14 @@ export class MapsSearch {
       } else {
         if (resultsContainer) {
           resultsContainer.innerHTML = `
-            <div class="error-text">
-              <p>❌ Aucune entreprise trouvée dans votre zone</p>
-              <p style="font-size: 0.8rem; margin-top: 8px;">Essayez d'élargir la zone ou une recherche manuelle</p>
+            <div class="panel-empty-state">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                <line x1="4" y1="4" x2="20" y2="20" stroke-width="2"/>
+              </svg>
+              <h4>Aucune entreprise trouvée</h4>
+              <p>Essayez d'élargir la zone ou effectuez une recherche manuelle</p>
             </div>
           `;
         }
@@ -214,9 +221,14 @@ export class MapsSearch {
       console.error('Erreur lors de la recherche ciblée:', error);
       if (resultsContainer) {
         resultsContainer.innerHTML = `
-          <div class="error-text">
-            <p>❌ Erreur lors de la recherche</p>
-            <p style="font-size: 0.8rem; margin-top: 8px;">Essayez une recherche manuelle</p>
+          <div class="panel-empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+            <h4>Erreur lors de la recherche</h4>
+            <p>Essayez une recherche manuelle</p>
           </div>
         `;
       }
@@ -248,10 +260,11 @@ export class MapsSearch {
           const resultsContainer = document.getElementById("businessResults");
           if (resultsContainer && pageNumber < 3) {
             resultsContainer.innerHTML = `
-              <div class="loading-text">
-                <p style="margin-bottom: 12px;">🔍 Recherche automatique en cours...</p>
-                <p style="font-size: 0.8rem;">${newResults.length} entreprises trouvées...</p>
-                <p style="font-size: 0.7rem; margin-top: 8px; color: var(--text-secondary);">Récupération de la page ${pageNumber + 1}/3...</p>
+              <div class="panel-empty-state">
+                <div style="width: 80px; height: 80px; border: 4px solid #e2e8f0; border-top-color: #2563eb; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                <h4 style="margin-top: 20px;">Recherche en cours...</h4>
+                <p>${newResults.length} entreprises trouvées</p>
+                <p style="font-size: 0.875rem; margin-top: 8px; color: #94a3b8;">Page ${pageNumber + 1}/3</p>
               </div>
             `;
           }
@@ -328,6 +341,7 @@ export class MapsSearch {
       });
     }
 
+    // Close on click outside (overlay)
     if (modal) {
       modal.addEventListener("click", (e) => {
         if (e.target === modal) {
@@ -335,6 +349,13 @@ export class MapsSearch {
         }
       });
     }
+
+    // Close on Escape key
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && modal?.classList.contains("active")) {
+        modal.classList.remove("active");
+      }
+    });
 
     if (searchBtn && searchInput) {
       searchBtn.addEventListener("click", () => {
@@ -359,20 +380,35 @@ export class MapsSearch {
     const filterNoEmail = document.getElementById("filterNoEmail") as HTMLInputElement;
     const filterWithEmail = document.getElementById("filterWithEmail") as HTMLInputElement;
 
+    // Helper function to toggle filter chip active class
+    const toggleFilterChipClass = (checkbox: HTMLInputElement) => {
+      const chip = checkbox.closest('.filter-chip');
+      if (chip) {
+        if (checkbox.checked) {
+          chip.classList.add('active');
+        } else {
+          chip.classList.remove('active');
+        }
+      }
+    };
+
     if (filterNoWebsite) {
       filterNoWebsite.addEventListener("change", () => {
+        toggleFilterChipClass(filterNoWebsite);
         this.applyFilters();
       });
     }
 
     if (filterNoEmail) {
       filterNoEmail.addEventListener("change", () => {
+        toggleFilterChipClass(filterNoEmail);
         this.applyFilters();
       });
     }
 
     if (filterWithEmail) {
       filterWithEmail.addEventListener("change", () => {
+        toggleFilterChipClass(filterWithEmail);
         this.applyFilters();
       });
     }
@@ -402,7 +438,12 @@ export class MapsSearch {
 
     // Afficher un loader
     if (resultsContainer) {
-      resultsContainer.innerHTML = '<p class="loading-text">Recherche en cours...</p>';
+      resultsContainer.innerHTML = `
+        <div class="panel-empty-state">
+          <div style="width: 80px; height: 80px; border: 4px solid #e2e8f0; border-top-color: #2563eb; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+          <h4 style="margin-top: 20px;">Recherche en cours...</h4>
+        </div>
+      `;
     }
 
     // Utiliser l'API Text Search pour une recherche plus flexible
@@ -422,7 +463,17 @@ export class MapsSearch {
       } else {
         console.error('Erreur textSearch:', status);
         if (resultsContainer) {
-          resultsContainer.innerHTML = `<p class="error-text">Aucun résultat trouvé (Status: ${status})</p>`;
+          resultsContainer.innerHTML = `
+            <div class="panel-empty-state">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                <line x1="4" y1="4" x2="20" y2="20" stroke-width="2"/>
+              </svg>
+              <h4>Aucun résultat trouvé</h4>
+              <p>Status: ${status}</p>
+            </div>
+          `;
         }
       }
     });
@@ -548,7 +599,7 @@ export class MapsSearch {
     const resultsCount = document.getElementById("resultsCount");
 
     if (resultsCount) {
-      resultsCount.textContent = `(${results.length})`;
+      resultsCount.textContent = `${results.length}`;
     }
 
     if (!resultsContainer) {
@@ -558,7 +609,15 @@ export class MapsSearch {
 
     if (results.length === 0) {
       console.log('Aucun résultat à afficher');
-      resultsContainer.innerHTML = '<p class="empty-text">Aucune entreprise ne correspond aux filtres</p>';
+      resultsContainer.innerHTML = `
+        <div class="panel-empty-state">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/>
+          </svg>
+          <h4>Aucune entreprise trouvée</h4>
+          <p>Aucune entreprise ne correspond aux filtres sélectionnés</p>
+        </div>
+      `;
       this.clearMarkers();
       return;
     }
