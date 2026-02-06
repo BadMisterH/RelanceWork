@@ -1,12 +1,7 @@
 import { Request, Response } from "express";
-import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
-import db from "../config/database";
+import { supabase } from "../config/supabase";
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-in-production";
-const SALT_ROUNDS = 10;
-
-// Signup
+// Signup - Créer un nouveau compte avec Supabase Auth
 export const signup = async (req: Request, res: Response): Promise<void> => {
   const { name, email, password } = req.body;
 
@@ -24,43 +19,49 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Check if user already exists
-    const existingUser = db
-      .prepare("SELECT id FROM users WHERE email = ?")
-      .get(email.toLowerCase());
+    // Créer l'utilisateur avec Supabase Auth Admin API
+    // @ts-ignore - Supabase types may not be fully recognized
+    const { data, error } = await supabase.auth.admin.createUser({
+      email: email.toLowerCase(),
+      password,
+      email_confirm: true, // Auto-confirm en dev
+      user_metadata: {
+        name: name,
+      },
+    });
 
-    if (existingUser) {
-      res.status(409).json({ message: "Cet email est déjà utilisé" });
+    if (error) {
+      console.error("Supabase signup error:", error);
+
+      if (error.message.includes("already") || error.message.includes("exists")) {
+        res.status(409).json({ message: "Cet email est déjà utilisé" });
+        return;
+      }
+
+      res.status(400).json({ message: error.message });
       return;
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+    if (!data.user) {
+      res.status(500).json({ message: "Erreur lors de la création du compte" });
+      return;
+    }
 
-    // Create user
-    const result = db
-      .prepare(
-        "INSERT INTO users (name, email, password, created_at) VALUES (?, ?, ?, datetime('now')) RETURNING id, name, email, created_at"
-      )
-      .get(name, email.toLowerCase(), hashedPassword) as any;
-
-    const user = result;
-
-    // Generate JWT token
-    const token = jwt.sign(
-      { id: user.id, email: user.email },
-      JWT_SECRET,
-      { expiresIn: "7d" }
-    );
+    // Créer une session pour le nouvel utilisateur
+    // @ts-ignore
+    const { data: sessionData, error: sessionError } = await supabase.auth.signInWithPassword({
+      email: email.toLowerCase(),
+      password,
+    });
 
     res.status(201).json({
       message: "Compte créé avec succès",
-      token,
+      token: sessionData?.session?.access_token || '',
       user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        createdAt: user.created_at,
+        id: data.user.id,
+        name: data.user.user_metadata?.name || name,
+        email: data.user.email,
+        createdAt: data.user.created_at,
       },
     });
   } catch (error) {
@@ -69,9 +70,9 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-// Login
+// Login - Connexion avec Supabase Auth
 export const login = async (req: Request, res: Response): Promise<void> => {
-  const { email, password, rememberMe } = req.body;
+  const { email, password } = req.body;
 
   try {
     // Validate input
@@ -80,44 +81,31 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Find user
-    const user = db
-      .prepare("SELECT id, name, email, password FROM users WHERE email = ?")
-      .get(email.toLowerCase()) as any;
+    // Se connecter avec Supabase Auth
+    // @ts-ignore
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email.toLowerCase(),
+      password,
+    });
 
-    if (!user) {
+    if (error) {
+      console.error("Supabase login error:", error);
       res.status(401).json({ message: "Email ou mot de passe incorrect" });
       return;
     }
 
-    // Verify password
-    const isValidPassword = await bcrypt.compare(password, user.password);
-
-    if (!isValidPassword) {
+    if (!data.user || !data.session) {
       res.status(401).json({ message: "Email ou mot de passe incorrect" });
       return;
     }
-
-    // Generate JWT token
-    const expiresIn = rememberMe ? "30d" : "7d";
-    const token = jwt.sign(
-      { id: user.id, email: user.email },
-      JWT_SECRET,
-      { expiresIn }
-    );
-
-    // Update last login
-    db.prepare("UPDATE users SET last_login = datetime('now') WHERE id = ?").run(
-      user.id
-    );
 
     res.status(200).json({
       message: "Connexion réussie",
-      token,
+      token: data.session.access_token,
       user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
+        id: data.user.id,
+        name: data.user.user_metadata?.name || '',
+        email: data.user.email,
       },
     });
   } catch (error) {
@@ -126,31 +114,33 @@ export const login = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-// Logout (client-side will remove token, but we can blacklist tokens in future)
+// Logout - Déconnexion avec Supabase Auth
 export const logout = async (req: Request, res: Response): Promise<void> => {
   res.status(200).json({ message: "Déconnexion réussie" });
 };
 
-// Get current user
+// Get current user - Récupérer l'utilisateur authentifié
 export const getCurrentUser = async (
   req: Request,
   res: Response
 ): Promise<void> => {
   try {
-    const userId = (req as any).user.id;
-
-    const user = db
-      .prepare(
-        "SELECT id, name, email, created_at, last_login FROM users WHERE id = ?"
-      )
-      .get(userId) as any;
+    // L'utilisateur a été attaché par le middleware authenticateToken
+    const user = (req as any).user;
 
     if (!user) {
       res.status(404).json({ message: "Utilisateur non trouvé" });
       return;
     }
 
-    res.status(200).json({ user });
+    res.status(200).json({
+      user: {
+        id: user.id,
+        name: user.user_metadata?.name || '',
+        email: user.email,
+        createdAt: user.created_at,
+      },
+    });
   } catch (error) {
     console.error("Get current user error:", error);
     res

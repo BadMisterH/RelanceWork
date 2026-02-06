@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-RelanceWork is a Node.js + TypeScript application for tracking job applications. It provides a REST API to manage application records with PostgreSQL database integration.
+RelanceWork is a Node.js + TypeScript application for tracking job applications. It provides a REST API to manage application records with SQLite database integration using better-sqlite3.
 
 ## Development Commands
 
@@ -39,27 +39,48 @@ npm run create-table
 ### Key Components
 
 **Database Layer**
-- [config/database.ts](src/config/database.ts) - PostgreSQL connection pool using `pg` library
-  - Configurable via environment variables: `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`
-  - Defaults to localhost:5432/relancework with postgres/password credentials
+- [config/database.ts](src/config/database.ts) - SQLite database connection using `better-sqlite3`
+  - Database file: `./data/relancework.sqlite` (configurable via `DB_PATH` environment variable)
+  - WAL mode enabled for better concurrency
 
-**Data Layer**
-- [data/Applications.ts](src/data/Applications.ts) - In-memory array of applications (used for POST/DELETE operations)
-- Note: GET operations query the PostgreSQL database, but POST/DELETE currently use in-memory array
+**Controllers**
+- [controllers/applicationController.ts](src/controllers/applicationController.ts) - Application CRUD operations
+  - All operations (GET, POST, PUT, DELETE) interact directly with SQLite database
+  - Includes utility function `addApplication` for programmatic use
 
 **Type Definitions**
-- [types/Application.ts](src/types/Application.ts) - Defines the Application type with fields: id, compagny, post, email
+- [types/Application.ts](src/types/Application.ts) - Defines the Application type with fields:
+  - id, company, poste, status, date, created_at
+  - relanced (0/1), email, userEmail, relance_count
 
 **Database Scripts**
-- [scripts/createTable.ts](src/scripts/createTable.ts) - Creates the `applications` table in PostgreSQL
-  - Table schema: id (SERIAL), company, position, status, date, created_at
+- [scripts/createTable.ts](src/scripts/createTable.ts) - Creates the complete `applications` table in SQLite
+  - Table schema: id (INTEGER PRIMARY KEY), company, poste, status, date, created_at, relanced, email, userEmail, relance_count
+- [scripts/createUsersTable.ts](src/scripts/createUsersTable.ts) - Creates users table for authentication
+- Migration scripts for adding columns (legacy, no longer needed if using createTable.ts):
+  - addRelancedColumn.ts, addEmailColumn.ts, addUserEmailColumn.ts, addRelanceCountColumn.ts
 
 ### API Endpoints
 
+**Health**
 - `GET /health` - Health check endpoint returning `{ "status": "ok" }`
-- `GET /applications` - Fetches all applications from PostgreSQL database
-- `POST /application` - Adds application to in-memory array (returns 201)
-- `DELETE /applications/:id` - Removes application from in-memory array by ID (returns 204)
+
+**Applications**
+- `GET /api/applications` - Fetches all applications from SQLite database
+- `POST /api/application` - Creates a new application in database (returns 201)
+- `PUT /api/applications/:id/relance` - Updates relance status (0/1)
+- `PUT /api/applications/:id/send-relance` - Increments relance counter
+- `DELETE /api/applications/:id` - Deletes application by ID
+
+**Authentication**
+- `POST /api/auth/register` - User registration
+- `POST /api/auth/login` - User login
+
+**Gmail Integration**
+- Routes in [routes/gmailRoutes.ts](src/routes/gmailRoutes.ts)
+
+**Email Enrichment**
+- Routes in [routes/emailEnrichmentRoutes.ts](src/routes/emailEnrichmentRoutes.ts)
 
 ## TypeScript Configuration
 
@@ -71,11 +92,12 @@ npm run create-table
 
 ## Important Notes
 
-**Data Persistence Inconsistency**: The application has a mixed approach to data storage:
-- GET requests fetch from PostgreSQL database
-- POST and DELETE operations modify the in-memory `applications` array
-- This means data added via POST is not persisted to the database and won't appear in GET requests
+**Database Setup**: Before running the application for the first time, execute `npm run create-table` to initialize the SQLite database schema with all required columns.
 
-**Database Setup**: Before running the application, execute `npm run create-table` to initialize the PostgreSQL database schema.
+**Module System**: The project uses CommonJS (tsconfig.json). The project does not have `"type": "module"` in package.json.
 
-**Module System**: Despite the README mentioning ESM configuration, the current tsconfig.json uses CommonJS. The project does not have `"type": "module"` in package.json.
+**CORS Configuration**: The application allows all origins (`*`) for development. The CORS middleware includes `Access-Control-Allow-Private-Network` header to support requests from Chrome extensions and Gmail contexts to localhost.
+
+**Static Files**:
+- Landing page served from `./public` at root `/`
+- Client application served from `./client/dist` at `/app`

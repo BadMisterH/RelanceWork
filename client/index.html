@@ -6,6 +6,10 @@
     <title>RelanceWork - Suivi de candidatures</title>
     <link rel="stylesheet" href="/src/styles/business-cards.css" />
     <link rel="stylesheet" href="/src/styles/slide-panel.css" />
+    <link rel="stylesheet" href="/src/styles/applications-cards.css" />
+    <link rel="stylesheet" href="/src/styles/modern-applications.css" />
+    <link rel="stylesheet" href="/src/styles/dark-mode.css" />
+    <link rel="stylesheet" href="/src/styles/gmail-connector.css" />
   </head>
   <body>
     <!-- Mobile Menu Toggle -->
@@ -85,19 +89,56 @@
             <p class="page-subtitle">Vue d'ensemble de vos candidatures</p>
           </div>
           <div class="header-right">
-            <div class="date-display">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                <line x1="16" y1="2" x2="16" y2="6" />
-                <line x1="8" y1="2" x2="8" y2="6" />
-                <line x1="3" y1="10" x2="21" y2="10" />
+            <!-- Theme Toggle -->
+            <div class="theme-toggle" id="themeToggle" title="Basculer mode sombre">
+              <svg class="theme-toggle-icon sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="5"></circle>
+                <line x1="12" y1="1" x2="12" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="23"></line>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                <line x1="1" y1="12" x2="3" y2="12"></line>
+                <line x1="21" y1="12" x2="23" y2="12"></line>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
               </svg>
-              <span id="currentDate"></span>
+              <div class="theme-toggle-switch"></div>
+              <svg class="theme-toggle-icon moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+              </svg>
+            </div>
+
+            <!-- User Profile Menu -->
+            <div style="position: relative;">
+              <div class="profile-header">
+                <div class="profile-avatar" id="profileAvatar">U</div>
+                <div class="profile-info">
+                  <div class="profile-name" id="profileName">Utilisateur</div>
+                  <div class="profile-email" id="profileEmail">user@example.com</div>
+                </div>
+                <svg class="profile-dropdown-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </div>
+
+              <div class="profile-menu">
+                <button class="profile-menu-item" id="profileBtn">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                  </svg>
+                  Mon profil
+                </button>
+                <div class="profile-menu-divider"></div>
+                <button class="profile-menu-item danger" id="logoutBtn">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                    <polyline points="16 17 21 12 16 7"></polyline>
+                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                  </svg>
+                  Déconnexion
+                </button>
+              </div>
             </div>
           </div>
         </header>
@@ -230,6 +271,10 @@
                 </div>
               </div>
             </div>
+
+            <!-- Gmail Connector -->
+            <div id="gmailConnector"></div>
+
             <div id="applicationsList" class="applications-grid">
               <p class="loading-text">Chargement...</p>
             </div>

@@ -1,29 +1,62 @@
 import { Request, Response } from "express";
-import db from "../config/database";
+import { supabase } from "../config/supabase";
 
-// GET /applications - Récupérer toutes les applications
-export const getAllApplications = (_req: Request, res: Response) => {
+// GET /applications - Récupérer toutes les applications de l'utilisateur connecté
+export const getAllApplications = async (req: Request, res: Response): Promise<void> => {
   try {
-    const applications = db.prepare("SELECT * FROM applications ORDER BY id").all();
+    // Récupérer l'ID de l'utilisateur authentifié
+    const userId = (req as any).user?.id;
+
+    if (!userId) {
+      res.status(401).json({ message: "Utilisateur non authentifié" });
+      return;
+    }
+
+    // Récupérer uniquement les applications de cet utilisateur
+    const { data: applications, error } = await supabase
+      .from('applications')
+      .select('*')
+      .eq('user_id', userId)
+      .order('id', { ascending: true });
+
+    if (error) {
+      console.error("❌ Erreur récupération applications:", error);
+      res.status(500).json({ message: "Erreur lors de la récupération des applications" });
+      return;
+    }
+
     res.json(applications);
   } catch (error) {
-    res.status(500).json({ message: "Database error" });
+    console.error("❌ Erreur récupération applications:", error);
+    res.status(500).json({
+      message: "Erreur serveur",
+      error: error instanceof Error ? error.message : "Unknown error"
+    });
   }
 };
 
 // POST /application - Créer une nouvelle application
-export const createApplication = (req: Request, res: Response) => {
+export const createApplication = async (req: Request, res: Response): Promise<void> => {
   try {
     console.log('📥 Requête POST reçue:', JSON.stringify(req.body, null, 2));
-    
+
     const { company, poste, status, email, isRelance, userEmail } = req.body;
+
+    // Récupérer l'ID de l'utilisateur authentifié
+    const userId = (req as any).user?.id;
+
+    if (!userId) {
+      res.status(401).json({ message: "Utilisateur non authentifié" });
+      return;
+    }
 
     // Vérifier que les champs obligatoires sont présents
     if (!company || !poste || !status) {
       console.warn('⚠️ Champs manquants:', { company, poste, status });
-      return res.status(400).json({ 
-        message: "Missing required fields: company, poste, status" 
+      res.status(400).json({
+        message: "Champs obligatoires manquants: company, poste, status"
       });
+      return;
     }
 
     // Générer automatiquement la date au format JJ/MM/AAAA
@@ -33,99 +66,143 @@ export const createApplication = (req: Request, res: Response) => {
     const year = today.getFullYear();
     const date = `${day}/${month}/${year}`;
 
-    console.log('📝 Données à insérer:', { company, poste, status, date, email, isRelance, userEmail });
+    console.log('📝 Données à insérer:', { company, poste, status, date, email, isRelance, userEmail, userId });
 
-    // Vérifier la structure de la table
-    try {
-      const tableInfo = db.prepare("PRAGMA table_info(applications)").all();
-      console.log('📊 Structure de la table:', tableInfo);
-    } catch (e) {
-      console.error('❌ Erreur lecture table_info:', e);
+    // Convertir isRelance en BOOLEAN (au lieu de INTEGER)
+    const relancedValue = isRelance ? true : false;
+
+    // Insérer l'application dans Supabase
+    const { data: newApplication, error } = await supabase
+      .from('applications')
+      .insert({
+        company,
+        poste,
+        status,
+        date,
+        relanced: relancedValue,
+        email: email || null,
+        user_email: userEmail || null,
+        user_id: userId, // IMPORTANT: Toujours lier à l'utilisateur
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('❌ Erreur insertion Supabase:', error);
+      res.status(500).json({ message: "Erreur lors de la création de l'application" });
+      return;
     }
 
-    const stmt = db.prepare(
-      `INSERT INTO applications (company, poste, status, date, relanced, email, userEmail)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`
-    );
-
-    // Convertir isRelance en booléen (0 ou 1)
-    const relancedValue = isRelance ? 1 : 0;
-    const result = stmt.run(company, poste, status, date, relancedValue, email || null, userEmail || null);
-
-    console.log('✅ Insert résultat - lastInsertRowid:', result.lastInsertRowid, '- changes:', result.changes);
-
-    // Récupérer l'application créée
-    const newApplication = db.prepare("SELECT * FROM applications WHERE id = ?").get(result.lastInsertRowid);
-
-    console.log(`✅ Application créée et récupérée:`, newApplication);
+    console.log(`✅ Application créée:`, newApplication);
 
     res.status(201).json({
-      message: "Application created",
+      message: "Application créée avec succès",
       data: newApplication,
     });
   } catch (error) {
     console.error("❌ Erreur création application:", error);
-    res.status(500).json({ 
-      message: "Database error",
+    res.status(500).json({
+      message: "Erreur serveur",
       error: error instanceof Error ? error.message : "Unknown error"
     });
   }
 };
 
 // PUT /applications/:id/relance - Mettre à jour le statut de relance
-export const updateRelanceStatus = (req: Request, res: Response) => {
+export const updateRelanceStatus = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const { relanced } = req.body;
-    // Vérifier que relanced est 0 ou 1
-    if (relanced !== 0 && relanced !== 1) {
-      return res.status(400).json({ message: "relanced doit être 0 ou 1" });
+
+    // Récupérer l'ID de l'utilisateur authentifié
+    const userId = (req as any).user?.id;
+
+    if (!userId) {
+      res.status(401).json({ message: "Utilisateur non authentifié" });
+      return;
     }
 
-    // Vérifier que l'application existe
-    const application = db.prepare("SELECT * FROM applications WHERE id = ?").get(id);
-
-    if (!application) {
-      return res.status(404).json({ message: "Aucune candidature trouvée" });
+    // Vérifier que relanced est un booléen
+    if (typeof relanced !== 'boolean') {
+      res.status(400).json({ message: "relanced doit être true ou false" });
+      return;
     }
 
-    // Mettre à jour le statut
-    const stmt = db.prepare("UPDATE applications SET relanced = ? WHERE id = ?");
-    stmt.run(relanced, id);
+    // Mettre à jour uniquement si l'application appartient à l'utilisateur
+    const { data: updatedApplication, error } = await supabase
+      .from('applications')
+      .update({ relanced })
+      .eq('id', id)
+      .eq('user_id', userId) // IMPORTANT: Vérifier ownership
+      .select()
+      .single();
 
-    // Récupérer l'application mise à jour
-    const updatedApplication = db.prepare("SELECT * FROM applications WHERE id = ?").get(id);
+    if (error) {
+      console.error('❌ Erreur mise à jour Supabase:', error);
+      if (error.code === 'PGRST116') {
+        res.status(404).json({ message: "Aucune candidature trouvée" });
+        return;
+      }
+      res.status(500).json({ message: "Erreur lors de la mise à jour" });
+      return;
+    }
 
     res.json({
       message: "Statut de relance mis à jour",
       data: updatedApplication,
     });
   } catch (error) {
-    res.status(500).json({ message: "Erreur serveur" });
+    console.error("❌ Erreur mise à jour relance:", error);
+    res.status(500).json({
+      message: "Erreur serveur",
+      error: error instanceof Error ? error.message : "Unknown error"
+    });
   }
 };
 
-// PUT /applications/:id/send-relance - Incrémenter le compteur de relances (appelé quand on envoie une relance)
-export const sendRelance = (req: Request, res: Response) => {
+// PUT /applications/:id/send-relance - Incrémenter le compteur de relances
+export const sendRelance = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
 
-    // Vérifier que l'application existe
-    const application = db.prepare("SELECT * FROM applications WHERE id = ?").get(id) as { relance_count?: number } | undefined;
+    // Récupérer l'ID de l'utilisateur authentifié
+    const userId = (req as any).user?.id;
 
-    if (!application) {
-      return res.status(404).json({ message: "Aucune candidature trouvée" });
+    if (!userId) {
+      res.status(401).json({ message: "Utilisateur non authentifié" });
+      return;
+    }
+
+    // Récupérer l'application (uniquement si elle appartient à l'utilisateur)
+    const { data: application, error: fetchError } = await supabase
+      .from('applications')
+      .select('*')
+      .eq('id', id)
+      .eq('user_id', userId)
+      .single();
+
+    if (fetchError || !application) {
+      res.status(404).json({ message: "Aucune candidature trouvée" });
+      return;
     }
 
     // Incrémenter le compteur de relances
     const currentCount = application.relance_count ?? 0;
     const newCount = currentCount + 1;
 
-    const stmt = db.prepare("UPDATE applications SET relance_count = ? WHERE id = ?");
-    stmt.run(newCount, id);
+    const { data: updatedApplication, error: updateError } = await supabase
+      .from('applications')
+      .update({ relance_count: newCount })
+      .eq('id', id)
+      .eq('user_id', userId)
+      .select()
+      .single();
 
-    // Récupérer l'application mise à jour
-    const updatedApplication = db.prepare("SELECT * FROM applications WHERE id = ?").get(id);
+    if (updateError) {
+      console.error('❌ Erreur mise à jour compteur:', updateError);
+      res.status(500).json({ message: "Erreur lors de la mise à jour" });
+      return;
+    }
 
     console.log(`📧 Relance envoyée pour candidature #${id} - Total relances: ${newCount}`);
 
@@ -141,22 +218,51 @@ export const sendRelance = (req: Request, res: Response) => {
 };
 
 // DELETE /applications/:id - Supprimer une application
-export const deleteApplication = (req: Request, res: Response) => {
+export const deleteApplication = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    // Récupérer l'application avant de la supprimer
-    const application = db.prepare("SELECT * FROM applications WHERE id = ?").get(id);
 
-    if (!application) {
-      return res.status(404).json({ message: "Aucune candidature trouvée" });
+    // Récupérer l'ID de l'utilisateur authentifié
+    const userId = (req as any).user?.id;
+
+    if (!userId) {
+      res.status(401).json({ message: "Utilisateur non authentifié" });
+      return;
     }
 
-    const stmt = db.prepare("DELETE FROM applications WHERE id = ?");
-    stmt.run(id);
+    // Récupérer l'application avant de la supprimer
+    const { data: application, error: fetchError } = await supabase
+      .from('applications')
+      .select('*')
+      .eq('id', id)
+      .eq('user_id', userId)
+      .single();
+
+    if (fetchError || !application) {
+      res.status(404).json({ message: "Aucune candidature trouvée" });
+      return;
+    }
+
+    // Supprimer l'application
+    const { error: deleteError } = await supabase
+      .from('applications')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', userId);
+
+    if (deleteError) {
+      console.error('❌ Erreur suppression:', deleteError);
+      res.status(500).json({ message: "Erreur lors de la suppression" });
+      return;
+    }
 
     res.json({ message: "Supprimé", deleted: application });
   } catch (error) {
-    res.status(500).json({ message: "Erreur serveur" });
+    console.error("❌ Erreur suppression application:", error);
+    res.status(500).json({
+      message: "Erreur serveur",
+      error: error instanceof Error ? error.message : "Unknown error"
+    });
   }
 };
 
@@ -168,13 +274,18 @@ export const addApplication = async (data: {
   email?: string;
   userEmail?: string;
   isRelance?: boolean;
+  userId?: string; // NOUVEAU: Nécessaire pour Supabase
 }): Promise<any> => {
   try {
-    const { company, poste, status, email, isRelance, userEmail } = data;
+    const { company, poste, status, email, isRelance, userEmail, userId } = data;
 
     // Vérifier que les champs obligatoires sont présents
     if (!poste || !status) {
-      throw new Error("Missing required fields: poste, status");
+      throw new Error("Champs obligatoires manquants: poste, status");
+    }
+
+    if (!userId) {
+      throw new Error("userId est requis pour créer une application");
     }
 
     // Générer automatiquement la date au format JJ/MM/AAAA
@@ -184,19 +295,31 @@ export const addApplication = async (data: {
     const year = today.getFullYear();
     const date = `${day}/${month}/${year}`;
 
-    console.log('📝 Adding application:', { company, poste, status, date, email, isRelance, userEmail });
+    console.log('📝 Adding application:', { company, poste, status, date, email, isRelance, userEmail, userId });
 
-    const stmt = db.prepare(
-      `INSERT INTO applications (company, poste, status, date, relanced, email, userEmail)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`
-    );
+    // Convertir isRelance en BOOLEAN
+    const relancedValue = isRelance ? true : false;
 
-    // Convertir isRelance en booléen (0 ou 1)
-    const relancedValue = isRelance ? 1 : 0;
-    const result = stmt.run(company || '', poste, status, date, relancedValue, email || null, userEmail || null);
+    // Insérer dans Supabase
+    const { data: newApplication, error } = await supabase
+      .from('applications')
+      .insert({
+        company: company || '',
+        poste,
+        status,
+        date,
+        relanced: relancedValue,
+        email: email || null,
+        user_email: userEmail || null,
+        user_id: userId,
+      })
+      .select()
+      .single();
 
-    // Récupérer l'application créée
-    const newApplication = db.prepare("SELECT * FROM applications WHERE id = ?").get(result.lastInsertRowid);
+    if (error) {
+      console.error('❌ Erreur insertion:', error);
+      throw error;
+    }
 
     console.log(`✅ Application created:`, newApplication);
 

@@ -143,10 +143,15 @@ export class GmailPollingService {
       console.log(`   Status: ${emailData.status}`);
       console.log(`   Email: ${emailData.email || 'N/A'}`);
 
-      // Ajouter à la base de données
-      await addApplication(emailData);
+      // TODO: Refactor Gmail polling pour multi-user support
+      // Le service Gmail doit être lié à un utilisateur spécifique
+      // Pour l'instant, on skip la création automatique car userId est requis
+      console.warn('⚠️  Auto-création désactivée : le service Gmail nécessite un userId');
+      console.warn('   → Refactoriser pour lier le compte Gmail à un utilisateur Supabase');
 
-      console.log(`✅ Application added successfully (ID: ${messageId})`);
+      // await addApplication(emailData); // Désactivé temporairement
+
+      console.log(`ℹ️  Email ${messageId} détecté mais non ajouté (multi-user not implemented)`);
     } catch (error: any) {
       console.error(`❌ Error processing email ${messageId}:`, error.message);
 

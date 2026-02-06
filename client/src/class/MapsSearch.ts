@@ -1,5 +1,7 @@
 /// <reference types="google.maps" />
 
+import api from "../lib/api";
+
 export interface BusinessPlace {
   name: string;
   address: string;
@@ -850,8 +852,6 @@ export class MapsSearch {
    * Enrichir les résultats avec les emails via Hunter.io
    */
   private async enrichWithEmails(results: BusinessPlace[]) {
-    const API_URL = "http://localhost:3000/api";
-
     // Filtrer les entreprises sans email
     const businessesWithoutEmail = results.filter(b => !b.email);
 
@@ -884,22 +884,13 @@ export class MapsSearch {
       }));
 
       // Appeler l'API batch pour enrichir les emails via Hunter.io
-      const response = await fetch(`${API_URL}/email-enrichment/find-emails-batch`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          companies,
-          maxConcurrent: 2 // 2 recherches en parallèle pour Hunter.io
-        }),
+      // Utiliser le client API avec token automatique
+      const response = await api.post('/email-enrichment/find-emails-batch', {
+        companies,
+        maxConcurrent: 2 // 2 recherches en parallèle pour Hunter.io
       });
 
-      if (!response.ok) {
-        throw new Error(`Erreur API: ${response.status}`);
-      }
-
-      const data = await response.json();
+      const data = response.data;
       console.log("📧 Résultats Hyperbrowser:", data);
 
       // Mettre à jour les résultats avec les emails trouvés

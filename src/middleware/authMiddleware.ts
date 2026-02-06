@@ -1,18 +1,11 @@
 import { Request, Response, NextFunction } from "express";
-import jwt from "jsonwebtoken";
+import { supabase } from "../config/supabase";
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-in-production";
-
-interface JwtPayload {
-  id: number;
-  email: string;
-}
-
-export const authenticateToken = (
+export const authenticateToken = async (
   req: Request,
   res: Response,
   next: NextFunction
-): void => {
+): Promise<void> => {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1]; // Bearer TOKEN
 
@@ -22,10 +15,20 @@ export const authenticateToken = (
   }
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
-    (req as any).user = decoded;
+    // Valider le token avec Supabase Auth
+    // @ts-ignore - Supabase types may not be fully recognized
+    const { data: { user }, error } = await supabase.auth.getUser(token);
+
+    if (error || !user) {
+      res.status(403).json({ message: "Token invalide ou expiré" });
+      return;
+    }
+
+    // Attacher l'utilisateur Supabase à la requête
+    (req as any).user = user;
     next();
   } catch (error) {
+    console.error("Auth middleware error:", error);
     res.status(403).json({ message: "Token invalide ou expiré" });
   }
 };

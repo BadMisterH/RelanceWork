@@ -1,4 +1,5 @@
 import "./styles/auth.css";
+import { supabase } from "./lib/supabase";
 
 // ============================================
 // FORM TOGGLE
@@ -185,28 +186,29 @@ loginForm?.addEventListener("submit", async (e) => {
   loginBtn.disabled = true;
 
   try {
-    // TODO: Replace with actual API call
-    const response = await fetch("http://localhost:3000/api/auth/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email, password, rememberMe }),
+    // Connexion avec Supabase Auth
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email.toLowerCase(),
+      password,
     });
 
-    if (response.ok) {
-      const data = await response.json();
-      // Store token
-      if (rememberMe) {
-        localStorage.setItem("authToken", data.token);
-      } else {
-        sessionStorage.setItem("authToken", data.token);
-      }
-      // Redirect to dashboard
-      window.location.href = "/";
-    } else {
-      const error = await response.json();
+    if (error) {
+      console.error("Login error:", error);
       showError("loginPassword", error.message || "Email ou mot de passe incorrect");
+      return;
+    }
+
+    if (data.session) {
+      // Supabase gère automatiquement la persistance de la session
+      // Si rememberMe est false, on peut configurer la session pour être temporaire
+      if (!rememberMe) {
+        // Note: Pour une session temporaire, on pourrait utiliser sessionStorage
+        // mais Supabase gère déjà la persistance de manière sécurisée
+      }
+
+      console.log("✅ Connexion réussie:", data.user?.email);
+      // Rediriger vers l'application
+      window.location.href = "/";
     }
   } catch (error) {
     console.error("Login error:", error);
@@ -304,7 +306,7 @@ signupForm?.addEventListener("submit", async (e) => {
   signupBtn.disabled = true;
 
   try {
-    // TODO: Replace with actual API call
+    // Appeler le backend qui auto-confirme l'email (évite rate limit)
     const response = await fetch("http://localhost:3000/api/auth/signup", {
       method: "POST",
       headers: {
@@ -313,15 +315,39 @@ signupForm?.addEventListener("submit", async (e) => {
       body: JSON.stringify({ name, email, password }),
     });
 
-    if (response.ok) {
-      const data = await response.json();
-      // Store token
-      sessionStorage.setItem("authToken", data.token);
-      // Redirect to dashboard
-      window.location.href = "/";
-    } else {
+    if (!response.ok) {
       const error = await response.json();
+      console.error("Signup error:", error);
       showError("signupEmail", error.message || "Erreur lors de l'inscription");
+      return;
+    }
+
+    const data = await response.json();
+    console.log("✅ Inscription réussie:", data.user?.email);
+
+    // Le backend retourne un token - se connecter avec Supabase pour créer la session
+    if (data.token) {
+      // Utiliser le token pour se connecter
+      const { error: signInError } = await supabase.auth.setSession({
+        access_token: data.token,
+        refresh_token: data.token, // Le backend retourne le même token
+      });
+
+      if (signInError) {
+        console.error("Session error:", signInError);
+        // Fallback : rediriger vers login
+        loginFormContainer.classList.add("active");
+        signupFormContainer.classList.remove("active");
+        alert("Compte créé ! Veuillez vous connecter.");
+      } else {
+        // Session créée, rediriger vers l'application
+        window.location.href = "/";
+      }
+    } else {
+      // Si pas de token, rediriger vers login
+      loginFormContainer.classList.add("active");
+      signupFormContainer.classList.remove("active");
+      alert("Compte créé ! Veuillez vous connecter.");
     }
   } catch (error) {
     console.error("Signup error:", error);

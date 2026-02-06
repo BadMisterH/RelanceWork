@@ -2,6 +2,7 @@ import express, { Request, Response } from "express";
 import path from "path";
 import applicationRoutes from "./routes/applicationRoutes";
 import gmailRoutes from "./routes/gmailRoutes";
+import gmailMultiUserRoutes from "./routes/gmailMultiUserRoutes";
 import emailEnrichmentRoutes from "./routes/emailEnrichmentRoutes";
 import authRoutes from "./routes/authRoutes";
 
@@ -12,7 +13,8 @@ app.use((req, res, next) => {
   // Autoriser tous les origins pour simplifier (développement local)
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-  res.header("Access-Control-Allow-Headers", "Content-Type");
+  // ✅ AJOUT du header Authorization pour l'authentification Supabase
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
   // IMPORTANT : Permettre l'accès depuis des adresses privées (localhost depuis Gmail/extension)
   // Chrome nécessite ce header pour permettre les requêtes depuis un contexte public (Gmail) vers localhost
@@ -39,7 +41,8 @@ app.get("/health", (req: Request, res: Response) => {
 // Routes API
 app.use("/api/auth", authRoutes);
 app.use("/api", applicationRoutes);
-app.use("/api/gmail", gmailRoutes);
+app.use("/api/gmail", gmailRoutes); // Ancien système (global)
+app.use("/api/gmail-user", gmailMultiUserRoutes); // ✅ Nouveau système (multi-user)
 app.use("/api/email-enrichment", emailEnrichmentRoutes);
 
 // Servir l'application client à /app

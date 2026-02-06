@@ -17,17 +17,20 @@ function createTable() {
         poste TEXT NOT NULL,
         status TEXT NOT NULL,
         date TEXT NOT NULL,
-        created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        relanced INTEGER DEFAULT 0,
+        email TEXT,
+        userEmail TEXT,
+        relance_count INTEGER DEFAULT 0
       );
     `;
 
     db.exec(query);
-    console.log('Table created successfully');
+    console.log('Table created successfully with all columns');
     console.log(`Database location: ${db.name}`);
+    console.log('Columns: id, company, poste, status, date, created_at, relanced, email, userEmail, relance_count');
   } catch (error) {
     console.error('Error creating table:', error);
-  } finally {
-    db.close();
   }
 }
 

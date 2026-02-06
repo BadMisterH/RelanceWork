@@ -1,11 +1,11 @@
 import { UI } from "./class/Ui.ts";
 import { MapsSearch } from "./class/MapsSearch.ts";
+import { ModernTableView } from "./class/ModernTableView.ts";
+import { GmailConnector } from "./class/GmailConnector.ts";
 import "./style.css";
 import "./styles/business-cards.css";
-import axios from "axios";
-
-// URL de base de ton API backend
-const API_URL = "http://localhost:3000/api";
+import api from "./lib/api";
+import { supabase } from "./lib/supabase";
 
 // Interface TypeScript pour typer les candidatures
 export interface Application {
@@ -14,20 +14,98 @@ export interface Application {
   poste: string;
   status: string;
   date: string;
-  relanced: number; // 0 = false, 1 = true (SQLite boolean)
+  relanced: boolean; // Boolean maintenant (PostgreSQL)
   relance_count: number; // Nombre de relances envoyées
   email?: string; // Adresse email du destinataire
+  user_email?: string; // Email de l'utilisateur
   created_at?: string;
+  user_id?: string; // UUID de l'utilisateur (Supabase)
+}
+
+// ============================================
+// AUTH GUARD - Vérifier l'authentification
+// ============================================
+async function checkAuth() {
+  try {
+    const { data: { session }, error } = await supabase.auth.getSession();
+
+    if (error || !session) {
+      console.warn("⚠️ Utilisateur non authentifié - redirection vers /auth.html");
+      window.location.href = "/auth.html";
+      return false;
+    }
+
+    console.log("✅ Utilisateur authentifié:", session.user.email);
+
+    // Afficher les infos utilisateur dans le header
+    updateUserProfile(session.user);
+
+    return true;
+  } catch (error) {
+    console.error("❌ Erreur auth guard:", error);
+    window.location.href = "/auth.html";
+    return false;
+  }
+}
+
+/**
+ * Mettre à jour le profil utilisateur dans le header
+ */
+function updateUserProfile(user: any) {
+  const profileName = document.getElementById('profileName');
+  const profileEmail = document.getElementById('profileEmail');
+  const profileAvatar = document.getElementById('profileAvatar');
+
+  if (profileName && user.user_metadata?.name) {
+    profileName.textContent = user.user_metadata.name;
+  }
+
+  if (profileEmail && user.email) {
+    profileEmail.textContent = user.email;
+  }
+
+  if (profileAvatar && user.user_metadata?.name) {
+    // Première lettre du nom en majuscule
+    const initial = user.user_metadata.name.charAt(0).toUpperCase();
+    profileAvatar.textContent = initial;
+  } else if (profileAvatar && user.email) {
+    // Sinon, première lettre de l'email
+    const initial = user.email.charAt(0).toUpperCase();
+    profileAvatar.textContent = initial;
+  }
 }
 
 const affichage = new UI();
+const modernTableView = new ModernTableView();
+
+// Variable pour basculer entre vue cards et vue tableau
+let useModernView = false; // DÉSACTIVÉ temporairement pour debug
 
 async function GetAllDataPost() {
   try {
-    const result = await axios.get<Application[]>(`${API_URL}/applications`);
-    affichage.getAffichage(result.data);
+    console.log("📡 Chargement des candidatures...");
+
+    // Utiliser le client API avec interceptor (token automatiquement attaché)
+    const result = await api.get<Application[]>('/applications');
+
+    console.log("✅ Candidatures reçues:", result.data.length, "items");
+    console.log("📊 Données:", result.data);
+
+    // Basculer entre les vues
+    if (useModernView) {
+      console.log("🎨 Utilisation de ModernTableView");
+      modernTableView.render(result.data);
+    } else {
+      console.log("🎨 Utilisation de l'ancienne vue (cards)");
+      affichage.getAffichage(result.data);
+    }
   } catch (error) {
-    console.error("ERREUR AXIOS", error);
+    console.error("❌ ERREUR lors du chargement des candidatures:", error);
+    if (error instanceof Error) {
+      console.error("Message:", error.message);
+      console.error("Stack:", error.stack);
+    }
+    // Si erreur 401/403, l'interceptor redirigera automatiquement
   }
 }
 
@@ -79,10 +157,79 @@ function loadGoogleMapsScript() {
   document.head.appendChild(script);
 }
 
-// Charger Google Maps au démarrage
-loadGoogleMapsScript();
+/**
+ * Afficher la date actuelle dans le header
+ */
+function updateCurrentDate() {
+  const dateElement = document.getElementById('currentDate');
+  if (dateElement) {
+    const now = new Date();
+    const options: Intl.DateTimeFormatOptions = {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    };
+    dateElement.textContent = now.toLocaleDateString('fr-FR', options);
+  }
+}
 
-GetAllDataPost();
+/**
+ * Initialiser le mode sombre
+ */
+function initThemeToggle() {
+  const themeToggle = document.getElementById('themeToggle');
+  const html = document.documentElement;
+
+  // Récupérer le thème sauvegardé ou utiliser la préférence système
+  const savedTheme = localStorage.getItem('theme');
+  const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const defaultTheme = savedTheme || (systemPrefersDark ? 'dark' : 'light');
+
+  // Appliquer le thème
+  html.setAttribute('data-theme', defaultTheme);
+  console.log(`🌙 Thème initial : ${defaultTheme}`);
+
+  // Toggle au clic
+  themeToggle?.addEventListener('click', () => {
+    const currentTheme = html.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+    html.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+
+    console.log(`🌙 Thème changé : ${newTheme}`);
+  });
+
+  // Écouter les changements de préférence système
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+    if (!localStorage.getItem('theme')) {
+      const newTheme = e.matches ? 'dark' : 'light';
+      html.setAttribute('data-theme', newTheme);
+      console.log(`🌙 Thème système changé : ${newTheme}`);
+    }
+  });
+}
+
+// Initialiser le thème AVANT de charger l'application pour éviter le flash
+initThemeToggle();
+
+// Vérifier l'authentification avant de charger l'application
+checkAuth().then((isAuthenticated) => {
+  if (isAuthenticated) {
+    // Afficher la date
+    updateCurrentDate();
+
+    // Initialiser le connecteur Gmail
+    new GmailConnector('gmailConnector');
+
+    // Charger Google Maps au démarrage
+    loadGoogleMapsScript();
+
+    // Charger les données
+    GetAllDataPost();
+  }
+});
 
 // ============================================
 // MOBILE MENU FUNCTIONALITY

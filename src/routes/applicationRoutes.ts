@@ -6,22 +6,23 @@ import {
   sendRelance,
   deleteApplication,
 } from "../controllers/applicationController";
+import { authenticateToken } from "../middleware/authMiddleware";
 
 const router = Router();
 
 // GET /applications - Récupérer toutes les applications
-router.get("/applications", getAllApplications);
+router.get("/applications", authenticateToken, getAllApplications);
 
 // POST /application - Créer une nouvelle application
-router.post("/application", createApplication);
+router.post("/application", authenticateToken, createApplication);
 
 // PUT /applications/:id/relance - Mettre à jour le statut de relance
-router.put("/applications/:id/relance", updateRelanceStatus);
+router.put("/applications/:id/relance", authenticateToken, updateRelanceStatus);
 
 // PUT /applications/:id/send-relance - Enregistrer l'envoi d'une relance (incrémente le compteur)
-router.put("/applications/:id/send-relance", sendRelance);
+router.put("/applications/:id/send-relance", authenticateToken, sendRelance);
 
 // DELETE /applications/:id - Supprimer une application par ID
-router.delete("/applications/:id", deleteApplication);
+router.delete("/applications/:id", authenticateToken, deleteApplication);
 
 export default router;

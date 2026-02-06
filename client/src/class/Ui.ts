@@ -1,4 +1,5 @@
 import type { Application } from "../main.ts";
+import api from "../lib/api";
 
 export class UI {
   applicationsList: HTMLElement | null;
@@ -75,22 +76,25 @@ Cordialement`
       button.addEventListener("click", async (e) => {
         const target = e.target as HTMLButtonElement;
         const id = target.getAttribute("data-id");
-        const card = target.closest(".box-candidature");
-        const companyName = card?.querySelector("h2")?.textContent || "cette candidature";
+        const card = target.closest(".application-card");
+        const companyName = card?.querySelector("h3")?.textContent || "cette candidature";
 
         if (id) {
           const confirmed = confirm(`Êtes-vous sûr de vouloir supprimer la candidature chez ${companyName} ?`);
 
           if (!confirmed) return;
 
-          const result = await fetch(
-            `http://localhost:3000/api/applications/${id}`,
-            {
-              method: "DELETE",
-            }
-          );
-          if (result.ok) {
+          try {
+            // Utiliser le client API avec token automatique
+            await api.delete(`/applications/${id}`);
+
             card?.remove();
+            // Mettre à jour les stats
+            this.allApplications = this.allApplications.filter(app => app.id !== parseInt(id));
+            this.updateStats();
+          } catch (error) {
+            console.error("Erreur lors de la suppression:", error);
+            alert("Erreur lors de la suppression de la candidature");
           }
         }
       });
@@ -112,16 +116,16 @@ Cordialement`
         const isChecked = target.checked;
 
         if (id) {
-          await this.updateRelanceStatus(parseInt(id), isChecked ? 1 : 0);
+          // relanced est maintenant un BOOLEAN (PostgreSQL)
+          await this.updateRelanceStatus(parseInt(id), isChecked);
 
-          // Afficher/masquer le bouton de relance dynamiquement
-          const relanceActions = document.getElementById(
-            `relance-actions-${id}`
-          );
-          const boxCandidature = target.closest(".box-candidature");
+          const card = target.closest(".application-card");
+          const cardActions = card?.querySelector(".card-actions");
 
-          if (relanceActions && email) {
-            if (isChecked) {
+          if (email && isChecked) {
+            // Vérifier si le bouton de relance existe déjà
+            const existingBtn = cardActions?.querySelector(".btn-relance");
+            if (!existingBtn) {
               // Générer le lien mailto dynamiquement
               const mailtoLink = this.generateMailtoLink({
                 id: parseInt(id),
@@ -133,24 +137,43 @@ Cordialement`
                 relance_count: 0,
                 email: email,
               });
-              relanceActions.innerHTML = `
-                <a href="${mailtoLink}" class="btn-relance" data-id="${id}">
-                  Envoyer la relance
-                </a>
+
+              const relanceBtn = document.createElement("a");
+              relanceBtn.href = mailtoLink;
+              relanceBtn.className = "btn-action btn-action-primary btn-relance";
+              relanceBtn.setAttribute("data-id", id);
+              relanceBtn.innerHTML = `
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M22 2L11 13"/>
+                  <path d="M22 2L15 22l-4-9-9-4 20-7z"/>
+                </svg>
+                Envoyer la relance
               `;
+
+              // Insérer avant le bouton supprimer
+              const deleteBtn = cardActions?.querySelector(".btn-delete");
+              if (deleteBtn) {
+                cardActions?.insertBefore(relanceBtn, deleteBtn);
+              }
+
               // Réattacher l'événement au nouveau bouton
-              this.attachSendRelanceEventToButton(relanceActions.querySelector(".btn-relance") as HTMLAnchorElement);
-              relanceActions.style.display = "block";
-              boxCandidature?.classList.add("needs-relance");
-            } else {
-              relanceActions.style.display = "none";
-              boxCandidature?.classList.remove("needs-relance");
+              this.attachSendRelanceEventToButton(relanceBtn);
             }
-          } else if (!email && isChecked) {
-            // Afficher un message si pas d'email
-            alert(
-              "Attention: Aucun email n'est associé à cette candidature. Ajoutez un email pour pouvoir envoyer une relance."
-            );
+            card?.classList.add("needs-relance");
+          } else {
+            // Retirer le bouton de relance
+            const relanceBtn = cardActions?.querySelector(".btn-relance");
+            if (relanceBtn) {
+              relanceBtn.remove();
+            }
+            card?.classList.remove("needs-relance");
+
+            if (!email && isChecked) {
+              // Afficher un message si pas d'email
+              alert(
+                "Attention: Aucun email n'est associé à cette candidature. Ajoutez un email pour pouvoir envoyer une relance."
+              );
+            }
           }
         }
       });
@@ -158,23 +181,11 @@ Cordialement`
   }
 
   // Méthode pour mettre à jour le statut de relance via l'API
-  private async updateRelanceStatus(id: number, relanced: number) {
+  private async updateRelanceStatus(id: number, relanced: boolean) {
     try {
-      const API_URL = "http://localhost:3000/api";
-      const response = await fetch(`${API_URL}/applications/${id}/relance`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ relanced }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Erreur lors de la mise à jour");
-      }
-
-      const data = await response.json();
-      console.log("Statut de relance mis à jour:", data);
+      // Utiliser le client API avec token automatique
+      const response = await api.put(`/applications/${id}/relance`, { relanced });
+      console.log("Statut de relance mis à jour:", response.data);
     } catch (error) {
       console.error("Erreur lors de la mise à jour du statut:", error);
       alert("Erreur lors de la mise à jour du statut de relance");
@@ -184,19 +195,9 @@ Cordialement`
   // Méthode pour enregistrer l'envoi d'une relance (incrémente le compteur)
   private async recordRelanceSent(id: number): Promise<number | null> {
     try {
-      const API_URL = "http://localhost:3000/api";
-      const response = await fetch(`${API_URL}/applications/${id}/send-relance`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Erreur lors de l'enregistrement de la relance");
-      }
-
-      const data = await response.json();
+      // Utiliser le client API avec token automatique
+      const response = await api.put(`/applications/${id}/send-relance`);
+      const data = response.data;
       console.log("Relance enregistrée:", data);
 
       // Mettre à jour le compteur dans allApplications
@@ -284,6 +285,16 @@ Cordialement`
     this.renderApplications(filtered);
   }
 
+  // Obtenir le badge de jours
+  private getDaysBadge(daysSince: number): { class: string; text: string } {
+    if (daysSince < 3) {
+      return { class: 'recent', text: `${daysSince}j` };
+    } else if (daysSince < 7) {
+      return { class: 'medium', text: `${daysSince}j` };
+    } else {
+      return { class: 'old', text: `${daysSince}j` };
+    }
+  }
 
   // Rendre les candidatures (séparé de getAffichage pour les filtres)
   private renderApplications(applications: Application[]) {
@@ -292,8 +303,12 @@ Cordialement`
     if (applications.length === 0) {
       this.applicationsList.innerHTML = `
         <div class="empty-state">
-          <p>Aucune candidature trouvée</p>
-          <span>Ajoutez votre première candidature ou modifiez vos filtres</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+          <h3>Aucune candidature trouvée</h3>
+          <p>Ajoutez votre première candidature ou modifiez vos filtres</p>
         </div>
       `;
       return;
@@ -306,39 +321,115 @@ Cordialement`
         const isOldEnough = this.isOlderThanXDays(element.date);
         const showRelanceButton = isChecked && hasEmail && isOldEnough;
         const daysSince = this.getDaysSince(element.date);
+        const daysBadge = this.getDaysBadge(daysSince);
 
-        return `<div class="box-candidature ${showRelanceButton ? "needs-relance" : ""}">
-        <h2>${element.company}</h2>
-        <ul>
-          <li>${element.poste}</li>
-          ${element.email ? `<li>Email: ${element.email}</li>` : ""}
-          <li><span class="status-badge ${this.getStatusClass(element.status)}">${element.status}</span></li>
-          <li>${element.date} (${daysSince} jour${daysSince > 1 ? "s" : ""})</li>
-          <li>
-            <label class="relance-checkbox-label">
-              <input
-                type="checkbox"
-                class="relance-checkbox"
-                data-id="${element.id}"
-                data-email="${element.email || ""}"
-                data-company="${element.company}"
-                data-poste="${element.poste}"
-                data-date="${element.date}"
-                ${isChecked ? "checked" : ""}
-              />
-              À relancer
-            </label>
-          </li>
-        </ul>
-        <div class="relance-actions" id="relance-actions-${element.id}" style="display: ${showRelanceButton ? "block" : "none"};">
-          <a href="${this.generateMailtoLink(element)}" class="btn-relance" data-id="${element.id}">
-            Envoyer la relance
-          </a>
-        </div>
-        ${(element.relance_count ?? 0) > 0 ? `<span class="badge-relance-count">Relancé ${element.relance_count} fois</span>` : ""}
-        ${!hasEmail && isChecked ? '<span class="badge-no-email">Email manquant</span>' : ""}
-        <button class="btn-delete" data-id="${element.id}">Supprimer</button>
-        </div>
+        return `
+          <div class="application-card ${showRelanceButton ? "needs-relance" : ""}" data-id="${element.id}">
+            <!-- Card Header -->
+            <div class="card-header">
+              <div class="card-company">
+                <h3>${element.company}</h3>
+                <p class="card-position">${element.poste}</p>
+              </div>
+              <span class="card-status-badge ${this.getStatusClass(element.status)}">${element.status}</span>
+            </div>
+
+            <!-- Card Info Grid -->
+            <div class="card-info-grid">
+              ${element.email ? `
+                <div class="card-info-item">
+                  <div class="card-info-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                      <polyline points="22,6 12,13 2,6"/>
+                    </svg>
+                  </div>
+                  <div class="card-info-content">
+                    <span class="card-info-label">Email</span>
+                    <span class="card-info-value"><a href="mailto:${element.email}">${element.email}</a></span>
+                  </div>
+                </div>
+              ` : ""}
+
+              <div class="card-info-item">
+                <div class="card-info-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="16" y1="2" x2="16" y2="6"/>
+                    <line x1="8" y1="2" x2="8" y2="6"/>
+                    <line x1="3" y1="10" x2="21" y2="10"/>
+                  </svg>
+                </div>
+                <div class="card-info-content">
+                  <span class="card-info-label">Candidature</span>
+                  <span class="card-info-value">
+                    ${element.date}
+                    <span class="days-badge ${daysBadge.class}">${daysBadge.text}</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Relance Section -->
+            <div class="card-relance-section">
+              <div class="relance-checkbox-wrapper">
+                <input
+                  type="checkbox"
+                  class="relance-checkbox"
+                  id="relance-${element.id}"
+                  data-id="${element.id}"
+                  data-email="${element.email || ""}"
+                  data-company="${element.company}"
+                  data-poste="${element.poste}"
+                  data-date="${element.date}"
+                  ${isChecked ? "checked" : ""}
+                />
+                <label for="relance-${element.id}">À relancer</label>
+              </div>
+
+              ${(element.relance_count ?? 0) > 0 ? `
+                <span class="badge-relance-count">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                    <polyline points="22 4 12 14.01 9 11.01"/>
+                  </svg>
+                  Relancé ${element.relance_count} fois
+                </span>
+              ` : ""}
+
+              ${!hasEmail && isChecked ? `
+                <span class="badge-no-email">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="8" x2="12" y2="12"/>
+                    <line x1="12" y1="16" x2="12.01" y2="16"/>
+                  </svg>
+                  Email manquant
+                </span>
+              ` : ""}
+            </div>
+
+            <!-- Actions -->
+            <div class="card-actions">
+              ${showRelanceButton ? `
+                <a href="${this.generateMailtoLink(element)}" class="btn-action btn-action-primary btn-relance" data-id="${element.id}">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 2L11 13"/>
+                    <path d="M22 2L15 22l-4-9-9-4 20-7z"/>
+                  </svg>
+                  Envoyer la relance
+                </a>
+              ` : ""}
+
+              <button class="btn-action btn-action-danger btn-delete" data-id="${element.id}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"/>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                </svg>
+                Supprimer
+              </button>
+            </div>
+          </div>
         `;
       })
       .join("");
@@ -362,20 +453,29 @@ Cordialement`
 
         if (newCount !== null) {
           // Mettre à jour l'affichage du badge
-          const card = target.closest(".box-candidature");
+          const card = target.closest(".application-card");
           if (card) {
             // Supprimer l'ancien badge s'il existe
             const oldBadge = card.querySelector(".badge-relance-count");
             if (oldBadge) {
-              oldBadge.textContent = `Relancé ${newCount} fois`;
+              const svg = oldBadge.querySelector("svg");
+              oldBadge.innerHTML = "";
+              if (svg) oldBadge.appendChild(svg);
+              oldBadge.appendChild(document.createTextNode(`Relancé ${newCount} fois`));
             } else {
-              // Créer un nouveau badge
-              const badge = document.createElement("span");
-              badge.className = "badge-relance-count";
-              badge.textContent = `Relancé ${newCount} fois`;
-              const deleteBtn = card.querySelector(".btn-delete");
-              if (deleteBtn) {
-                card.insertBefore(badge, deleteBtn);
+              // Créer un nouveau badge dans la section relance
+              const relanceSection = card.querySelector(".card-relance-section");
+              if (relanceSection) {
+                const badge = document.createElement("span");
+                badge.className = "badge-relance-count";
+                badge.innerHTML = `
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                    <polyline points="22 4 12 14.01 9 11.01"/>
+                  </svg>
+                  Relancé ${newCount} fois
+                `;
+                relanceSection.appendChild(badge);
               }
             }
           }

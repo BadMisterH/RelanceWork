@@ -1,0 +1,133 @@
+/**
+ * Styles pour le composant Gmail Connector
+ */
+
+.gmail-status {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 30px;
+  border: 2px solid;
+  background: white;
+}
+
+.gmail-status.connected {
+  border-color: #10b981;
+  background: linear-gradient(to right, #ecfdf5, #ffffff);
+}
+
+.gmail-status.disconnected {
+  border-color: #f59e0b;
+  background: linear-gradient(to right, #fffbeb, #ffffff);
+}
+
+.gmail-icon {
+  font-size: 48px;
+  flex-shrink: 0;
+}
+
+.gmail-info {
+  flex: 1;
+}
+
+.gmail-info strong {
+  display: block;
+  font-size: 18px;
+  margin-bottom: 5px;
+  color: var(--color-text-primary);
+}
+
+.gmail-info p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+}
+
+.gmail-actions {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.btn-connect,
+.btn-check,
+.btn-disconnect {
+  padding: 12px 24px;
+  border-radius: 8px;
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-connect {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.btn-connect:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+}
+
+.btn-check {
+  background: #10b981;
+  color: white;
+}
+
+.btn-check:hover {
+  background: #059669;
+}
+
+.btn-check:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+.btn-disconnect {
+  background: #ef4444;
+  color: white;
+}
+
+.btn-disconnect:hover {
+  background: #dc2626;
+}
+
+/* Dark mode */
+:root[data-theme="dark"] .gmail-status {
+  background: var(--color-bg-secondary);
+  border-color: var(--color-border);
+}
+
+:root[data-theme="dark"] .gmail-status.connected {
+  background: linear-gradient(to right, #064e3b, var(--color-bg-secondary));
+  border-color: #10b981;
+}
+
+:root[data-theme="dark"] .gmail-status.disconnected {
+  background: linear-gradient(to right, #451a03, var(--color-bg-secondary));
+  border-color: #f59e0b;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .gmail-status {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .gmail-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .btn-connect,
+  .btn-check,
+  .btn-disconnect {
+    width: 100%;
+  }
+}
