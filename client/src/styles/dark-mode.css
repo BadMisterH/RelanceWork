@@ -1,70 +1,80 @@
 /* ===================================
    DARK MODE
-   Toggle automatique avec préférence système
+   Overrides CSS variables for all components
    =================================== */
 
-/* Variables Dark Mode */
+/* Variables Dark Mode - Single source of truth */
 :root[data-theme="dark"] {
-  /* Backgrounds */
-  --color-bg-primary: #0a0a0a;
-  --color-bg-secondary: #111111;
-  --color-bg-tertiary: #1a1a1a;
-  --color-border: #2a2a2a;
-  --color-border-hover: #3a3a3a;
-
-  /* Text Colors */
-  --color-text-primary: #f5f5f5;
-  --color-text-secondary: #a8a8a8;
-  --color-text-tertiary: #737373;
-
-  /* Status Colors - Plus vifs en dark mode */
-  --status-sent: #60a5fa;
-  --status-sent-bg: #1e3a8a;
-  --status-interview: #a78bfa;
-  --status-interview-bg: #4c1d95;
-  --status-accepted: #34d399;
-  --status-accepted-bg: #064e3b;
-  --status-rejected: #f87171;
-  --status-rejected-bg: #7f1d1d;
-  --status-waiting: #fbbf24;
-  --status-waiting-bg: #78350f;
-  --status-relance: #f472b6;
-  --status-relance-bg: #831843;
+  /* Core palette - high contrast */
+  --color-bg: #0d1117;
+  --color-surface: #161b22;
+  --color-border: #30363d;
+  --color-text: #e6edf3;
+  --color-text-secondary: #b1bac4;
+  --color-text-muted: #7d8590;
+  --color-primary: #58a6ff;
+  --color-primary-dark: #388bfd;
 
   /* Shadows */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.4);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 24px rgba(0, 0, 0, 0.5);
+
+  /* Dashboard-specific overrides */
+  --dash-bg: #0d1117;
+  --dash-card-bg: #161b22;
+  --dash-border: #30363d;
+  --dash-text: #e6edf3;
+  --dash-text-secondary: #b1bac4;
+  --dash-text-muted: #7d8590;
+
+  /* Dashboard shadows */
+  --dash-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --dash-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+  --dash-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+  --dash-shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+
+  /* Status badge colors - dark mode */
+  --dash-status-sent: #60a5fa;
+  --dash-status-sent-bg: rgba(59, 130, 246, 0.15);
+  --dash-status-interview: #a78bfa;
+  --dash-status-interview-bg: rgba(139, 92, 246, 0.15);
+  --dash-status-accepted: #34d399;
+  --dash-status-accepted-bg: rgba(16, 185, 129, 0.15);
+  --dash-status-rejected: #f87171;
+  --dash-status-rejected-bg: rgba(239, 68, 68, 0.15);
+  --dash-status-waiting: #fbbf24;
+  --dash-status-waiting-bg: rgba(245, 158, 11, 0.15);
+  --dash-status-retired: #9ca3af;
+  --dash-status-retired-bg: rgba(107, 114, 128, 0.15);
 }
 
-/* Toggle Switch Styles */
+/* ---- Theme Toggle ---- */
 .theme-toggle {
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 12px;
+  gap: 8px;
+  padding: 6px 10px;
   border-radius: 10px;
-  background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border);
+  background: var(--color-bg, #f1f5f9);
+  border: 1px solid var(--color-border, #e2e8f0);
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s ease;
   user-select: none;
 }
 
 .theme-toggle:hover {
-  border-color: var(--color-border-hover);
-  box-shadow: var(--shadow-sm);
+  border-color: var(--color-text-muted, #94a3b8);
 }
 
 .theme-toggle-switch {
   position: relative;
-  width: 44px;
-  height: 24px;
-  background: var(--color-bg-tertiary);
-  border-radius: 12px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 1px solid var(--color-border);
+  width: 40px;
+  height: 22px;
+  background: var(--color-border, #e2e8f0);
+  border-radius: 11px;
+  transition: all 0.3s ease;
 }
 
 .theme-toggle-switch::before {
@@ -74,178 +84,164 @@
   left: 2px;
   width: 18px;
   height: 18px;
-  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
   border-radius: 50%;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 :root[data-theme="dark"] .theme-toggle-switch {
-  background: #1a1a1a;
-  border-color: #3a3a3a;
+  background: #30363d;
 }
 
 :root[data-theme="dark"] .theme-toggle-switch::before {
-  transform: translateX(20px);
-  background: linear-gradient(135deg, #818cf8 0%, #6366f1 100%);
+  transform: translateX(18px);
+  background: linear-gradient(135deg, #818cf8, #6366f1);
 }
 
 .theme-toggle-icon {
-  width: 18px;
-  height: 18px;
-  color: var(--color-text-secondary);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 16px;
+  height: 16px;
+  color: var(--color-text-muted, #94a3b8);
+  transition: all 0.2s ease;
 }
 
-.theme-toggle-icon.sun {
-  opacity: 1;
-}
+.theme-toggle-icon.sun { opacity: 1; }
+.theme-toggle-icon.moon { opacity: 0.4; }
 
-.theme-toggle-icon.moon {
-  opacity: 0.4;
-}
+:root[data-theme="dark"] .theme-toggle-icon.sun { opacity: 0.4; }
+:root[data-theme="dark"] .theme-toggle-icon.moon { opacity: 1; color: #818cf8; }
 
-:root[data-theme="dark"] .theme-toggle-icon.sun {
-  opacity: 0.4;
-}
-
-:root[data-theme="dark"] .theme-toggle-icon.moon {
-  opacity: 1;
-  color: #818cf8;
-}
-
-/* Smooth transitions for all elements */
-* {
-  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
-}
-
-/* Dark mode specific adjustments */
+/* ---- Body & Layout ---- */
 :root[data-theme="dark"] body {
-  background: var(--color-bg-primary);
-  color: var(--color-text-primary);
+  background: var(--color-bg);
+  color: var(--color-text);
 }
 
 :root[data-theme="dark"] .sidebar {
-  background: var(--color-bg-secondary);
+  background: var(--color-surface);
   border-right-color: var(--color-border);
 }
 
-:root[data-theme="dark"] .main-content {
-  background: var(--color-bg-primary);
-}
-
-:root[data-theme="dark"] .top-header {
-  background: var(--color-bg-secondary);
+:root[data-theme="dark"] .sidebar-header {
   border-bottom-color: var(--color-border);
 }
 
-:root[data-theme="dark"] .stat-card {
-  background: var(--color-bg-secondary);
-  border-color: var(--color-border);
+:root[data-theme="dark"] .sidebar-footer {
+  border-top-color: var(--color-border);
 }
 
-:root[data-theme="dark"] .applications-table {
-  background: var(--color-bg-secondary);
-  border-color: var(--color-border);
+:root[data-theme="dark"] .logo-text {
+  color: var(--color-text);
 }
 
-:root[data-theme="dark"] .table-header {
-  background: var(--color-bg-tertiary);
+:root[data-theme="dark"] .main-content {
+  background: var(--color-bg);
 }
 
-:root[data-theme="dark"] .table-body .table-row:hover {
-  background: var(--color-bg-tertiary);
+:root[data-theme="dark"] .top-header {
+  background: rgba(22, 27, 34, 0.9);
+  border-bottom-color: var(--color-border);
 }
 
-:root[data-theme="dark"] .action-btn {
-  background: var(--color-bg-tertiary);
-  border-color: var(--color-border);
+:root[data-theme="dark"] .page-title {
+  color: var(--color-text);
+}
+
+:root[data-theme="dark"] .page-subtitle {
   color: var(--color-text-secondary);
 }
 
-:root[data-theme="dark"] .action-btn:hover {
-  border-color: var(--color-text-primary);
-  color: var(--color-text-primary);
-  background: var(--color-bg-secondary);
+/* ---- Navigation ---- */
+:root[data-theme="dark"] .nav-item {
+  color: var(--color-text-secondary);
 }
 
-:root[data-theme="dark"] .action-btn.primary {
-  background: var(--color-text-primary);
-  color: var(--color-bg-primary);
+:root[data-theme="dark"] .nav-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--color-text);
 }
 
-/* Profile menu dark mode */
-:root[data-theme="dark"] .profile-header {
-  background: var(--color-bg-tertiary);
-  border-color: var(--color-border);
+:root[data-theme="dark"] .nav-item.active {
+  background: rgba(88, 166, 255, 0.1);
+  color: var(--color-primary);
+}
+
+/* ---- Profile ---- */
+:root[data-theme="dark"] .profile-header:hover {
+  background: rgba(255, 255, 255, 0.05);
 }
 
 :root[data-theme="dark"] .profile-menu {
-  background: var(--color-bg-secondary);
+  background: var(--color-surface);
   border-color: var(--color-border);
 }
 
 :root[data-theme="dark"] .profile-menu-item:hover {
-  background: var(--color-bg-tertiary);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--color-text);
 }
 
-/* Animations plus visibles en dark mode */
-:root[data-theme="dark"] .profile-avatar::before {
-  background: linear-gradient(
-    45deg,
-    transparent,
-    rgba(255, 255, 255, 0.05),
-    transparent
-  );
+:root[data-theme="dark"] .profile-menu-item.danger:hover {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
 }
 
-/* Status tags en dark mode */
-:root[data-theme="dark"] .status-tag {
-  font-weight: 700;
-}
-
-/* Cards et autres éléments */
-:root[data-theme="dark"] .business-card,
-:root[data-theme="dark"] .application-card {
-  background: var(--color-bg-secondary);
-  border-color: var(--color-border);
-}
-
+/* ---- Quick Add Button ---- */
 :root[data-theme="dark"] .quick-add-btn {
-  background: var(--color-bg-tertiary);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+}
+
+/* ---- Dashboard Stat Cards ---- */
+:root[data-theme="dark"] .dash-stat-card {
+  background: var(--color-surface);
   border-color: var(--color-border);
 }
 
-:root[data-theme="dark"] .nav-item:hover {
-  background: var(--color-bg-tertiary);
+:root[data-theme="dark"] .dash-stat-card:hover {
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
 }
 
-:root[data-theme="dark"] .nav-item.active {
-  background: var(--color-bg-tertiary);
-  border-left-color: var(--color-text-primary);
+:root[data-theme="dark"] .dash-company-avatar {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
 
-/* Slide panel */
-:root[data-theme="dark"] .slide-panel {
-  background: var(--color-bg-secondary);
+/* ---- Dashboard Table ---- */
+:root[data-theme="dark"] .dash-table-section {
+  background: var(--color-surface);
+  border-color: var(--color-border);
 }
 
+:root[data-theme="dark"] .dash-table thead {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+:root[data-theme="dark"] .dash-table-row:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+:root[data-theme="dark"] .dash-action-btn {
+  background: var(--color-surface);
+  border-color: var(--color-border);
+  color: var(--color-text-secondary);
+}
+
+/* ---- Inputs ---- */
 :root[data-theme="dark"] input,
 :root[data-theme="dark"] select,
 :root[data-theme="dark"] textarea {
-  background: var(--color-bg-tertiary);
+  background: var(--color-bg);
   border-color: var(--color-border);
-  color: var(--color-text-primary);
+  color: var(--color-text);
 }
 
 :root[data-theme="dark"] input:focus,
 :root[data-theme="dark"] select:focus,
 :root[data-theme="dark"] textarea:focus {
-  border-color: var(--color-text-secondary);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.15);
 }
 
-/* Loading spinner */
-:root[data-theme="dark"] .loading-spinner {
-  border-color: var(--color-border);
-  border-top-color: var(--color-text-primary);
+:root[data-theme="dark"] input::placeholder {
+  color: var(--color-text-muted);
 }

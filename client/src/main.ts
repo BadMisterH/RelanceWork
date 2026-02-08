@@ -1,9 +1,7 @@
-import { UI } from "./class/Ui.ts";
 import { MapsSearch } from "./class/MapsSearch.ts";
-import { ModernTableView } from "./class/ModernTableView.ts";
+import { ExecutiveDashboard } from "./class/ExecutiveDashboard.ts";
 import { GmailConnector } from "./class/GmailConnector.ts";
 import "./style.css";
-import "./styles/business-cards.css";
 import api from "./lib/api";
 import { supabase } from "./lib/supabase";
 
@@ -75,11 +73,7 @@ function updateUserProfile(user: any) {
   }
 }
 
-const affichage = new UI();
-const modernTableView = new ModernTableView();
-
-// Variable pour basculer entre vue cards et vue tableau
-let useModernView = false; // DÉSACTIVÉ temporairement pour debug
+const executiveDashboard = new ExecutiveDashboard();
 
 async function GetAllDataPost() {
   try {
@@ -91,14 +85,8 @@ async function GetAllDataPost() {
     console.log("✅ Candidatures reçues:", result.data.length, "items");
     console.log("📊 Données:", result.data);
 
-    // Basculer entre les vues
-    if (useModernView) {
-      console.log("🎨 Utilisation de ModernTableView");
-      modernTableView.render(result.data);
-    } else {
-      console.log("🎨 Utilisation de l'ancienne vue (cards)");
-      affichage.getAffichage(result.data);
-    }
+    // Render le dashboard
+    executiveDashboard.render(result.data);
   } catch (error) {
     console.error("❌ ERREUR lors du chargement des candidatures:", error);
     if (error instanceof Error) {

@@ -4,10 +4,14 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>RelanceWork - Suivi de candidatures</title>
-    <link rel="stylesheet" href="/src/styles/business-cards.css" />
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
     <link rel="stylesheet" href="/src/styles/slide-panel.css" />
-    <link rel="stylesheet" href="/src/styles/applications-cards.css" />
-    <link rel="stylesheet" href="/src/styles/modern-applications.css" />
+    <link rel="stylesheet" href="/src/styles/executive-dashboard.css" />
     <link rel="stylesheet" href="/src/styles/dark-mode.css" />
     <link rel="stylesheet" href="/src/styles/gmail-connector.css" />
   </head>
@@ -144,141 +148,13 @@
         </header>
 
         <main class="dashboard-content">
-          <!-- Stats Cards -->
-          <section class="stats-grid">
-            <div class="stat-card stat-total" id="stat-total">
-              <div class="stat-icon">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
-                  <path
-                    d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"
-                  />
-                  <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
-                </svg>
-              </div>
-              <div class="stat-info">
-                <span class="stat-number" data-count="0">0</span>
-                <span class="stat-label">Total candidatures</span>
-              </div>
-              <div class="stat-trend">
-                <span class="trend-badge trend-neutral">Cette semaine</span>
-              </div>
-            </div>
+          <!-- Gmail Connector -->
+          <div id="gmailConnector"></div>
 
-            <div class="stat-card stat-pending" id="stat-pending">
-              <div class="stat-icon">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
-                  <circle cx="12" cy="12" r="10" />
-                  <polyline points="12 6 12 12 16 14" />
-                </svg>
-              </div>
-              <div class="stat-info">
-                <span class="stat-number" data-count="0">0</span>
-                <span class="stat-label">En attente</span>
-              </div>
-              <div class="stat-trend">
-                <span class="trend-badge trend-info">En cours</span>
-              </div>
-            </div>
-
-            <div class="stat-card stat-relance" id="stat-relance">
-              <div class="stat-icon">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
-                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                  <polyline points="22 4 12 14.01 9 11.01" />
-                </svg>
-              </div>
-              <div class="stat-info">
-                <span class="stat-number" data-count="0">0</span>
-                <span class="stat-label">À relancer</span>
-              </div>
-              <div class="stat-trend">
-                <span class="trend-badge trend-warning">Action requise</span>
-              </div>
-            </div>
-
-            <div class="stat-card stat-nomail" id="stat-nomail">
-              <div class="stat-icon">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
-                  <path
-                    d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
-                  />
-                  <polyline points="22,6 12,13 2,6" />
-                  <line x1="2" y1="2" x2="22" y2="22" stroke-width="2" />
-                </svg>
-              </div>
-              <div class="stat-info">
-                <span class="stat-number" data-count="0">0</span>
-                <span class="stat-label">Sans email</span>
-              </div>
-              <div class="stat-trend">
-                <span class="trend-badge trend-danger">À compléter</span>
-              </div>
-            </div>
-          </section>
-
-
-          <!-- Applications Section -->
-          <section class="applications-section">
-            <div class="section-header">
-              <h2>Mes candidatures</h2>
-              <div class="section-controls">
-                <div class="search-box">
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  >
-                    <circle cx="11" cy="11" r="8" />
-                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                  </svg>
-                  <input
-                    type="text"
-                    id="searchInput"
-                    placeholder="Rechercher..."
-                  />
-                </div>
-                <div class="filter-buttons">
-                  <button class="filter-btn active" data-filter="all">
-                    Toutes
-                  </button>
-                  <button class="filter-btn" data-filter="pending">
-                    En attente
-                  </button>
-                  <button class="filter-btn" data-filter="relance">
-                    À relancer
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <!-- Gmail Connector -->
-            <div id="gmailConnector"></div>
-
-            <div id="applicationsList" class="applications-grid">
-              <p class="loading-text">Chargement...</p>
-            </div>
-          </section>
+          <!-- Dashboard Content (rendered by ExecutiveDashboard) -->
+          <div id="applicationsList">
+            <p class="loading-text">Chargement...</p>
+          </div>
         </main>
       </div>
     </div>
