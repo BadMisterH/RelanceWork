@@ -86,7 +86,7 @@ export class GmailMultiUserService {
       expiryDate.setHours(expiryDate.getHours() + 1); // 1 heure par défaut
     }
 
-    // Stocker les tokens dans Supabase
+    // Stocker les tokens dans Supabase (upsert = insert ou update)
     const { error } = await supabase
       .from('gmail_tokens')
       .upsert({
@@ -96,6 +96,8 @@ export class GmailMultiUserService {
         token_expiry: expiryDate.toISOString(),
         gmail_email: gmailEmail,
         updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'user_id' // ✅ Si user_id existe déjà, mettre à jour au lieu d'insérer
       });
 
     if (error) {
@@ -220,7 +222,9 @@ export class GmailMultiUserService {
 
   /**
    * Analyse un email pour détecter une candidature
-   * (utilise la même logique que gmailWatchService)
+   * Format d'objet requis:
+   * - "Candidature [Poste] - [Entreprise]"
+   * - "Suite à ma candidature - [Poste]"
    */
   private parseJobApplicationEmail(message: any): any | null {
     try {
@@ -229,34 +233,52 @@ export class GmailMultiUserService {
       const to = headers.find((h: any) => h.name === 'To')?.value || '';
       const date = headers.find((h: any) => h.name === 'Date')?.value || '';
 
-      // Vérifier si c'est une candidature (patterns basiques)
-      const isCandidature =
-        subject.toLowerCase().includes('candidature') ||
-        subject.toLowerCase().includes('application') ||
-        subject.toLowerCase().includes('cv') ||
-        subject.toLowerCase().includes('poste');
+      // ✅ Pattern 1: "Candidature [Poste] - [Entreprise]"
+      const candidaturePattern = /^Candidature\s+(.+?)\s*-\s*(.+)$/i;
+      const candidatureMatch = subject.match(candidaturePattern);
 
-      if (!isCandidature) {
-        return null;
+      if (candidatureMatch) {
+        const poste = candidatureMatch[1].trim();
+        const company = candidatureMatch[2].trim();
+
+        return {
+          company,
+          poste,
+          status: 'Candidature envoyée',
+          date: new Date(date).toISOString().split('T')[0],
+          relanced: false,
+          email: to,
+          user_email: null,
+          relance_count: 0
+        };
       }
 
-      // Extraire l'entreprise depuis le destinataire
-      const emailMatch = to.match(/([^@]+)@([^.]+)/);
-      const company = emailMatch ? emailMatch[2] : 'Entreprise Inconnue';
+      // ✅ Pattern 2: "Suite à ma candidature - [Poste]"
+      const relancePattern = /^Suite à ma candidature\s*-\s*(.+)$/i;
+      const relanceMatch = subject.match(relancePattern);
 
-      // Extraire le poste depuis le sujet
-      const poste = subject.replace(/candidature/gi, '').trim() || 'Candidature spontanée';
+      if (relanceMatch) {
+        const poste = relanceMatch[1].trim();
 
-      return {
-        company,
-        poste,
-        status: 'Candidature envoyée',
-        date: new Date(date).toISOString().split('T')[0],
-        relanced: false,
-        email: to,
-        user_email: null,
-        relance_count: 0
-      };
+        // Extraire l'entreprise depuis le destinataire
+        const emailMatch = to.match(/([^@]+)@([^.]+)/);
+        const company = emailMatch ? emailMatch[2].charAt(0).toUpperCase() + emailMatch[2].slice(1) : 'Entreprise';
+
+        return {
+          company,
+          poste,
+          status: 'Relance envoyée',
+          date: new Date(date).toISOString().split('T')[0],
+          relanced: true,
+          email: to,
+          user_email: null,
+          relance_count: 1
+        };
+      }
+
+      // ❌ Format non reconnu
+      console.log(`Format d'objet non reconnu: "${subject}"`);
+      return null;
     } catch (error) {
       console.error('Error parsing email:', error);
       return null;

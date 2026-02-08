@@ -30,3 +30,19 @@ npm-debug.log*
 
 # Client build
 client/dist/
+
+# Secrets
+.env
+.env.local
+.env.*.local
+
+# Tokens
+data/
+gmail-token.json
+
+
+# Logs
+*.log
+
+# OS
+.DS_Store

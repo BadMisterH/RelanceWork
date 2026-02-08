@@ -220,6 +220,15 @@ checkAuth().then((isAuthenticated) => {
 });
 
 // ============================================
+// LOGOUT
+// ============================================
+const logoutBtn = document.getElementById('logoutBtn');
+logoutBtn?.addEventListener('click', async () => {
+  await supabase.auth.signOut();
+  window.location.href = '/auth.html';
+});
+
+// ============================================
 // MOBILE MENU FUNCTIONALITY
 // ============================================
 
