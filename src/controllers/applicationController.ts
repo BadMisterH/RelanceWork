@@ -40,7 +40,7 @@ export const createApplication = async (req: Request, res: Response): Promise<vo
   try {
     console.log('📥 Requête POST reçue:', JSON.stringify(req.body, null, 2));
 
-    const { company, poste, status, email, isRelance, userEmail } = req.body;
+    const { company, poste, status, email, isRelance, userEmail, company_website } = req.body;
 
     // Récupérer l'ID de l'utilisateur authentifié
     const userId = (req as any).user?.id;
@@ -82,6 +82,7 @@ export const createApplication = async (req: Request, res: Response): Promise<vo
         relanced: relancedValue,
         email: email || null,
         user_email: userEmail || null,
+        company_website: company_website || null,
         user_id: userId, // IMPORTANT: Toujours lier à l'utilisateur
       })
       .select()

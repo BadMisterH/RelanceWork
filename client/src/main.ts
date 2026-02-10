@@ -1,6 +1,8 @@
 import { MapsSearch } from "./class/MapsSearch.ts";
 import { ExecutiveDashboard } from "./class/ExecutiveDashboard.ts";
 import { GmailConnector } from "./class/GmailConnector.ts";
+import { TemplateManager } from "./class/TemplateManager.ts";
+import { AnalyticsDashboard } from "./class/AnalyticsDashboard.ts";
 import "./style.css";
 import api from "./lib/api";
 import { supabase } from "./lib/supabase";
@@ -18,6 +20,8 @@ export interface Application {
   user_email?: string; // Email de l'utilisateur
   created_at?: string;
   user_id?: string; // UUID de l'utilisateur (Supabase)
+  company_website?: string; // Site web de l'entreprise
+  company_description?: string; // Description enrichie de l'entreprise
 }
 
 // ============================================
@@ -74,27 +78,114 @@ function updateUserProfile(user: any) {
 }
 
 const executiveDashboard = new ExecutiveDashboard();
+const templateManager = new TemplateManager();
+const analyticsDashboard = new AnalyticsDashboard();
+let currentApplications: Application[] = [];
 
 async function GetAllDataPost() {
   try {
     console.log("📡 Chargement des candidatures...");
 
-    // Utiliser le client API avec interceptor (token automatiquement attaché)
     const result = await api.get<Application[]>('/applications');
 
     console.log("✅ Candidatures reçues:", result.data.length, "items");
-    console.log("📊 Données:", result.data);
 
-    // Render le dashboard
+    currentApplications = result.data;
     executiveDashboard.render(result.data);
+    analyticsDashboard.render(result.data);
   } catch (error) {
     console.error("❌ ERREUR lors du chargement des candidatures:", error);
     if (error instanceof Error) {
       console.error("Message:", error.message);
-      console.error("Stack:", error.stack);
     }
-    // Si erreur 401/403, l'interceptor redirigera automatiquement
   }
+}
+
+// ============================================
+// RELANCE - Ouvrir le panneau de templates
+// ============================================
+window.addEventListener('relance-application', (e: Event) => {
+  const { id } = (e as CustomEvent).detail;
+  const app = currentApplications.find(a => a.id === id);
+  if (!app) return;
+
+  templateManager.open(app);
+});
+
+// ============================================
+// RELANCE SENT - Incrémenter le compteur après envoi
+// ============================================
+window.addEventListener('relance-sent', async (e: Event) => {
+  const { id } = (e as CustomEvent).detail;
+
+  try {
+    await api.put(`/applications/${id}/send-relance`);
+  } catch (error) {
+    console.error("Erreur lors de l'incrémentation de la relance:", error);
+  }
+
+  GetAllDataPost();
+});
+
+// ============================================
+// SUPPRESSION
+// ============================================
+window.addEventListener('delete-application', async (e: Event) => {
+  const { id } = (e as CustomEvent).detail;
+
+  try {
+    await api.delete(`/applications/${id}`);
+    GetAllDataPost();
+  } catch (error) {
+    console.error("Erreur lors de la suppression:", error);
+  }
+});
+
+// ============================================
+// ENRICHISSEMENT ENTREPRISE
+// ============================================
+window.addEventListener('enrich-company', async (e: Event) => {
+  const { id, website } = (e as CustomEvent).detail;
+  if (!website) return;
+
+  try {
+    const result = await api.post('/company-enrichment/enrich', {
+      url: website,
+      applicationId: id,
+    });
+
+    if (result.data.success) {
+      GetAllDataPost();
+    }
+  } catch (error) {
+    console.error("Erreur lors de l'enrichissement:", error);
+  }
+});
+
+// ============================================
+// NAVIGATION DASHBOARD / ANALYTICS
+// ============================================
+function initViewNavigation() {
+  const dashboardView = document.getElementById('applicationsList');
+  const analyticsView = document.getElementById('analyticsList');
+  const navBtns = document.querySelectorAll('.dash-nav-btn');
+
+  navBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const view = (btn as HTMLElement).dataset.view;
+
+      navBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      if (view === 'analytics') {
+        dashboardView?.setAttribute('style', 'display:none');
+        analyticsView?.setAttribute('style', '');
+      } else {
+        dashboardView?.setAttribute('style', '');
+        analyticsView?.setAttribute('style', 'display:none');
+      }
+    });
+  });
 }
 
 // Instancier MapsSearch immédiatement pour que les événements soient attachés
@@ -213,6 +304,9 @@ checkAuth().then((isAuthenticated) => {
 
     // Charger Google Maps au démarrage
     loadGoogleMapsScript();
+
+    // Initialiser la navigation entre vues
+    initViewNavigation();
 
     // Charger les données
     GetAllDataPost();

@@ -1,7 +1,9 @@
 # RelanceWork
 
 > 📋 Application de suivi de candidatures pour gérer vos recherches d'emploi
-
+## Probleme
+Le problème est que la fonction de relance scanne l’historique complet des mails envoyés avec l’objet ciblé.
+Je souhaite implémenter un bouton qui démarre un suivi uniquement pour les emails envoyés après son activation (timestamp-based filtering), sans inclure les emails déjà présents dans l’historique.
 ---
 
 ## 📋 Description

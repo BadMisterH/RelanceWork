@@ -2,7 +2,7 @@ import "dotenv/config";
 import app from "./app";
 import db from "./config/database";
 import { startAutoRelanceService } from "./services/autoRelanceService";
-import { gmailPollingService } from "./services/gmailPollingService";
+import { gmailMultiUserService } from "./services/gmailMultiUserService";
 
 const PORT = process.env.PORT || 3000;
 
@@ -18,8 +18,8 @@ app.listen(PORT, () => {
     // Démarrer le service de vérification automatique des relances
     startAutoRelanceService();
 
-    // Démarrer le service de détection automatique des emails Gmail
-    gmailPollingService.start();
+    // Reprendre le polling Gmail pour les utilisateurs avec tracking actif
+    gmailMultiUserService.resumeActiveTracking();
   } catch (err) {
     console.error("❌ Database connection error:", (err as Error).message);
   }

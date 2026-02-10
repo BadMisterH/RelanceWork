@@ -21,8 +21,22 @@ export class ExecutiveDashboard {
   public render(applications: Application[]) {
     if (!this.container) return;
 
-    this.applications = applications;
-    this.filteredApplications = applications;
+    // Trier par date décroissante (plus récent en premier)
+    this.applications = [...applications].sort((a, b) => {
+      return this.parseDate(b.date).getTime() - this.parseDate(a.date).getTime();
+    });
+
+    // Appliquer le filtre de recherche si actif
+    if (this.searchTerm) {
+      this.filteredApplications = this.applications.filter(app => {
+        const term = this.searchTerm.toLowerCase();
+        return app.company.toLowerCase().includes(term) ||
+          app.poste.toLowerCase().includes(term) ||
+          app.status.toLowerCase().includes(term);
+      });
+    } else {
+      this.filteredApplications = this.applications;
+    }
 
     const html = `
       ${this.renderStats()}
@@ -32,6 +46,14 @@ export class ExecutiveDashboard {
     this.container.innerHTML = html;
     this.attachEventListeners();
     this.updateStatsNumbers();
+
+    // Restaurer la valeur de recherche dans l'input
+    if (this.searchTerm) {
+      const searchInput = document.getElementById('dashTableSearch') as HTMLInputElement;
+      if (searchInput) {
+        searchInput.value = this.searchTerm;
+      }
+    }
   }
 
   /**
@@ -173,7 +195,19 @@ export class ExecutiveDashboard {
         <td class="dash-td dash-td-company">
           <div class="dash-company-wrapper">
             <div class="dash-company-avatar">${app.company.charAt(0).toUpperCase()}</div>
-            <span class="dash-company-name">${this.escapeHtml(app.company)}</span>
+            <div class="dash-company-info">
+              <div class="dash-company-name-row">
+                <span class="dash-company-name">${this.escapeHtml(app.company)}</span>
+                ${app.company_website ? `<a href="${this.escapeHtml(app.company_website)}" target="_blank" rel="noopener" class="dash-company-link" title="Voir le site web">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                    <polyline points="15 3 21 3 21 9"/>
+                    <line x1="10" y1="14" x2="21" y2="3"/>
+                  </svg>
+                </a>` : ''}
+              </div>
+              ${app.company_description ? `<span class="dash-company-desc">${this.escapeHtml(app.company_description).substring(0, 80)}${app.company_description.length > 80 ? '...' : ''}</span>` : ''}
+            </div>
           </div>
         </td>
         <td class="dash-td dash-td-poste">
@@ -206,6 +240,19 @@ export class ExecutiveDashboard {
               </svg>
               Relancer
             </button>
+            ${app.company_website && !app.company_description ? `<button
+              class="dash-action-btn dash-btn-enrich"
+              data-action="enrich"
+              data-id="${app.id}"
+              data-website="${this.escapeHtml(app.company_website)}"
+              title="Enrichir les infos entreprise"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8" x2="12" y2="16"/>
+                <line x1="8" y1="12" x2="16" y2="12"/>
+              </svg>
+            </button>` : ''}
             <button
               class="dash-action-btn dash-btn-delete"
               data-action="delete"
@@ -401,6 +448,9 @@ export class ExecutiveDashboard {
           this.handleRelance(Number(id));
         } else if (action === 'delete') {
           this.handleDelete(Number(id));
+        } else if (action === 'enrich') {
+          const website = target.dataset.website;
+          this.handleEnrich(Number(id), website || '');
         }
       });
     });
@@ -409,16 +459,24 @@ export class ExecutiveDashboard {
   /**
    * Filtrer les candidatures
    */
+  /**
+   * Parse une date au format JJ/MM/AAAA ou ISO
+   */
+  private parseDate(dateStr: string): Date {
+    if (!dateStr) return new Date(0);
+
+    // Format JJ/MM/AAAA
+    const parts = dateStr.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    if (parts) {
+      return new Date(Number(parts[3]), Number(parts[2]) - 1, Number(parts[1]));
+    }
+
+    // Format ISO ou autre
+    const d = new Date(dateStr);
+    return isNaN(d.getTime()) ? new Date(0) : d;
+  }
+
   private filterApplications() {
-    this.filteredApplications = this.applications.filter(app => {
-      const matchSearch = !this.searchTerm ||
-        app.company.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-        app.poste.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-        app.status.toLowerCase().includes(this.searchTerm.toLowerCase());
-
-      return matchSearch;
-    });
-
     this.render(this.applications);
   }
 
@@ -427,6 +485,14 @@ export class ExecutiveDashboard {
    */
   private handleRelance(id: number) {
     const event = new CustomEvent('relance-application', { detail: { id } });
+    window.dispatchEvent(event);
+  }
+
+  /**
+   * Gérer l'enrichissement entreprise
+   */
+  private handleEnrich(id: number, website: string) {
+    const event = new CustomEvent('enrich-company', { detail: { id, website } });
     window.dispatchEvent(event);
   }
 

@@ -1,0 +1,384 @@
+/* ============================================
+   ANALYTICS DASHBOARD
+   Uses CSS variables for automatic dark mode
+   ============================================ */
+
+.analytics-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+}
+
+/* ---- Card ---- */
+.analytics-card {
+  background: var(--color-surface, #fff);
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  box-shadow: var(--dash-shadow-sm, 0 1px 3px rgba(0,0,0,0.08));
+  transition: box-shadow 200ms ease;
+}
+
+.analytics-card:hover {
+  box-shadow: var(--dash-shadow-md, 0 4px 12px rgba(0,0,0,0.1));
+}
+
+.analytics-card-header {
+  margin-bottom: 1.25rem;
+}
+
+.analytics-card-header h3 {
+  font-family: 'Archivo', 'Inter', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text, #0f172a);
+  margin: 0 0 4px 0;
+}
+
+.analytics-card-subtitle {
+  font-size: 0.75rem;
+  color: var(--color-text-muted, #94a3b8);
+  font-weight: 500;
+}
+
+/* ============================================
+   CONVERSION FUNNEL
+   ============================================ */
+
+.analytics-funnel-stages {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.analytics-funnel-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.analytics-funnel-label {
+  width: 180px;
+  flex-shrink: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary, #475569);
+}
+
+.analytics-funnel-label strong {
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text, #0f172a);
+  font-weight: 700;
+}
+
+.analytics-funnel-bar-wrapper {
+  flex: 1;
+  height: 28px;
+  background: var(--color-bg, #f1f5f9);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.analytics-funnel-bar {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 600ms cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 4px;
+}
+
+.analytics-funnel-rate {
+  width: 40px;
+  text-align: right;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-muted, #94a3b8);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+/* ============================================
+   RELANCE METRICS
+   ============================================ */
+
+.analytics-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.analytics-metric {
+  padding: 14px;
+  background: var(--color-bg, #f8fafc);
+  border-radius: 10px;
+  text-align: center;
+}
+
+.analytics-metric-value {
+  font-size: 1.75rem;
+  font-weight: 800;
+  font-family: 'Archivo', 'Inter', sans-serif;
+  color: var(--color-text, #0f172a);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+
+.analytics-metric-positive {
+  color: #10b981;
+}
+
+.analytics-metric-label {
+  font-size: 0.6875rem;
+  color: var(--color-text-muted, #94a3b8);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 4px;
+}
+
+.analytics-insight {
+  padding: 10px 14px;
+  background: var(--color-bg, #f8fafc);
+  border-radius: 8px;
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary, #475569);
+  border-left: 3px solid var(--color-border, #e2e8f0);
+  line-height: 1.5;
+}
+
+.analytics-insight-positive {
+  border-left-color: #10b981;
+  background: rgba(16, 185, 129, 0.06);
+  color: var(--color-text, #0f172a);
+}
+
+/* ============================================
+   WEEKLY ACTIVITY
+   ============================================ */
+
+.analytics-weeks {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.analytics-week-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.analytics-week-label {
+  width: 70px;
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  color: var(--color-text-muted, #94a3b8);
+  font-variant-numeric: tabular-nums;
+}
+
+.analytics-week-bar-wrapper {
+  flex: 1;
+  height: 22px;
+  background: var(--color-bg, #f1f5f9);
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.analytics-week-bar {
+  height: 100%;
+  background: var(--color-primary, #2563eb);
+  border-radius: 5px;
+  transition: width 500ms cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 2px;
+}
+
+.analytics-week-count {
+  width: 28px;
+  text-align: right;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--color-text, #0f172a);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+/* ============================================
+   STATUS DISTRIBUTION
+   ============================================ */
+
+.analytics-status-bar {
+  display: flex;
+  height: 14px;
+  border-radius: 7px;
+  overflow: hidden;
+  gap: 2px;
+  margin-bottom: 16px;
+}
+
+.analytics-status-segment {
+  transition: width 500ms ease;
+  min-width: 4px;
+  border-radius: 4px;
+}
+
+.analytics-status-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.analytics-status-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.8125rem;
+}
+
+.analytics-status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.analytics-status-label {
+  flex: 1;
+  color: var(--color-text-secondary, #475569);
+}
+
+.analytics-status-count {
+  font-weight: 700;
+  color: var(--color-text, #0f172a);
+  font-variant-numeric: tabular-nums;
+}
+
+.analytics-status-pct {
+  width: 36px;
+  text-align: right;
+  font-size: 0.75rem;
+  color: var(--color-text-muted, #94a3b8);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================
+   EMPTY STATE
+   ============================================ */
+
+.analytics-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 24px;
+  text-align: center;
+  color: var(--color-text-muted, #94a3b8);
+}
+
+.analytics-empty svg {
+  width: 56px;
+  height: 56px;
+  margin-bottom: 16px;
+  opacity: 0.4;
+}
+
+.analytics-empty h3 {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--color-text-secondary, #475569);
+  margin: 0 0 8px 0;
+}
+
+.analytics-empty p {
+  font-size: 0.875rem;
+  max-width: 360px;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ============================================
+   VIEW NAVIGATION TABS
+   ============================================ */
+
+.dash-view-nav {
+  display: flex;
+  gap: 4px;
+  background: var(--color-bg, #f1f5f9);
+  padding: 4px;
+  border-radius: 10px;
+  margin-right: auto;
+}
+
+.dash-nav-btn {
+  padding: 8px 18px;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  font-family: inherit;
+  color: var(--color-text-muted, #94a3b8);
+  cursor: pointer;
+  transition: all 200ms ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dash-nav-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.dash-nav-btn:hover {
+  color: var(--color-text-secondary, #475569);
+}
+
+.dash-nav-btn.active {
+  background: var(--color-surface, #fff);
+  color: var(--color-text, #0f172a);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 768px) {
+  .analytics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .analytics-funnel-label {
+    width: 140px;
+    font-size: 0.75rem;
+  }
+
+  .analytics-metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .analytics-metric {
+    padding: 10px;
+  }
+
+  .analytics-metric-value {
+    font-size: 1.375rem;
+  }
+
+  .analytics-card {
+    padding: 1.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .analytics-funnel-label {
+    width: 110px;
+  }
+
+  .analytics-funnel-rate {
+    display: none;
+  }
+}

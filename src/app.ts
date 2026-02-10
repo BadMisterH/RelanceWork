@@ -4,6 +4,7 @@ import applicationRoutes from "./routes/applicationRoutes";
 import gmailRoutes from "./routes/gmailRoutes";
 import gmailMultiUserRoutes from "./routes/gmailMultiUserRoutes";
 import emailEnrichmentRoutes from "./routes/emailEnrichmentRoutes";
+import companyEnrichmentRoutes from "./routes/companyEnrichmentRoutes";
 import authRoutes from "./routes/authRoutes";
 
 const app = express();
@@ -44,6 +45,7 @@ app.use("/api", applicationRoutes);
 app.use("/api/gmail", gmailRoutes); // Ancien système (global)
 app.use("/api/gmail-user", gmailMultiUserRoutes); // ✅ Nouveau système (multi-user)
 app.use("/api/email-enrichment", emailEnrichmentRoutes);
+app.use("/api/company-enrichment", companyEnrichmentRoutes);
 
 // Servir l'application client à /app
 const clientPath = path.join(__dirname, "../client/dist");

@@ -196,6 +196,71 @@ router.post('/check-emails', authenticateToken, async (req: Request, res: Respon
 });
 
 /**
+ * POST /api/gmail-user/tracking/start
+ * Démarre le suivi - seuls les emails envoyés APRÈS cet instant seront détectés
+ */
+router.post('/tracking/start', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user.id;
+
+    const isConnected = await gmailMultiUserService.isGmailConnected(userId);
+    if (!isConnected) {
+      return res.status(400).json({ error: 'Gmail non connecté' });
+    }
+
+    const startedAt = await gmailMultiUserService.startTracking(userId);
+
+    res.json({
+      success: true,
+      tracking: true,
+      started_at: startedAt,
+      message: 'Suivi activé. Seuls les emails envoyés à partir de maintenant seront détectés.'
+    });
+  } catch (error: any) {
+    console.error('Error starting tracking:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * POST /api/gmail-user/tracking/stop
+ * Arrête le suivi
+ */
+router.post('/tracking/stop', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user.id;
+
+    await gmailMultiUserService.stopTracking(userId);
+
+    res.json({
+      success: true,
+      tracking: false,
+      message: 'Suivi arrêté.'
+    });
+  } catch (error: any) {
+    console.error('Error stopping tracking:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * GET /api/gmail-user/tracking/status
+ * Statut du suivi
+ */
+router.get('/tracking/status', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user.id;
+
+    const status = await gmailMultiUserService.getTrackingStatus(userId);
+
+    res.json(status);
+  } catch (error: any) {
+    console.error('Error getting tracking status:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
  * POST /api/gmail-user/disconnect
  * Déconnecte Gmail
  */

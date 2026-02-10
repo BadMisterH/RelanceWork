@@ -99,6 +99,49 @@
   background: #dc2626;
 }
 
+.btn-tracking {
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: 2px solid #2563eb;
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  background: transparent;
+  color: #2563eb;
+}
+
+.btn-tracking:hover {
+  background: rgba(37, 99, 235, 0.1);
+}
+
+.btn-tracking.active {
+  background: #2563eb;
+  color: white;
+  border-color: #2563eb;
+}
+
+.btn-tracking.active:hover {
+  background: #1d4ed8;
+}
+
+.btn-tracking:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.tracking-since {
+  font-size: 0.75rem;
+  color: var(--color-text-muted, #9ca3af);
+  align-self: center;
+}
+
+.gmail-actions {
+  align-items: center;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .gmail-status {
@@ -114,7 +157,12 @@
 
   .btn-connect,
   .btn-check,
-  .btn-disconnect {
+  .btn-disconnect,
+  .btn-tracking {
     width: 100%;
+  }
+
+  .tracking-since {
+    text-align: center;
   }
 }

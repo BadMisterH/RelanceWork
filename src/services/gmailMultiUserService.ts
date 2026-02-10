@@ -21,8 +21,12 @@ interface GmailToken {
   gmail_email: string;
 }
 
+const POLLING_INTERVAL = 30000; // 30 secondes
+
 export class GmailMultiUserService {
   private oauth2Clients: Map<string, any> = new Map(); // userId -> OAuth2Client
+  private pollingIntervals: Map<string, NodeJS.Timeout> = new Map(); // userId -> interval
+  private processedMessageIds: Map<string, Set<string>> = new Map(); // userId -> Set de messageIds déjà traités
 
   /**
    * Génère l'URL d'authentification OAuth pour un utilisateur
@@ -168,23 +172,188 @@ export class GmailMultiUserService {
   }
 
   /**
+   * Démarre le suivi des emails à partir de maintenant
+   * Seuls les emails envoyés APRÈS cet instant seront détectés
+   * Lance automatiquement le polling toutes les 30 secondes
+   */
+  public async startTracking(userId: string): Promise<string> {
+    const startedAt = new Date().toISOString();
+
+    const { error } = await supabase
+      .from('gmail_tokens')
+      .update({ tracking_started_at: startedAt })
+      .eq('user_id', userId);
+
+    if (error) {
+      throw new Error(`Failed to start tracking: ${error.message}`);
+    }
+
+    // Lancer le polling automatique
+    this.startPollingForUser(userId);
+
+    console.log(`▶️ Tracking started for user ${userId} at ${startedAt}`);
+    return startedAt;
+  }
+
+  /**
+   * Arrête le suivi des emails et le polling
+   */
+  public async stopTracking(userId: string): Promise<void> {
+    const { error } = await supabase
+      .from('gmail_tokens')
+      .update({ tracking_started_at: null })
+      .eq('user_id', userId);
+
+    if (error) {
+      throw new Error(`Failed to stop tracking: ${error.message}`);
+    }
+
+    // Arrêter le polling
+    this.stopPollingForUser(userId);
+
+    // Supprimer du cache
+    this.oauth2Clients.delete(userId);
+    console.log(`⏹️ Tracking stopped for user ${userId}`);
+  }
+
+  /**
+   * Lance le polling automatique pour un utilisateur
+   */
+  private startPollingForUser(userId: string): void {
+    // Éviter les doublons
+    if (this.pollingIntervals.has(userId)) {
+      return;
+    }
+
+    // Initialiser le set de messages traités
+    if (!this.processedMessageIds.has(userId)) {
+      this.processedMessageIds.set(userId, new Set());
+    }
+
+    console.log(`🔄 Starting auto-polling for user ${userId} (every ${POLLING_INTERVAL / 1000}s)`);
+
+    const interval = setInterval(async () => {
+      try {
+        await this.checkEmailsForUser(userId);
+      } catch (error: any) {
+        console.error(`❌ Polling error for user ${userId}:`, error.message);
+        // Arrêter si erreur d'auth
+        if (error.message.includes('invalid_grant') || error.message.includes('Token')) {
+          console.log(`🔐 Auth error - stopping polling for user ${userId}`);
+          this.stopPollingForUser(userId);
+        }
+      }
+    }, POLLING_INTERVAL);
+
+    this.pollingIntervals.set(userId, interval);
+  }
+
+  /**
+   * Arrête le polling pour un utilisateur
+   */
+  private stopPollingForUser(userId: string): void {
+    const interval = this.pollingIntervals.get(userId);
+    if (interval) {
+      clearInterval(interval);
+      this.pollingIntervals.delete(userId);
+      this.processedMessageIds.delete(userId);
+      console.log(`⏹️ Polling stopped for user ${userId}`);
+    }
+  }
+
+  /**
+   * Au démarrage du serveur, reprend le polling pour les utilisateurs
+   * qui avaient le tracking actif
+   */
+  public async resumeActiveTracking(): Promise<void> {
+    try {
+      const { data: activeUsers } = await supabase
+        .from('gmail_tokens')
+        .select('user_id')
+        .not('tracking_started_at', 'is', null);
+
+      if (!activeUsers || activeUsers.length === 0) {
+        console.log('📭 No active tracking to resume');
+        return;
+      }
+
+      for (const row of activeUsers) {
+        console.log(`🔄 Resuming tracking for user ${row.user_id}`);
+        this.startPollingForUser(row.user_id);
+      }
+
+      console.log(`✅ Resumed polling for ${activeUsers.length} user(s)`);
+    } catch (error: any) {
+      console.error('❌ Error resuming active tracking:', error.message);
+    }
+  }
+
+  /**
+   * Récupère le statut du suivi
+   */
+  public async getTrackingStatus(userId: string): Promise<{ tracking: boolean; started_at: string | null }> {
+    const { data } = await supabase
+      .from('gmail_tokens')
+      .select('tracking_started_at')
+      .eq('user_id', userId)
+      .single();
+
+    return {
+      tracking: !!data?.tracking_started_at,
+      started_at: data?.tracking_started_at || null
+    };
+  }
+
+  /**
    * Vérifie les nouveaux emails pour un utilisateur spécifique
+   * Filtre par tracking_started_at pour ne détecter que les emails récents
    */
   public async checkEmailsForUser(userId: string): Promise<void> {
     try {
       const oauth2Client = await this.getOAuth2ClientForUser(userId);
       const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
 
-      // Récupérer les 10 derniers emails envoyés
-      const response = await gmail.users.messages.list({
+      // Récupérer le timestamp de début de tracking
+      const { data: tokenData } = await supabase
+        .from('gmail_tokens')
+        .select('tracking_started_at')
+        .eq('user_id', userId)
+        .single();
+
+      const trackingStartedAt = tokenData?.tracking_started_at;
+
+      // Construire le filtre Gmail API
+      // Si tracking activé, ne prendre que les emails APRÈS le timestamp
+      const listParams: any = {
         userId: 'me',
         labelIds: ['SENT'],
         maxResults: 10
-      });
+      };
 
+      if (trackingStartedAt) {
+        const epochSeconds = Math.floor(new Date(trackingStartedAt).getTime() / 1000);
+        listParams.q = `after:${epochSeconds}`;
+        console.log(`🔍 Filtering emails after ${trackingStartedAt} (epoch: ${epochSeconds})`);
+      }
+
+      const response = await gmail.users.messages.list(listParams);
       const messages = response.data.messages || [];
 
-      console.log(`📬 Found ${messages.length} recent sent emails for user ${userId}`);
+      console.log(`📬 Found ${messages.length} sent emails for user ${userId}${trackingStartedAt ? ' (filtered)' : ''}`);
+
+      // Récupérer les candidatures existantes pour déduplication
+      const { data: existingApps } = await supabase
+        .from('applications')
+        .select('email, poste, company')
+        .eq('user_id', userId);
+
+      const existingKeys = new Set(
+        (existingApps || []).map(a =>
+          `${(a.email || '').toLowerCase()}|${(a.poste || '').toLowerCase()}|${(a.company || '').toLowerCase()}`
+        )
+      );
+
+      let addedCount = 0;
 
       // Traiter chaque email
       for (const message of messages) {
@@ -201,6 +370,14 @@ export class GmailMultiUserService {
         const emailData = this.parseJobApplicationEmail(fullMessage.data);
 
         if (emailData) {
+          // Vérifier la déduplication
+          const key = `${(emailData.email || '').toLowerCase()}|${(emailData.poste || '').toLowerCase()}|${(emailData.company || '').toLowerCase()}`;
+
+          if (existingKeys.has(key)) {
+            console.log(`⏭️ Duplicate skipped: ${emailData.company} - ${emailData.poste}`);
+            continue;
+          }
+
           console.log(`✨ Job application detected for user ${userId}:`, emailData.company);
 
           // Ajouter à la base de données avec le user_id
@@ -208,12 +385,16 @@ export class GmailMultiUserService {
             .from('applications')
             .insert({
               ...emailData,
-              user_id: userId // ✅ CRITIQUE: Attacher au bon utilisateur
+              user_id: userId
             });
 
+          existingKeys.add(key);
+          addedCount++;
           console.log(`✅ Application added for user ${userId}`);
         }
       }
+
+      console.log(`📊 Scan complete: ${addedCount} new application(s) added for user ${userId}`);
     } catch (error: any) {
       console.error(`❌ Error checking emails for user ${userId}:`, error.message);
       throw error;
@@ -289,6 +470,9 @@ export class GmailMultiUserService {
    * Déconnecte Gmail pour un utilisateur
    */
   public async disconnectGmail(userId: string): Promise<void> {
+    // Arrêter le polling d'abord
+    this.stopPollingForUser(userId);
+
     // Supprimer de la DB
     const { error } = await supabase
       .from('gmail_tokens')

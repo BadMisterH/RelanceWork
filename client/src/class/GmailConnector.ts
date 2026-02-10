@@ -8,6 +8,8 @@ export class GmailConnector {
   private container: HTMLElement | null;
   private isConnected: boolean = false;
   private gmailEmail: string | null = null;
+  private isTracking: boolean = false;
+  private trackingStartedAt: string | null = null;
 
   constructor(containerId: string = 'gmailConnector') {
     this.container = document.getElementById(containerId);
@@ -16,6 +18,9 @@ export class GmailConnector {
 
   private async init() {
     await this.checkStatus();
+    if (this.isConnected) {
+      await this.checkTrackingStatus();
+    }
     this.render();
   }
 
@@ -33,12 +38,43 @@ export class GmailConnector {
   }
 
   /**
+   * Vérifie le statut du tracking
+   */
+  private async checkTrackingStatus() {
+    try {
+      const response = await api.get('/gmail-user/tracking/status');
+      this.isTracking = response.data.tracking;
+      this.trackingStartedAt = response.data.started_at;
+    } catch (error) {
+      console.error('Erreur lors de la vérification du tracking:', error);
+    }
+  }
+
+  /**
+   * Formate une date ISO en texte lisible
+   */
+  private formatTrackingDate(isoDate: string): string {
+    const date = new Date(isoDate);
+    return date.toLocaleDateString('fr-FR', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+
+  /**
    * Affiche le composant
    */
   private render() {
     if (!this.container) return;
 
     if (this.isConnected) {
+      const trackingInfo = this.isTracking && this.trackingStartedAt
+        ? `<span class="tracking-since">depuis le ${this.formatTrackingDate(this.trackingStartedAt)}</span>`
+        : '';
+
       this.container.innerHTML = `
         <div class="gmail-status connected">
           <div class="gmail-icon">✅</div>
@@ -47,7 +83,11 @@ export class GmailConnector {
             <p>${this.gmailEmail}</p>
           </div>
           <div class="gmail-actions">
-            <button id="checkEmailsBtn" class="btn-check">
+            <button id="trackingToggleBtn" class="btn-tracking ${this.isTracking ? 'active' : ''}">
+              ${this.isTracking ? '⏹️ Arrêter le suivi' : '▶️ Démarrer le suivi'}
+            </button>
+            ${trackingInfo}
+            <button id="checkEmailsBtn" class="btn-check" ${!this.isTracking ? 'disabled title="Activez le suivi d\'abord"' : ''}>
               🔍 Vérifier les emails
             </button>
             <button id="disconnectGmailBtn" class="btn-disconnect">
@@ -88,9 +128,11 @@ export class GmailConnector {
    * Gestion des événements (état connecté)
    */
   private attachConnectedListeners() {
+    const trackingBtn = document.getElementById('trackingToggleBtn');
     const checkBtn = document.getElementById('checkEmailsBtn');
     const disconnectBtn = document.getElementById('disconnectGmailBtn');
 
+    trackingBtn?.addEventListener('click', () => this.toggleTracking());
     checkBtn?.addEventListener('click', () => this.checkEmails());
     disconnectBtn?.addEventListener('click', () => this.disconnectGmail());
   }
@@ -132,6 +174,34 @@ export class GmailConnector {
     } catch (error: any) {
       console.error('Erreur lors de la connexion Gmail:', error);
       alert('❌ Erreur lors de la connexion Gmail: ' + error.message);
+    }
+  }
+
+  /**
+   * Démarrer ou arrêter le suivi des emails
+   */
+  private async toggleTracking() {
+    const trackingBtn = document.getElementById('trackingToggleBtn') as HTMLButtonElement;
+
+    try {
+      if (trackingBtn) {
+        trackingBtn.disabled = true;
+      }
+
+      if (this.isTracking) {
+        await api.post('/gmail-user/tracking/stop');
+        this.isTracking = false;
+        this.trackingStartedAt = null;
+      } else {
+        const response = await api.post('/gmail-user/tracking/start');
+        this.isTracking = true;
+        this.trackingStartedAt = response.data.started_at;
+      }
+
+      this.render();
+    } catch (error: any) {
+      console.error('Erreur lors du toggle tracking:', error);
+      alert('Erreur: ' + error.message);
     }
   }
 
