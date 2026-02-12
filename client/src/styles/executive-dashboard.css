@@ -244,6 +244,99 @@
 }
 
 /* ============================================
+   STATUS FILTERS
+   ============================================ */
+.dash-filter-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.dash-filter-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border: 1.5px solid var(--dash-border);
+  border-radius: var(--dash-radius-md);
+  background: var(--dash-card-bg);
+  color: var(--dash-text-secondary);
+  font-size: 0.8rem;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.dash-filter-btn:hover {
+  border-color: var(--dash-text-muted);
+  background: var(--dash-bg);
+}
+
+.dash-filter-btn.active {
+  color: var(--dash-text);
+  font-weight: 600;
+  border-color: var(--dash-text-muted);
+  background: var(--dash-bg);
+}
+
+.dash-filter-btn.active.dash-filter-sent {
+  border-color: var(--dash-status-sent);
+  background: var(--dash-status-sent-bg);
+  color: var(--dash-status-sent);
+}
+
+.dash-filter-btn.active.dash-filter-waiting {
+  border-color: var(--dash-status-waiting);
+  background: var(--dash-status-waiting-bg);
+  color: var(--dash-status-waiting);
+}
+
+.dash-filter-btn.active.dash-filter-interview {
+  border-color: var(--dash-status-interview);
+  background: var(--dash-status-interview-bg);
+  color: var(--dash-status-interview);
+}
+
+.dash-filter-btn.active.dash-filter-accepted {
+  border-color: var(--dash-status-accepted);
+  background: var(--dash-status-accepted-bg);
+  color: var(--dash-status-accepted);
+}
+
+.dash-filter-btn.active.dash-filter-rejected {
+  border-color: var(--dash-status-rejected);
+  background: var(--dash-status-rejected-bg);
+  color: var(--dash-status-rejected);
+}
+
+.dash-filter-icon {
+  font-size: 0.85rem;
+}
+
+.dash-filter-label {
+  line-height: 1;
+}
+
+.dash-filter-count {
+  background: var(--dash-border);
+  color: var(--dash-text-muted);
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  min-width: 18px;
+  text-align: center;
+}
+
+.dash-filter-btn.active .dash-filter-count {
+  background: rgba(0, 0, 0, 0.1);
+  color: inherit;
+}
+
+/* ============================================
    TABLE
    ============================================ */
 .dash-table-wrapper {
@@ -514,6 +607,24 @@
 
   .dash-table-controls {
     width: 100%;
+    flex-direction: column;
+  }
+
+  .dash-filter-group {
+    width: 100%;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 4px;
+  }
+
+  .dash-filter-group::-webkit-scrollbar {
+    display: none;
+  }
+
+  .dash-filter-label {
+    display: none;
   }
 
   .dash-search-wrapper {

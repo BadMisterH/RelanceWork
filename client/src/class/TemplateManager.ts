@@ -1,4 +1,5 @@
 import type { Application } from '../main';
+import api from '../lib/api';
 
 export interface EmailTemplate {
   id: string;
@@ -107,7 +108,7 @@ export class TemplateManager {
           `Je me permets de revenir vers vous concernant ma candidature au poste de {{poste}} chez {{company}}.\n\n` +
           `Je reste très intéressé(e) par cette opportunité et serais ravi(e) d'échanger avec vous à ce sujet.\n\n` +
           `Dans l'attente de votre retour, je vous souhaite une excellente journée.\n\n` +
-          `Cordialement,\n{{nom}}`,
+          `{{signature}}`,
         isDefault: true,
         createdAt: now,
         updatedAt: now,
@@ -121,7 +122,7 @@ export class TemplateManager {
           `Je souhaitais vous remercier pour l'entretien que nous avons eu concernant le poste de {{poste}} chez {{company}}.\n\n` +
           `Notre échange a renforcé mon intérêt pour cette opportunité et je suis convaincu(e) que mon profil correspond aux attentes du poste.\n\n` +
           `Je reste à votre disposition pour toute information complémentaire.\n\n` +
-          `Cordialement,\n{{nom}}`,
+          `{{signature}}`,
         isDefault: true,
         createdAt: now,
         updatedAt: now,
@@ -135,7 +136,7 @@ export class TemplateManager {
           `Je me permets de vous contacter car je suis très intéressé(e) par {{company}} et les opportunités que vous proposez dans le domaine de {{poste}}.\n\n` +
           `Mon expérience et mes compétences me permettent de croire que je pourrais contribuer efficacement à votre équipe.\n\n` +
           `Seriez-vous disponible pour un échange ?\n\n` +
-          `Cordialement,\n{{nom}}`,
+          `{{signature}}`,
         isDefault: true,
         createdAt: now,
         updatedAt: now,
@@ -181,7 +182,7 @@ export class TemplateManager {
   // ============================================
 
   private replaceVariables(text: string, app: Application): string {
-    const userName = this.getUserName();
+    const profile = this.getUserProfile();
     const formattedDate = app.date
       ? new Date(app.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
       : '';
@@ -190,12 +191,16 @@ export class TemplateManager {
       .replace(/\{\{company\}\}/g, app.company || '')
       .replace(/\{\{poste\}\}/g, app.poste || '')
       .replace(/\{\{date\}\}/g, formattedDate)
-      .replace(/\{\{nom\}\}/g, userName);
+      .replace(/\{\{nom\}\}/g, profile.name)
+      .replace(/\{\{signature\}\}/g, profile.signature)
+      .replace(/\{\{titre\}\}/g, profile.title)
+      .replace(/\{\{telephone\}\}/g, profile.phone)
+      .replace(/\{\{linkedin\}\}/g, profile.linkedin);
   }
 
   private highlightVariables(text: string, app: Application): string {
     const escaped = this.escapeHtml(text);
-    const userName = this.getUserName();
+    const profile = this.getUserProfile();
     const formattedDate = app.date
       ? new Date(app.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
       : '';
@@ -204,7 +209,11 @@ export class TemplateManager {
       '{{company}}': app.company || '',
       '{{poste}}': app.poste || '',
       '{{date}}': formattedDate,
-      '{{nom}}': userName,
+      '{{nom}}': profile.name,
+      '{{signature}}': profile.signature,
+      '{{titre}}': profile.title,
+      '{{telephone}}': profile.phone,
+      '{{linkedin}}': profile.linkedin,
     };
 
     let result = escaped;
@@ -226,8 +235,16 @@ export class TemplateManager {
     return result.replace(/\n/g, '<br>');
   }
 
+  private getUserProfile(): { name: string; title: string; phone: string; linkedin: string; signature: string } {
+    try {
+      const stored = localStorage.getItem('relancework-user-profile');
+      if (stored) return JSON.parse(stored);
+    } catch { /* ignore */ }
+    return { name: '', title: '', phone: '', linkedin: '', signature: '' };
+  }
+
   private getUserName(): string {
-    return document.getElementById('profileName')?.textContent?.trim() || '';
+    return this.getUserProfile().name;
   }
 
   // ============================================
@@ -299,12 +316,12 @@ export class TemplateManager {
           </button>
           <button class="template-btn-cancel" id="cancelEditBtn">Annuler</button>
         ` : `
-          <button class="template-btn-mailto" id="sendMailtoBtn">
+          <button class="template-btn-mailto" id="sendGmailBtn">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
               <polyline points="22,6 12,13 2,6"/>
             </svg>
-            Ouvrir dans la messagerie
+            Envoyer via Gmail
           </button>
           <button class="template-btn-copy" id="copyTemplateBtn">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -383,7 +400,7 @@ export class TemplateManager {
     const template = this.templates.find(t => t.id === this.editingTemplateId);
     const name = template?.name || '';
     const subject = template?.subject || 'Relance - {{poste}} chez {{company}}';
-    const body = template?.body || `Bonjour,\n\n\n\nCordialement,\n{{nom}}`;
+    const body = template?.body || `Bonjour,\n\n\n\n{{signature}}`;
 
     return `
       <div class="template-editor">
@@ -393,6 +410,10 @@ export class TemplateManager {
           <code data-var="{{poste}}">{{poste}}</code>
           <code data-var="{{date}}">{{date}}</code>
           <code data-var="{{nom}}">{{nom}}</code>
+          <code data-var="{{signature}}">{{signature}}</code>
+          <code data-var="{{titre}}">{{titre}}</code>
+          <code data-var="{{telephone}}">{{telephone}}</code>
+          <code data-var="{{linkedin}}">{{linkedin}}</code>
         </div>
         <div class="template-editor-field">
           <label for="templateName">Nom du template</label>
@@ -471,8 +492,8 @@ export class TemplateManager {
       this.renderPanel();
     });
 
-    // Send mailto button
-    document.getElementById('sendMailtoBtn')?.addEventListener('click', () => this.handleSendMailto());
+    // Send via Gmail button
+    document.getElementById('sendGmailBtn')?.addEventListener('click', () => this.handleSendViaGmail());
 
     // Copy button
     document.getElementById('copyTemplateBtn')?.addEventListener('click', () => this.handleCopyToClipboard());
@@ -562,25 +583,63 @@ export class TemplateManager {
     this.renderPanel();
   }
 
-  private handleSendMailto(): void {
+  private async handleSendViaGmail(): Promise<void> {
     if (!this.currentApp || !this.selectedTemplateId) return;
 
     const template = this.templates.find(t => t.id === this.selectedTemplateId);
     if (!template) return;
 
     const to = this.currentApp.email || '';
-    const subject = encodeURIComponent(this.replaceVariables(template.subject, this.currentApp));
-    const body = encodeURIComponent(this.replaceVariables(template.body, this.currentApp));
+    if (!to) {
+      this.showToast("Pas d'adresse email pour cette candidature", 'error');
+      return;
+    }
 
-    window.open(`mailto:${to}?subject=${subject}&body=${body}`, '_self');
+    const subject = this.replaceVariables(template.subject, this.currentApp);
+    const body = this.replaceVariables(template.body, this.currentApp);
 
-    // Save preference
-    this.saveSettings({ lastUsedTemplateId: template.id });
+    // État loading sur le bouton
+    const btn = document.getElementById('sendGmailBtn') as HTMLButtonElement | null;
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = `
+        <div style="width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+        Envoi en cours...
+      `;
+    }
 
-    // Notify main.ts
-    window.dispatchEvent(new CustomEvent('relance-sent', { detail: { id: this.currentApp.id } }));
+    try {
+      await api.post('/gmail-user/send-email', { to, subject, body });
 
-    this.close();
+      // Save preference
+      this.saveSettings({ lastUsedTemplateId: template.id });
+
+      // Notify main.ts pour incrémenter le compteur
+      window.dispatchEvent(new CustomEvent('relance-sent', { detail: { id: this.currentApp.id } }));
+
+      this.showToast('Email envoyé avec succès', 'success');
+      this.close();
+    } catch (error: any) {
+      const isGmailNotConnected = error?.response?.data?.gmail_not_connected;
+
+      if (isGmailNotConnected) {
+        this.showToast('Connectez votre Gmail dans les paramètres', 'error');
+      } else {
+        this.showToast(error?.response?.data?.error || "Erreur lors de l'envoi", 'error');
+      }
+
+      // Restaurer le bouton
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = `
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+            <polyline points="22,6 12,13 2,6"/>
+          </svg>
+          Envoyer via Gmail
+        `;
+      }
+    }
   }
 
   private handleCopyToClipboard(): void {

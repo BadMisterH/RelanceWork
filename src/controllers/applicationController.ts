@@ -193,7 +193,7 @@ export const sendRelance = async (req: Request, res: Response): Promise<void> =>
 
     const { data: updatedApplication, error: updateError } = await supabase
       .from('applications')
-      .update({ relance_count: newCount })
+      .update({ relance_count: newCount, relanced: true })
       .eq('id', id)
       .eq('user_id', userId)
       .select()

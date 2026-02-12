@@ -10,6 +10,7 @@ export class ExecutiveDashboard {
   private applications: Application[] = [];
   private filteredApplications: Application[] = [];
   private searchTerm: string = '';
+  private activeFilter: string = 'all';
 
   constructor(containerId: string = 'applicationsList') {
     this.container = document.getElementById(containerId);
@@ -26,17 +27,23 @@ export class ExecutiveDashboard {
       return this.parseDate(b.date).getTime() - this.parseDate(a.date).getTime();
     });
 
-    // Appliquer le filtre de recherche si actif
-    if (this.searchTerm) {
-      this.filteredApplications = this.applications.filter(app => {
-        const term = this.searchTerm.toLowerCase();
-        return app.company.toLowerCase().includes(term) ||
-          app.poste.toLowerCase().includes(term) ||
-          app.status.toLowerCase().includes(term);
-      });
-    } else {
-      this.filteredApplications = this.applications;
+    // Appliquer les filtres actifs (statut + recherche)
+    let result = this.applications;
+
+    if (this.activeFilter !== 'all') {
+      result = result.filter(app => this.getStatusClass(app.status) === this.activeFilter);
     }
+
+    if (this.searchTerm) {
+      const term = this.searchTerm.toLowerCase();
+      result = result.filter(app =>
+        app.company.toLowerCase().includes(term) ||
+        app.poste.toLowerCase().includes(term) ||
+        app.status.toLowerCase().includes(term)
+      );
+    }
+
+    this.filteredApplications = result;
 
     const html = `
       ${this.renderStats()}
@@ -47,11 +54,14 @@ export class ExecutiveDashboard {
     this.attachEventListeners();
     this.updateStatsNumbers();
 
-    // Restaurer la valeur de recherche dans l'input
+    // Restaurer la valeur de recherche dans l'input et le focus
     if (this.searchTerm) {
       const searchInput = document.getElementById('dashTableSearch') as HTMLInputElement;
       if (searchInput) {
         searchInput.value = this.searchTerm;
+        // Restaurer le focus et le curseur à la fin
+        searchInput.focus();
+        searchInput.setSelectionRange(this.searchTerm.length, this.searchTerm.length);
       }
     }
   }
@@ -123,6 +133,33 @@ export class ExecutiveDashboard {
   }
 
   /**
+   * Boutons de filtre par statut
+   */
+  private renderFilterButtons(): string {
+    const filters = [
+      { key: 'all', label: 'Tout', icon: '📋' },
+      { key: 'sent', label: 'Envoyée', icon: '📤' },
+      { key: 'waiting', label: 'En attente', icon: '⏳' },
+      { key: 'interview', label: 'Entretien', icon: '💼' },
+      { key: 'accepted', label: 'Acceptée', icon: '✅' },
+      { key: 'rejected', label: 'Refusée', icon: '❌' },
+    ];
+
+    return filters.map(f => {
+      const count = f.key === 'all'
+        ? this.applications.length
+        : this.applications.filter(a => this.getStatusClass(a.status) === f.key).length;
+
+      return `<button class="dash-filter-btn ${this.activeFilter === f.key ? 'active' : ''} dash-filter-${f.key}"
+        data-filter="${f.key}">
+        <span class="dash-filter-icon">${f.icon}</span>
+        <span class="dash-filter-label">${f.label}</span>
+        <span class="dash-filter-count">${count}</span>
+      </button>`;
+    }).join('');
+  }
+
+  /**
    * Tableau de suivi
    */
   private renderTrackingTable(): string {
@@ -136,6 +173,9 @@ export class ExecutiveDashboard {
             <span class="dash-table-count">${apps.length}</span>
           </div>
           <div class="dash-table-controls">
+            <div class="dash-filter-group">
+              ${this.renderFilterButtons()}
+            </div>
             <div class="dash-search-wrapper">
               <svg class="dash-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="11" cy="11" r="8"/>
@@ -427,6 +467,15 @@ export class ExecutiveDashboard {
    * Gestion des événements
    */
   private attachEventListeners() {
+    // Filtres par statut
+    document.querySelectorAll('.dash-filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const filter = (btn as HTMLElement).dataset.filter || 'all';
+        this.activeFilter = filter;
+        this.filterApplications();
+      });
+    });
+
     // Recherche
     const searchInput = document.getElementById('dashTableSearch') as HTMLInputElement;
     if (searchInput) {
@@ -477,7 +526,62 @@ export class ExecutiveDashboard {
   }
 
   private filterApplications() {
-    this.render(this.applications);
+    // Appliquer le filtre de statut
+    let result = this.applications;
+
+    if (this.activeFilter !== 'all') {
+      result = result.filter(app => this.getStatusClass(app.status) === this.activeFilter);
+    }
+
+    // Appliquer le filtre de recherche
+    if (this.searchTerm) {
+      const term = this.searchTerm.toLowerCase();
+      result = result.filter(app =>
+        app.company.toLowerCase().includes(term) ||
+        app.poste.toLowerCase().includes(term) ||
+        app.status.toLowerCase().includes(term)
+      );
+    }
+
+    this.filteredApplications = result;
+
+    // Mettre à jour uniquement le tableau et le compteur
+    const tableWrapper = document.querySelector('.dash-table-wrapper');
+    const countBadge = document.querySelector('.dash-table-count');
+
+    if (tableWrapper) {
+      const apps = this.filteredApplications;
+      tableWrapper.innerHTML = apps.length === 0 ? this.renderEmptyState() : this.renderTable(apps);
+
+      // Ré-attacher les événements d'action sur les nouvelles lignes
+      document.querySelectorAll('[data-action]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const target = e.currentTarget as HTMLElement;
+          const action = target.dataset.action;
+          const id = target.dataset.id;
+
+          if (action === 'relance') {
+            this.handleRelance(Number(id));
+          } else if (action === 'delete') {
+            this.handleDelete(Number(id));
+          } else if (action === 'enrich') {
+            const website = target.dataset.website;
+            this.handleEnrich(Number(id), website || '');
+          }
+        });
+      });
+    }
+
+    if (countBadge) {
+      countBadge.textContent = `${this.filteredApplications.length}`;
+    }
+
+    // Mettre à jour l'état actif des boutons de filtre
+    document.querySelectorAll('.dash-filter-btn').forEach(btn => {
+      const key = (btn as HTMLElement).dataset.filter;
+      btn.classList.toggle('active', key === this.activeFilter);
+    });
   }
 
   /**

@@ -27,7 +27,7 @@
     <!-- Mobile Overlay -->
     <div class="mobile-overlay" id="mobileOverlay"></div>
 
-    <div class="app-wrapper">
+    <div class="app-wrapper sidebar-collapsed">
       <!-- Sidebar -->
       <aside class="sidebar">
         <div class="sidebar-header">
@@ -90,8 +90,17 @@
       <div class="main-content">
         <header class="top-header">
           <div class="header-left">
-            <h1 class="page-title">Dashboard</h1>
-            <p class="page-subtitle">Vue d'ensemble de vos candidatures</p>
+            <button class="sidebar-toggle" id="sidebarToggle" title="Ouvrir/Fermer le menu">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                <line x1="3" y1="6" x2="21" y2="6"/>
+                <line x1="3" y1="12" x2="21" y2="12"/>
+                <line x1="3" y1="18" x2="21" y2="18"/>
+              </svg>
+            </button>
+            <div>
+              <h1 class="page-title">Dashboard</h1>
+              <p class="page-subtitle">Vue d'ensemble de vos candidatures</p>
+            </div>
           </div>
           <div class="header-right">
             <!-- Theme Toggle -->
@@ -134,6 +143,13 @@
                   </svg>
                   Mon profil
                 </button>
+                <button class="profile-menu-item" id="billingBtn">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                    <line x1="1" y1="10" x2="23" y2="10"></line>
+                  </svg>
+                  Abonnement
+                </button>
                 <div class="profile-menu-divider"></div>
                 <button class="profile-menu-item danger" id="logoutBtn">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -170,7 +186,7 @@
               <circle cx="11" cy="11" r="8" />
               <line x1="21" y1="21" x2="16.65" y2="16.65" />
             </svg>
-            <h3>Chercher des entreprises</h3>
+            <h3>Trouver des entreprises tech/web</h3>
           </div>
           <button class="panel-close-btn" id="closeSearchModalBtn" aria-label="Fermer le panneau">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -193,7 +209,7 @@
             <input
               type="text"
               id="mapsSearchInput"
-              placeholder="Recherche manuelle (Ex: Restaurants à Paris)..."
+              placeholder="Recherche manuelle (Ex: Agence web Lyon, Startup fintech Paris)..."
             />
             <button id="mapsSearchBtn">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -205,8 +221,8 @@
           </div>
 
           <div class="panel-filter-chips">
-            <label class="filter-chip active">
-              <input type="checkbox" id="filterNoWebsite" checked />
+            <label class="filter-chip">
+              <input type="checkbox" id="filterNoWebsite" />
               <span>Sans site web</span>
             </label>
             <label class="filter-chip">
@@ -240,10 +256,48 @@
                   <line x1="21" y1="21" x2="16.65" y2="16.65" />
                 </svg>
                 <h4>Aucun résultat pour le moment</h4>
-                <p>Effectuez une recherche pour voir les entreprises locales</p>
+                <p>Recherche automatique des entreprises tech/web en cours...</p>
               </div>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Profile Modal -->
+    <div class="profile-modal-overlay" id="profileModalOverlay">
+      <div class="profile-modal">
+        <div class="profile-modal-header">
+          <h3>Mon profil</h3>
+          <button class="panel-close-btn" id="closeProfileModal">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div class="profile-modal-body">
+          <p class="profile-modal-hint">Ces informations sont utilisées dans vos templates d'email via les variables <code>{{nom}}</code>, <code>{{titre}}</code>, <code>{{telephone}}</code>, <code>{{linkedin}}</code>, <code>{{signature}}</code>.</p>
+          <div class="profile-field">
+            <label for="profileInputName">Nom complet</label>
+            <input type="text" id="profileInputName" placeholder="Ex: Jean Dupont">
+          </div>
+          <div class="profile-field">
+            <label for="profileInputTitle">Titre / Poste recherché</label>
+            <input type="text" id="profileInputTitle" placeholder="Ex: Développeur Full Stack">
+          </div>
+          <div class="profile-field">
+            <label for="profileInputPhone">Téléphone</label>
+            <input type="tel" id="profileInputPhone" placeholder="Ex: 06 12 34 56 78">
+          </div>
+          <div class="profile-field">
+            <label for="profileInputLinkedin">LinkedIn</label>
+            <input type="url" id="profileInputLinkedin" placeholder="Ex: linkedin.com/in/jean-dupont">
+          </div>
+          <div class="profile-field">
+            <label for="profileInputSignature">Signature email</label>
+            <textarea id="profileInputSignature" rows="4" placeholder="Ex: Cordialement,&#10;Jean Dupont&#10;06 12 34 56 78&#10;linkedin.com/in/jean-dupont"></textarea>
+          </div>
+        </div>
+        <div class="profile-modal-footer">
+          <button class="profile-modal-save" id="saveProfileBtn">Enregistrer</button>
         </div>
       </div>
     </div>

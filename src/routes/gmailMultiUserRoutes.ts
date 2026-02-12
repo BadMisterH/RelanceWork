@@ -261,6 +261,41 @@ router.get('/tracking/status', authenticateToken, async (req: Request, res: Resp
 });
 
 /**
+ * POST /api/gmail-user/send-email
+ * Envoie un email via Gmail API (vrai suivi de relance)
+ */
+router.post('/send-email', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user.id;
+    const { to, subject, body } = req.body;
+
+    if (!to || !subject || !body) {
+      return res.status(400).json({ error: 'Champs requis: to, subject, body' });
+    }
+
+    const isConnected = await gmailMultiUserService.isGmailConnected(userId);
+    if (!isConnected) {
+      return res.status(400).json({
+        error: 'Gmail non connecté',
+        gmail_not_connected: true,
+        message: 'Connectez votre compte Gmail pour envoyer des emails directement.'
+      });
+    }
+
+    const result = await gmailMultiUserService.sendEmail(userId, to, subject, body);
+
+    res.json({
+      success: true,
+      messageId: result.messageId,
+      message: 'Email envoyé avec succès via Gmail'
+    });
+  } catch (error: any) {
+    console.error('Error sending email via Gmail:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
  * POST /api/gmail-user/disconnect
  * Déconnecte Gmail
  */

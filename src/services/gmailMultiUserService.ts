@@ -467,6 +467,50 @@ export class GmailMultiUserService {
   }
 
   /**
+   * Envoie un email via Gmail API
+   */
+  public async sendEmail(
+    userId: string,
+    to: string,
+    subject: string,
+    body: string
+  ): Promise<{ success: boolean; messageId: string }> {
+    const oauth2Client = await this.getOAuth2ClientForUser(userId);
+    const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
+
+    const gmailEmail = await this.getGmailEmail(userId);
+    if (!gmailEmail) {
+      throw new Error('Gmail non connecté');
+    }
+
+    // Construire le message RFC 2822
+    const rawMessage = [
+      `From: ${gmailEmail}`,
+      `To: ${to}`,
+      `Subject: =?UTF-8?B?${Buffer.from(subject).toString('base64')}?=`,
+      'MIME-Version: 1.0',
+      'Content-Type: text/plain; charset=utf-8',
+      'Content-Transfer-Encoding: base64',
+      '',
+      Buffer.from(body).toString('base64'),
+    ].join('\r\n');
+
+    const encodedMessage = Buffer.from(rawMessage)
+      .toString('base64')
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '');
+
+    const result = await gmail.users.messages.send({
+      userId: 'me',
+      requestBody: { raw: encodedMessage },
+    });
+
+    console.log(`📧 Email envoyé via Gmail pour user ${userId}: ${result.data.id}`);
+    return { success: true, messageId: result.data.id! };
+  }
+
+  /**
    * Déconnecte Gmail pour un utilisateur
    */
   public async disconnectGmail(userId: string): Promise<void> {

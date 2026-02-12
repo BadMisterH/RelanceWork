@@ -10,9 +10,12 @@ export class GmailConnector {
   private gmailEmail: string | null = null;
   private isTracking: boolean = false;
   private trackingStartedAt: string | null = null;
+  private pollingInterval: ReturnType<typeof setInterval> | null = null;
+  private static readonly POLLING_DELAY = 60_000; // 60 secondes
 
   constructor(containerId: string = 'gmailConnector') {
     this.container = document.getElementById(containerId);
+    this.ensureToastContainer();
     this.init();
   }
 
@@ -20,6 +23,10 @@ export class GmailConnector {
     await this.checkStatus();
     if (this.isConnected) {
       await this.checkTrackingStatus();
+      // Démarrer le polling si le tracking était déjà actif
+      if (this.isTracking) {
+        this.startPolling();
+      }
     }
     this.render();
   }
@@ -72,7 +79,8 @@ export class GmailConnector {
 
     if (this.isConnected) {
       const trackingInfo = this.isTracking && this.trackingStartedAt
-        ? `<span class="tracking-since">depuis le ${this.formatTrackingDate(this.trackingStartedAt)}</span>`
+        ? `<span class="tracking-since">depuis le ${this.formatTrackingDate(this.trackingStartedAt)}</span>
+           <span class="gmail-polling-indicator"><span class="gmail-polling-dot"></span>Auto-sync actif</span>`
         : '';
 
       this.container.innerHTML = `
@@ -95,6 +103,22 @@ export class GmailConnector {
             </button>
           </div>
         </div>
+        <div class="gmail-detection-hint">
+          <div class="gmail-detection-hint-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="16" x2="12" y2="12"/>
+              <line x1="12" y1="8" x2="12.01" y2="8"/>
+            </svg>
+            Formats d'objet détectés automatiquement
+          </div>
+          <div class="gmail-detection-hint-examples">
+            <code>Candidature [Poste] - [Entreprise]</code>
+            <span class="gmail-detection-hint-sep">ou</span>
+            <code>Suite à ma candidature - [Poste]</code>
+          </div>
+          <p class="gmail-detection-hint-desc">Utilisez ces formats dans l'objet de vos emails pour que RelanceWork détecte et ajoute automatiquement vos candidatures.</p>
+        </div>
       `;
 
       this.attachConnectedListeners();
@@ -109,6 +133,22 @@ export class GmailConnector {
           <button id="connectGmailBtn" class="btn-connect">
             🔗 Connecter mon Gmail
           </button>
+        </div>
+        <div class="gmail-detection-hint">
+          <div class="gmail-detection-hint-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="16" x2="12" y2="12"/>
+              <line x1="12" y1="8" x2="12.01" y2="8"/>
+            </svg>
+            Comment fonctionne la détection ?
+          </div>
+          <p class="gmail-detection-hint-desc">Une fois connecté, RelanceWork scanne vos emails envoyés et détecte automatiquement les candidatures. Pour que la détection fonctionne, l'objet de vos emails doit suivre un de ces formats :</p>
+          <div class="gmail-detection-hint-examples">
+            <code>Candidature [Poste] - [Entreprise]</code>
+            <span class="gmail-detection-hint-sep">ou</span>
+            <code>Suite à ma candidature - [Poste]</code>
+          </div>
         </div>
       `;
 
@@ -167,13 +207,13 @@ export class GmailConnector {
           this.render();
 
           if (this.isConnected) {
-            alert('✅ Gmail connecté avec succès !');
+            this.showToast('success', 'Gmail connecté avec succès !');
           }
         }
       }, 500);
     } catch (error: any) {
       console.error('Erreur lors de la connexion Gmail:', error);
-      alert('❌ Erreur lors de la connexion Gmail: ' + error.message);
+      this.showToast('error', 'Erreur lors de la connexion Gmail: ' + error.message);
     }
   }
 
@@ -192,46 +232,125 @@ export class GmailConnector {
         await api.post('/gmail-user/tracking/stop');
         this.isTracking = false;
         this.trackingStartedAt = null;
+        this.stopPolling();
+        this.showToast('info', 'Suivi Gmail arrêté.');
       } else {
         const response = await api.post('/gmail-user/tracking/start');
         this.isTracking = true;
         this.trackingStartedAt = response.data.started_at;
+        this.startPolling();
+        // Vérification immédiate au démarrage du suivi
+        this.checkEmails(true);
+        this.showToast('success', 'Suivi Gmail activé ! Vérification automatique toutes les 60s.');
       }
 
       this.render();
     } catch (error: any) {
       console.error('Erreur lors du toggle tracking:', error);
-      alert('Erreur: ' + error.message);
+      this.showToast('error', 'Erreur: ' + error.message);
     }
   }
 
   /**
    * Vérifier les nouveaux emails
    */
-  private async checkEmails() {
+  private async checkEmails(silent: boolean = false) {
     try {
       const checkBtn = document.getElementById('checkEmailsBtn') as HTMLButtonElement;
-      if (checkBtn) {
+      if (checkBtn && !silent) {
         checkBtn.disabled = true;
-        checkBtn.textContent = '⏳ Vérification en cours...';
+        checkBtn.textContent = '⏳ Vérification...';
       }
 
-      await api.post('/gmail-user/check-emails');
+      const response = await api.post('/gmail-user/check-emails');
+      const newCount = response.data?.new_applications ?? response.data?.count ?? 0;
 
-      alert('✅ Emails vérifiés ! Les nouvelles candidatures ont été ajoutées.');
+      if (newCount > 0) {
+        this.showToast('success', `${newCount} nouvelle(s) candidature(s) détectée(s) !`);
+      } else if (!silent) {
+        this.showToast('info', 'Aucune nouvelle candidature détectée.');
+      }
 
-      // Recharger les candidatures
-      window.location.reload();
+      // Rafraîchir le dashboard sans recharger la page
+      window.dispatchEvent(new CustomEvent('gmail-refresh'));
     } catch (error: any) {
       console.error('Erreur lors de la vérification des emails:', error);
-      alert('❌ Erreur: ' + error.message);
+      if (!silent) {
+        this.showToast('error', 'Erreur lors de la vérification des emails.');
+      }
     } finally {
       const checkBtn = document.getElementById('checkEmailsBtn') as HTMLButtonElement;
       if (checkBtn) {
-        checkBtn.disabled = false;
+        checkBtn.disabled = !this.isTracking;
         checkBtn.textContent = '🔍 Vérifier les emails';
       }
     }
+  }
+
+  // ==========================================
+  // POLLING AUTOMATIQUE
+  // ==========================================
+
+  /**
+   * Démarre le polling automatique
+   */
+  private startPolling() {
+    this.stopPolling();
+    console.log('🔄 Polling Gmail démarré (toutes les 60s)');
+    this.pollingInterval = setInterval(() => {
+      this.checkEmails(true);
+    }, GmailConnector.POLLING_DELAY);
+  }
+
+  /**
+   * Arrête le polling automatique
+   */
+  private stopPolling() {
+    if (this.pollingInterval) {
+      clearInterval(this.pollingInterval);
+      this.pollingInterval = null;
+      console.log('⏹️ Polling Gmail arrêté');
+    }
+  }
+
+  // ==========================================
+  // TOAST NOTIFICATIONS
+  // ==========================================
+
+  /**
+   * Crée le container de toasts s'il n'existe pas
+   */
+  private ensureToastContainer() {
+    if (!document.getElementById('toastContainer')) {
+      const container = document.createElement('div');
+      container.id = 'toastContainer';
+      container.className = 'toast-container';
+      document.body.appendChild(container);
+    }
+  }
+
+  /**
+   * Affiche une notification toast
+   */
+  private showToast(type: 'success' | 'error' | 'info', message: string) {
+    const container = document.getElementById('toastContainer');
+    if (!container) return;
+
+    const icons = { success: '✅', error: '❌', info: 'ℹ️' };
+
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.innerHTML = `
+      <span class="toast-icon">${icons[type]}</span>
+      <span class="toast-message">${message}</span>
+    `;
+
+    container.appendChild(toast);
+
+    setTimeout(() => {
+      toast.classList.add('toast-exit');
+      toast.addEventListener('animationend', () => toast.remove());
+    }, 3500);
   }
 
   /**
@@ -247,12 +366,13 @@ export class GmailConnector {
 
       this.isConnected = false;
       this.gmailEmail = null;
+      this.stopPolling();
       this.render();
 
-      alert('✅ Gmail déconnecté');
+      this.showToast('info', 'Gmail déconnecté.');
     } catch (error: any) {
       console.error('Erreur lors de la déconnexion Gmail:', error);
-      alert('❌ Erreur: ' + error.message);
+      this.showToast('error', 'Erreur lors de la déconnexion: ' + error.message);
     }
   }
 }

@@ -81,6 +81,100 @@ const executiveDashboard = new ExecutiveDashboard();
 const templateManager = new TemplateManager();
 const analyticsDashboard = new AnalyticsDashboard();
 let currentApplications: Application[] = [];
+let userPlan: 'free' | 'pro' = 'free';
+let planLimits: {
+  applications: { current: number; max: number; allowed: boolean };
+  searches: { current: number; max: number; allowed: boolean };
+} | null = null;
+
+// ============================================
+// BILLING - Vérifier le plan de l'utilisateur
+// ============================================
+async function checkBillingStatus() {
+  try {
+    const result = await api.get('/billing/status');
+    userPlan = result.data.plan;
+    planLimits = {
+      applications: result.data.limits.applications,
+      searches: result.data.limits.searches,
+    };
+    console.log(`💳 Plan: ${userPlan}`, planLimits);
+    renderPlanBadge();
+    renderUpgradeBanner();
+  } catch (error) {
+    console.error("Erreur billing status:", error);
+  }
+}
+
+function renderPlanBadge() {
+  const profileInfo = document.querySelector('.profile-info');
+  if (!profileInfo) return;
+
+  // Supprimer l'ancien badge s'il existe
+  const oldBadge = document.getElementById('planBadge');
+  if (oldBadge) oldBadge.remove();
+
+  const badge = document.createElement('span');
+  badge.id = 'planBadge';
+  badge.className = userPlan === 'pro' ? 'plan-badge plan-badge--pro' : 'plan-badge plan-badge--free';
+  badge.textContent = userPlan === 'pro' ? 'PRO' : 'FREE';
+
+  if (userPlan === 'free') {
+    badge.style.cursor = 'pointer';
+    badge.title = 'Passer au plan Pro';
+    badge.addEventListener('click', handleUpgrade);
+  }
+
+  profileInfo.appendChild(badge);
+}
+
+function renderUpgradeBanner() {
+  const existing = document.getElementById('upgradeBanner');
+  if (existing) existing.remove();
+
+  if (userPlan === 'pro' || !planLimits) return;
+
+  const { current, max, allowed } = planLimits.applications;
+  const appPercentage = Math.round((current / max) * 100);
+  const searchCurrent = planLimits.searches?.current || 0;
+  const searchMax = planLimits.searches?.max || 15;
+  const searchPercentage = Math.round((searchCurrent / searchMax) * 100);
+
+  // Afficher la bannière si > 50% utilisé ou limite atteinte (candidatures ou recherches)
+  if (appPercentage < 50 && searchPercentage < 50) return;
+
+  // Déterminer quel message afficher
+  const isBlocked = !allowed || !planLimits.searches?.allowed;
+  const lines: string[] = [];
+  if (appPercentage >= 50) lines.push(`${current}/${max} candidatures`);
+  if (searchPercentage >= 50) lines.push(`${searchCurrent}/${searchMax} recherches`);
+
+  const banner = document.createElement('div');
+  banner.id = 'upgradeBanner';
+  banner.className = `upgrade-banner ${isBlocked ? 'upgrade-banner--limit' : ''}`;
+  banner.innerHTML = `
+    <div class="upgrade-banner-content">
+      <div class="upgrade-banner-info">
+        <strong>${isBlocked ? 'Limite atteinte !' : 'Plan gratuit'}</strong>
+        <span>${lines.join(' · ')}${isBlocked ? ' - Passez a Pro pour continuer' : ''}</span>
+      </div>
+      <div class="upgrade-banner-progress">
+        <div class="upgrade-banner-bar" style="width: ${Math.min(Math.max(appPercentage, searchPercentage), 100)}%"></div>
+      </div>
+    </div>
+    <button class="upgrade-banner-btn" id="upgradeBannerBtn">Passer a Pro</button>
+  `;
+
+  const dashboardContent = document.querySelector('.dashboard-content');
+  if (dashboardContent) {
+    dashboardContent.insertBefore(banner, dashboardContent.firstChild);
+    document.getElementById('upgradeBannerBtn')?.addEventListener('click', handleUpgrade);
+  }
+}
+
+async function handleUpgrade() {
+  window.location.href = '/pricing.html';
+}
 
 async function GetAllDataPost() {
   try {
@@ -100,6 +194,13 @@ async function GetAllDataPost() {
     }
   }
 }
+
+// ============================================
+// GMAIL REFRESH - Rafraîchir les données après détection
+// ============================================
+window.addEventListener('gmail-refresh', () => {
+  GetAllDataPost();
+});
 
 // ============================================
 // RELANCE - Ouvrir le panneau de templates
@@ -299,6 +400,9 @@ checkAuth().then((isAuthenticated) => {
     // Afficher la date
     updateCurrentDate();
 
+    // Vérifier le plan de l'utilisateur
+    checkBillingStatus();
+
     // Initialiser le connecteur Gmail
     new GmailConnector('gmailConnector');
 
@@ -310,6 +414,17 @@ checkAuth().then((isAuthenticated) => {
 
     // Charger les données
     GetAllDataPost();
+
+    // Vérifier si retour de Stripe Checkout
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('upgrade') === 'success') {
+      setTimeout(() => {
+        checkBillingStatus();
+        window.history.replaceState({}, '', window.location.pathname);
+      }, 1000);
+    } else if (urlParams.get('upgrade') === 'cancel') {
+      window.history.replaceState({}, '', window.location.pathname);
+    }
   }
 });
 
@@ -320,6 +435,121 @@ const logoutBtn = document.getElementById('logoutBtn');
 logoutBtn?.addEventListener('click', async () => {
   await supabase.auth.signOut();
   window.location.href = '/auth.html';
+});
+
+// ============================================
+// PROFILE - Modal de personnalisation
+// ============================================
+const PROFILE_STORAGE_KEY = 'relancework-user-profile';
+
+interface UserProfile {
+  name: string;
+  title: string;
+  phone: string;
+  linkedin: string;
+  signature: string;
+}
+
+function loadUserProfile(): UserProfile {
+  try {
+    const stored = localStorage.getItem(PROFILE_STORAGE_KEY);
+    if (stored) return JSON.parse(stored);
+  } catch { /* ignore */ }
+  return { name: '', title: '', phone: '', linkedin: '', signature: '' };
+}
+
+function saveUserProfile(profile: UserProfile) {
+  localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(profile));
+  // Mettre à jour le header
+  const profileName = document.getElementById('profileName');
+  const profileAvatar = document.getElementById('profileAvatar');
+  if (profile.name && profileName) {
+    profileName.textContent = profile.name;
+  }
+  if (profile.name && profileAvatar) {
+    profileAvatar.textContent = profile.name.charAt(0).toUpperCase();
+  }
+}
+
+const profileBtn = document.getElementById('profileBtn');
+const profileModalOverlay = document.getElementById('profileModalOverlay');
+
+profileBtn?.addEventListener('click', () => {
+  const profile = loadUserProfile();
+  // Pré-remplir avec le nom du header si pas encore défini
+  if (!profile.name) {
+    profile.name = document.getElementById('profileName')?.textContent?.trim() || '';
+  }
+
+  (document.getElementById('profileInputName') as HTMLInputElement).value = profile.name;
+  (document.getElementById('profileInputTitle') as HTMLInputElement).value = profile.title;
+  (document.getElementById('profileInputPhone') as HTMLInputElement).value = profile.phone;
+  (document.getElementById('profileInputLinkedin') as HTMLInputElement).value = profile.linkedin;
+  (document.getElementById('profileInputSignature') as HTMLTextAreaElement).value = profile.signature;
+
+  profileModalOverlay?.classList.add('active');
+});
+
+document.getElementById('closeProfileModal')?.addEventListener('click', () => {
+  profileModalOverlay?.classList.remove('active');
+});
+
+profileModalOverlay?.addEventListener('click', (e) => {
+  if (e.target === profileModalOverlay) profileModalOverlay.classList.remove('active');
+});
+
+document.getElementById('saveProfileBtn')?.addEventListener('click', () => {
+  const profile: UserProfile = {
+    name: (document.getElementById('profileInputName') as HTMLInputElement).value.trim(),
+    title: (document.getElementById('profileInputTitle') as HTMLInputElement).value.trim(),
+    phone: (document.getElementById('profileInputPhone') as HTMLInputElement).value.trim(),
+    linkedin: (document.getElementById('profileInputLinkedin') as HTMLInputElement).value.trim(),
+    signature: (document.getElementById('profileInputSignature') as HTMLTextAreaElement).value.trim(),
+  };
+  saveUserProfile(profile);
+  profileModalOverlay?.classList.remove('active');
+});
+
+// ============================================
+// BILLING - Gérer l'abonnement
+// ============================================
+const billingBtn = document.getElementById('billingBtn');
+billingBtn?.addEventListener('click', async () => {
+  if (userPlan === 'pro') {
+    // Ouvrir le portail Stripe pour gérer l'abonnement
+    try {
+      const result = await api.post('/billing/portal');
+      if (result.data.url) {
+        window.location.href = result.data.url;
+      }
+    } catch (error) {
+      console.error("Erreur portail billing:", error);
+      // Si pas d'abonnement, proposer l'upgrade
+      handleUpgrade();
+    }
+  } else {
+    handleUpgrade();
+  }
+});
+
+// ============================================
+// SIDEBAR TOGGLE FUNCTIONALITY
+// ============================================
+
+const appWrapper = document.querySelector('.app-wrapper') as HTMLElement;
+const sidebarToggleBtn = document.getElementById('sidebarToggle');
+
+// Restore sidebar state from localStorage (default: collapsed)
+const sidebarPref = localStorage.getItem('relancework-sidebar');
+if (sidebarPref === 'open' && appWrapper) {
+  appWrapper.classList.remove('sidebar-collapsed');
+}
+
+sidebarToggleBtn?.addEventListener('click', () => {
+  if (!appWrapper) return;
+  appWrapper.classList.toggle('sidebar-collapsed');
+  const isCollapsed = appWrapper.classList.contains('sidebar-collapsed');
+  localStorage.setItem('relancework-sidebar', isCollapsed ? 'collapsed' : 'open');
 });
 
 // ============================================

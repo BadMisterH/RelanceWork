@@ -25,21 +25,18 @@ export class MapsSearch {
   private currentResults: BusinessPlace[] = [];
   private googleMapsLoaded: boolean = false;
   private userLocation: { lat: number; lng: number } | null = null;
+  private searchUsage: { current: number; max: number; allowed: boolean } | null = null;
 
-  // Types d'entreprises qui ont MOINS souvent de site web (petits commerces, artisans)
-  private businessTypesWithoutWebsite = [
-    "locksmith",        // Serrurier
-    "plumber",          // Plombier
-    "electrician",      // Électricien
-    "painter",          // Peintre
-    "general_contractor", // Entrepreneur général
-    "roofing_contractor", // Couvreur
-    "moving_company",   // Déménageur
-    "car_wash",         // Lavage auto
-    "laundry",          // Blanchisserie
-    "hair_care",        // Coiffeur
-    "beauty_salon",     // Salon de beauté
-    "local_business"    // Commerce local
+  // Requêtes de recherche ciblées sur les entreprises tech/web qui recrutent
+  private techSearchQueries = [
+    "agence web",              // Agences web / digitales
+    "agence digitale",         // Agences digitales
+    "startup tech",            // Startups tech
+    "développement informatique", // SSII / ESN
+    "ESN informatique",        // Entreprises de services numériques
+    "agence communication digitale", // Agences de com digitale
+    "éditeur logiciel",        // Éditeurs de logiciels
+    "studio développement web", // Studios dev
   ];
 
   constructor() {
@@ -83,6 +80,10 @@ export class MapsSearch {
   // Détecter la localisation de l'utilisateur et lancer la recherche automatique
   private async startAutoSearch() {
     console.log("🚀 Démarrage de la recherche automatique...");
+
+    // Vérifier la limite de recherche
+    const allowed = await this.checkSearchLimit();
+    if (!allowed) return;
 
     // Demander la géolocalisation
     if (navigator.geolocation) {
@@ -129,7 +130,7 @@ export class MapsSearch {
     }
   }
 
-  // Effectuer la recherche automatique de plusieurs catégories avec pagination
+  // Effectuer la recherche automatique avec textSearch ciblé tech/web
   private async performAutoSearch() {
     console.log('performAutoSearch appelé', {
       googleMapsLoaded: this.googleMapsLoaded,
@@ -149,58 +150,53 @@ export class MapsSearch {
         <div class="panel-empty-state">
           <div style="width: 80px; height: 80px; border: 4px solid #e2e8f0; border-top-color: #2563eb; border-radius: 50%; animation: spin 1s linear infinite;"></div>
           <h4 style="margin-top: 20px;">Recherche en cours...</h4>
-          <p>Détection des entreprises locales sans site web</p>
-          <p style="font-size: 0.875rem; margin-top: 8px; color: #94a3b8;">Récupération de plusieurs pages de résultats...</p>
+          <p>Détection des entreprises tech/web autour de vous</p>
+          <p style="font-size: 0.875rem; margin-top: 8px; color: #94a3b8;">Recherche par catégories...</p>
         </div>
       `;
     }
 
-    // Chercher des types spécifiques d'entreprises qui ont moins souvent de site web
-    // On fait plusieurs recherches pour augmenter les chances
-    console.log(`🎯 Recherche ciblée sur ${this.businessTypesWithoutWebsite.length} types d'entreprises locales`);
+    console.log(`🎯 Recherche ciblée sur ${this.techSearchQueries.length} catégories tech/web`);
 
     try {
       const allResults: google.maps.places.PlaceResult[] = [];
 
-      // Prendre les 3 premiers types pour ne pas surcharger
-      const typesToSearch = this.businessTypesWithoutWebsite.slice(0, 3);
+      // Prendre les 4 premières requêtes pour varier les résultats
+      const queriesToSearch = this.techSearchQueries.slice(0, 4);
 
-      for (let i = 0; i < typesToSearch.length; i++) {
-        const businessType = typesToSearch[i];
-        console.log(`🔍 Recherche type ${i + 1}/${typesToSearch.length}: ${businessType}`);
+      for (let i = 0; i < queriesToSearch.length; i++) {
+        const query = queriesToSearch[i]!;
+        console.log(`🔍 Recherche ${i + 1}/${queriesToSearch.length}: "${query}"`);
 
         if (resultsContainer) {
           resultsContainer.innerHTML = `
             <div class="panel-empty-state">
               <div style="width: 80px; height: 80px; border: 4px solid #e2e8f0; border-top-color: #2563eb; border-radius: 50%; animation: spin 1s linear infinite;"></div>
               <h4 style="margin-top: 20px;">Recherche en cours...</h4>
-              <p>Type: ${businessType} (${i + 1}/${typesToSearch.length})</p>
+              <p>"${query}" (${i + 1}/${queriesToSearch.length})</p>
               <p style="font-size: 0.875rem; margin-top: 8px; color: #94a3b8;">${allResults.length} entreprises trouvées</p>
             </div>
           `;
         }
 
-        const request: google.maps.places.PlaceSearchRequest = {
-          location: this.userLocation,
-          radius: 3000, // 3km de rayon (réduit pour plus de précision)
-          type: businessType as any
-        };
-
-        const typeResults = await this.searchWithPagination(request);
-        console.log(`  ✅ ${typeResults.length} résultats pour ${businessType}`);
+        const queryResults = await this.textSearchWithLocation(query);
+        console.log(`  ✅ ${queryResults.length} résultats pour "${query}"`);
 
         // Ajouter les résultats en évitant les doublons (par place_id)
         const existingIds = new Set(allResults.map(r => r.place_id));
-        const newResults = typeResults.filter(r => !existingIds.has(r.place_id));
+        const newResults = queryResults.filter(r => !existingIds.has(r.place_id));
         allResults.push(...newResults);
 
-        // Pause entre les types pour respecter les limites de l'API
-        if (i < typesToSearch.length - 1) {
+        // Pause entre les requêtes pour respecter les limites de l'API
+        if (i < queriesToSearch.length - 1) {
           await new Promise(resolve => setTimeout(resolve, 1000));
         }
       }
 
-      console.log(`✅ Total: ${allResults.length} entreprises trouvées (recherche ciblée)`);
+      console.log(`✅ Total: ${allResults.length} entreprises tech/web trouvées`);
+
+      // Incrémenter le compteur de recherche
+      await this.trackSearch();
 
       if (allResults.length > 0) {
         this.handleSearchResults(allResults);
@@ -237,78 +233,28 @@ export class MapsSearch {
     }
   }
 
-  // Méthode pour gérer la pagination (récupère jusqu'à 60 résultats)
-  private async searchWithPagination(
-    request: google.maps.places.PlaceSearchRequest,
-    accumulatedResults: google.maps.places.PlaceResult[] = [],
-    pageNumber: number = 1
-  ): Promise<google.maps.places.PlaceResult[]> {
+  // Recherche textSearch avec localisation de l'utilisateur
+  private textSearchWithLocation(query: string): Promise<google.maps.places.PlaceResult[]> {
     return new Promise((resolve, reject) => {
-      if (!this.service) {
-        reject(new Error('Service Places non disponible'));
+      if (!this.service || !this.userLocation) {
+        reject(new Error('Service Places ou localisation non disponible'));
         return;
       }
 
-      console.log(`📄 Récupération de la page ${pageNumber}...`);
+      const request: google.maps.places.TextSearchRequest = {
+        query: query,
+        location: this.userLocation,
+        radius: 10000, // 10km pour les entreprises tech (plus large que les artisans)
+      };
 
-      this.service.nearbySearch(request, async (results, status, pagination) => {
-        console.log(`Page ${pageNumber} - Status: ${status}, Résultats: ${results?.length || 0}`);
-
+      this.service.textSearch(request, (results, status) => {
         if (status === google.maps.places.PlacesServiceStatus.OK && results) {
-          const newResults = [...accumulatedResults, ...results];
-          console.log(`📊 Total accumulé: ${newResults.length} entreprises`);
-
-          // Mettre à jour l'affichage du loading avec le nombre actuel
-          const resultsContainer = document.getElementById("businessResults");
-          if (resultsContainer && pageNumber < 3) {
-            resultsContainer.innerHTML = `
-              <div class="panel-empty-state">
-                <div style="width: 80px; height: 80px; border: 4px solid #e2e8f0; border-top-color: #2563eb; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-                <h4 style="margin-top: 20px;">Recherche en cours...</h4>
-                <p>${newResults.length} entreprises trouvées</p>
-                <p style="font-size: 0.875rem; margin-top: 8px; color: #94a3b8;">Page ${pageNumber + 1}/3</p>
-              </div>
-            `;
-          }
-
-          // Vérifier s'il y a une page suivante et si on n'a pas atteint la limite
-          if (pagination?.hasNextPage && pageNumber < 3) {
-            console.log('➡️ Page suivante disponible, attente de 2 secondes...');
-
-            // Google Places API nécessite un délai de ~2 secondes entre les requêtes paginées
-            setTimeout(async () => {
-              try {
-                pagination.nextPage();
-                // On doit refaire l'appel avec le nouveau token
-                const nextResults = await this.searchWithPagination(
-                  request,
-                  newResults,
-                  pageNumber + 1
-                );
-                resolve(nextResults);
-              } catch (error) {
-                console.error('Erreur lors de la pagination:', error);
-                // Retourner les résultats déjà obtenus en cas d'erreur
-                resolve(newResults);
-              }
-            }, 2000);
-          } else {
-            if (pageNumber >= 3) {
-              console.log('✅ Limite de 3 pages atteinte (max ~60 résultats)');
-            } else {
-              console.log('✅ Pas de page suivante disponible');
-            }
-            resolve(newResults);
-          }
+          resolve(results);
+        } else if (status === google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
+          resolve([]);
         } else {
-          console.error(`Erreur nearbySearch page ${pageNumber}:`, status);
-          // Retourner les résultats déjà accumulés en cas d'erreur
-          if (accumulatedResults.length > 0) {
-            console.log(`⚠️ Erreur mais ${accumulatedResults.length} résultats déjà obtenus`);
-            resolve(accumulatedResults);
-          } else {
-            reject(new Error(`Erreur Places API: ${status}`));
-          }
+          console.error(`Erreur textSearch pour "${query}":`, status);
+          resolve([]); // Ne pas bloquer les autres recherches
         }
       });
     });
@@ -326,13 +272,18 @@ export class MapsSearch {
         console.log('Ouverture du modal de recherche');
         modal.classList.add("active");
 
+        // Afficher le compteur si on a des données
+        if (this.searchUsage) {
+          this.renderSearchCounter();
+        }
+
         // Déclencher la recherche automatique quand le modal s'ouvre
         if (this.googleMapsLoaded && !this.userLocation) {
           console.log('Lancement de la recherche automatique...');
           this.startAutoSearch();
         } else if (this.userLocation && this.currentResults.length === 0) {
           console.log('Position déjà connue, relancement de la recherche...');
-          this.performAutoSearch();
+          this.startAutoSearch();
         }
       });
     }
@@ -419,6 +370,10 @@ export class MapsSearch {
   private async searchPlaces(query: string) {
     console.log('🔍 Recherche manuelle:', query);
 
+    // Vérifier la limite de recherche
+    const allowed = await this.checkSearchLimit();
+    if (!allowed) return;
+
     const resultsContainer = document.getElementById("businessResults");
 
     // Vérifier si Google Maps est chargé
@@ -461,6 +416,7 @@ export class MapsSearch {
 
       if (status === google.maps.places.PlacesServiceStatus.OK && results) {
         console.log(`✅ ${results.length} résultats trouvés pour "${query}"`);
+        this.trackSearch();
         this.handleSearchResults(results);
       } else {
         console.error('Erreur textSearch:', status);
@@ -658,35 +614,50 @@ export class MapsSearch {
 
     resultsContainer.innerHTML = enrichButton + results
       .map(
-        (business, index) => `
+        (business, index) => {
+          let domain = '';
+          if (business.website) {
+            try { domain = new URL(business.website).hostname.replace('www.', ''); } catch { /* ignore */ }
+          }
+
+          return `
       <div class="business-card" data-index="${index}">
-        <div class="business-header">
-          <h4>${business.name}</h4>
-          ${business.rating ? `<span class="business-rating">⭐ ${business.rating}</span>` : ""}
+        <div class="biz-top">
+          <div class="biz-avatar">${business.name.charAt(0).toUpperCase()}</div>
+          <div class="biz-identity">
+            <h4 class="biz-name">${business.name}</h4>
+            <span class="biz-address">${business.address}</span>
+          </div>
+          ${business.rating ? `<span class="biz-rating">${business.rating}</span>` : ''}
         </div>
-        <p class="business-address">${business.address}</p>
-        <div class="business-info">
-          ${business.phone ? `<span class="info-item">📞 ${business.phone}</span>` : ""}
-          ${!business.website ? '<span class="info-item badge-no-website">❌ Pas de site web</span>' : '<span class="info-item">✅ Site web existant</span>'}
-          ${business.email ? `<span class="info-item" style="color: #10b981;">✅ ${business.email}</span>` : '<span class="info-item">❌ Pas d\'email</span>'}
+
+        <div class="biz-tags">
+          ${business.website
+            ? `<a href="${business.website}" target="_blank" rel="noopener" class="biz-tag biz-tag--site">${domain}</a>`
+            : `<span class="biz-tag biz-tag--nosite">Pas de site web</span>`}
+          ${business.phone
+            ? `<span class="biz-tag biz-tag--phone">${business.phone}</span>`
+            : ''}
+          ${business.email
+            ? `<span class="biz-tag biz-tag--email">${business.email}</span>`
+            : `<span class="biz-tag biz-tag--noemail">Pas d'email</span>`}
         </div>
-        <div class="business-actions">
-          <button class="btn-view-map" data-index="${index}">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-              <circle cx="12" cy="10" r="3"/>
-            </svg>
-            Voir sur la carte
+
+        <div class="biz-actions">
+          <button class="biz-btn biz-btn--map" data-index="${index}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            Localiser
           </button>
-          <button class="btn-add-to-favorites" data-index="${index}">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-            </svg>
-            Ajouter aux favoris
-          </button>
+          ${business.website
+            ? `<a href="${business.website}" target="_blank" rel="noopener" class="biz-btn biz-btn--visit">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                Visiter le site
+              </a>`
+            : ''}
         </div>
       </div>
-    `
+    `;
+        }
       )
       .join("");
 
@@ -741,9 +712,8 @@ export class MapsSearch {
   }
 
   private attachResultEvents(results: BusinessPlace[]) {
-    // Boutons "Voir sur la carte"
-    const viewMapButtons = document.querySelectorAll(".btn-view-map");
-    viewMapButtons.forEach((btn) => {
+    // Boutons "Localiser"
+    document.querySelectorAll(".biz-btn--map").forEach((btn) => {
       btn.addEventListener("click", (e) => {
         const target = e.currentTarget as HTMLButtonElement;
         const index = parseInt(target.getAttribute("data-index") || "0");
@@ -755,97 +725,12 @@ export class MapsSearch {
           if (marker) {
             this.showInfoWindow(marker, business);
           }
+          // Scroll vers la carte sur mobile
+          const mapEl = document.getElementById('map');
+          mapEl?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
       });
     });
-
-    // Boutons "Ajouter aux favoris"
-    const addButtons = document.querySelectorAll(".btn-add-to-favorites");
-    addButtons.forEach((btn) => {
-      btn.addEventListener("click", async (e) => {
-        const target = e.currentTarget as HTMLButtonElement;
-        const index = parseInt(target.getAttribute("data-index") || "0");
-        const business = results[index];
-        if (business) {
-          this.addToFavorites(business, target);
-        }
-      });
-    });
-  }
-
-
-  /**
-   * Ajouter une entreprise aux favoris (stocké dans localStorage)
-   */
-  private addToFavorites(business: BusinessPlace, button: HTMLButtonElement) {
-    try {
-      // Récupérer les favoris existants
-      const favoritesStr = localStorage.getItem('businessFavorites');
-      const favorites: BusinessPlace[] = favoritesStr ? JSON.parse(favoritesStr) : [];
-
-      // Vérifier si déjà dans les favoris
-      const alreadyFavorite = favorites.some(f => f.placeId === business.placeId);
-
-      if (alreadyFavorite) {
-        // Retirer des favoris
-        const newFavorites = favorites.filter(f => f.placeId !== business.placeId);
-        localStorage.setItem('businessFavorites', JSON.stringify(newFavorites));
-
-        // Mettre à jour le bouton
-        button.innerHTML = `
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-          </svg>
-          Ajouter aux favoris
-        `;
-        button.style.background = '';
-        button.style.color = '';
-
-        console.log(`❤️ ${business.name} retiré des favoris`);
-      } else {
-        // Ajouter aux favoris
-        favorites.push(business);
-        localStorage.setItem('businessFavorites', JSON.stringify(favorites));
-
-        // Mettre à jour le bouton
-        button.innerHTML = `
-          <svg viewBox="0 0 24 24" fill="currentColor" stroke="none">
-            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-          </svg>
-          ❤️ Dans les favoris
-        `;
-        button.style.background = '#ef4444';
-        button.style.color = 'white';
-
-        console.log(`✅ ${business.name} ajouté aux favoris`);
-
-        // Afficher une notification temporaire
-        const notification = document.createElement('div');
-        notification.textContent = `❤️ ${business.name} ajouté aux favoris`;
-        notification.style.cssText = `
-          position: fixed;
-          bottom: 20px;
-          right: 20px;
-          background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-          color: white;
-          padding: 16px 24px;
-          border-radius: 12px;
-          box-shadow: 0 10px 25px rgba(239, 68, 68, 0.3);
-          z-index: 10000;
-          animation: slideIn 0.3s ease-out;
-          font-weight: 600;
-        `;
-        document.body.appendChild(notification);
-
-        setTimeout(() => {
-          notification.style.animation = 'slideOut 0.3s ease-out';
-          setTimeout(() => notification.remove(), 300);
-        }, 2000);
-      }
-    } catch (error) {
-      console.error("Erreur lors de l'ajout aux favoris:", error);
-      alert("❌ Erreur lors de l'ajout aux favoris");
-    }
   }
 
   /**
@@ -928,6 +813,111 @@ export class MapsSearch {
         (enrichBtn as HTMLButtonElement).style.opacity = '1';
       }
     }
+  }
+
+  /**
+   * Vérifie la limite de recherche côté backend
+   * Retourne true si la recherche est autorisée
+   */
+  private async checkSearchLimit(): Promise<boolean> {
+    try {
+      const response = await api.post('/search/check');
+      this.searchUsage = response.data;
+      this.renderSearchCounter();
+
+      if (!response.data.allowed) {
+        this.renderSearchLimitReached();
+        return false;
+      }
+      return true;
+    } catch (error) {
+      console.error('Erreur vérification limite recherche:', error);
+      // En cas d'erreur (pas connecté, etc.), on laisse passer
+      return true;
+    }
+  }
+
+  /**
+   * Incrémente le compteur de recherche après une recherche réussie
+   */
+  private async trackSearch(): Promise<void> {
+    try {
+      const response = await api.post('/search/track');
+      this.searchUsage = {
+        current: response.data.current,
+        max: response.data.max,
+        allowed: response.data.current < response.data.max,
+      };
+      this.renderSearchCounter();
+    } catch (error) {
+      console.error('Erreur tracking recherche:', error);
+    }
+  }
+
+  /**
+   * Affiche le compteur de recherches dans le modal
+   */
+  private renderSearchCounter() {
+    if (!this.searchUsage || this.searchUsage.max === Infinity) return;
+
+    const { current, max } = this.searchUsage;
+    const existingCounter = document.getElementById('searchUsageCounter');
+    if (existingCounter) existingCounter.remove();
+
+    const percentage = (current / max) * 100;
+    const isWarning = percentage >= 80;
+    const color = isWarning ? '#ef4444' : '#64748b';
+
+    const counter = document.createElement('div');
+    counter.id = 'searchUsageCounter';
+    counter.style.cssText = `display: flex; align-items: center; gap: 8px; padding: 8px 14px; background: ${isWarning ? 'rgba(239, 68, 68, 0.08)' : 'rgba(100, 116, 139, 0.08)'}; border-radius: 8px; font-size: 13px; color: ${color}; font-weight: 500; margin-bottom: 12px;`;
+    counter.innerHTML = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" width="16" height="16">
+        <circle cx="11" cy="11" r="8"/>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <span>${current}/${max} recherches ce mois</span>
+      ${isWarning ? `<span style="margin-left: auto; font-size: 11px; opacity: 0.8;">Limite bientôt atteinte</span>` : ''}
+    `;
+
+    // Insérer avant le conteneur de résultats
+    const resultsContainer = document.getElementById('businessResults');
+    if (resultsContainer?.parentNode) {
+      resultsContainer.parentNode.insertBefore(counter, resultsContainer);
+    }
+  }
+
+  /**
+   * Affiche le message de limite atteinte avec CTA upgrade
+   */
+  private renderSearchLimitReached() {
+    const resultsContainer = document.getElementById('businessResults');
+    if (!resultsContainer) return;
+
+    const max = this.searchUsage?.max || 15;
+    resultsContainer.innerHTML = `
+      <div class="panel-empty-state" style="padding: 40px 20px;">
+        <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(239, 68, 68, 0.1); display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" width="32" height="32">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+        </div>
+        <h4 style="margin-bottom: 8px; color: var(--text-primary);">Limite de recherche atteinte</h4>
+        <p style="margin-bottom: 20px; color: var(--text-secondary); font-size: 14px;">
+          Vous avez utilisé vos <strong>${max} recherches gratuites</strong> ce mois-ci.
+          <br/>Passez à Pro pour des recherches illimitées.
+        </p>
+        <button id="searchUpgradeBtn" style="padding: 12px 28px; background: linear-gradient(135deg, #2563eb, #6366f1); color: white; border: none; border-radius: 10px; font-weight: 600; font-size: 14px; cursor: pointer; transition: transform 0.2s; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);">
+          Passer à Pro
+        </button>
+      </div>
+    `;
+
+    document.getElementById('searchUpgradeBtn')?.addEventListener('click', () => {
+      window.location.href = '/pricing.html';
+    });
   }
 
   private clearMarkers() {
