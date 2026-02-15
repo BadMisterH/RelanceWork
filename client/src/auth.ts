@@ -7,20 +7,33 @@ import { supabase } from "./lib/supabase";
 
 const loginFormContainer = document.getElementById("loginForm") as HTMLElement;
 const signupFormContainer = document.getElementById("signupForm") as HTMLElement;
-const toggleButtons = document.querySelectorAll(".toggle-form");
+const forgotPasswordContainer = document.getElementById("forgotPasswordForm") as HTMLElement;
+const resetPasswordContainer = document.getElementById("resetPasswordForm") as HTMLElement;
 
+const allForms = [loginFormContainer, signupFormContainer, forgotPasswordContainer, resetPasswordContainer];
+
+function showForm(formId: string) {
+  allForms.forEach(f => f?.classList.remove("active"));
+  const target = document.getElementById(formId);
+  target?.classList.add("active");
+}
+
+const toggleButtons = document.querySelectorAll(".toggle-form");
 toggleButtons.forEach((button) => {
   button.addEventListener("click", () => {
     const target = button.getAttribute("data-target");
-
-    if (target === "signup") {
-      loginFormContainer.classList.remove("active");
-      signupFormContainer.classList.add("active");
-    } else {
-      signupFormContainer.classList.remove("active");
-      loginFormContainer.classList.add("active");
-    }
+    if (target === "signup") showForm("signupForm");
+    else if (target === "forgot") showForm("forgotPasswordForm");
+    else if (target === "reset") showForm("resetPasswordForm");
+    else showForm("loginForm");
   });
+});
+
+// "Mot de passe oublié ?" link
+const forgotLink = document.querySelector(".forgot-link") as HTMLAnchorElement;
+forgotLink?.addEventListener("click", (e) => {
+  e.preventDefault();
+  showForm("forgotPasswordForm");
 });
 
 // ============================================
@@ -217,10 +230,6 @@ loginForm?.addEventListener("submit", async (e) => {
   const password = (
     document.getElementById("loginPassword") as HTMLInputElement
   ).value;
-  const rememberMe = (
-    document.getElementById("rememberMe") as HTMLInputElement
-  ).checked;
-
   // Clear previous validations
   clearValidation("loginEmail");
   clearValidation("loginPassword");
@@ -263,20 +272,20 @@ loginForm?.addEventListener("submit", async (e) => {
 
     if (error) {
       console.error("Login error:", error);
-      showError("loginPassword", error.message || "Email ou mot de passe incorrect");
+
+      // Email non vérifié
+      if (error.message.includes("Email not confirmed")) {
+        showError("loginEmail", "Veuillez vérifier votre email avant de vous connecter.");
+        showAuthNotification("info", "Un email de vérification vous a été envoyé lors de l'inscription. Vérifiez vos spams.");
+        return;
+      }
+
+      showError("loginPassword", "Email ou mot de passe incorrect");
       return;
     }
 
     if (data.session) {
-      // Supabase gère automatiquement la persistance de la session
-      // Si rememberMe est false, on peut configurer la session pour être temporaire
-      if (!rememberMe) {
-        // Note: Pour une session temporaire, on pourrait utiliser sessionStorage
-        // mais Supabase gère déjà la persistance de manière sécurisée
-      }
-
       console.log("✅ Connexion réussie:", data.user?.email);
-      // Rediriger vers l'application
       window.location.href = "/";
     }
   } catch (error) {
@@ -471,3 +480,208 @@ confirmPasswordInput?.addEventListener("input", () => {
     clearValidation("signupConfirmPassword");
   }
 });
+
+// ============================================
+// FORGOT PASSWORD
+// ============================================
+
+const forgotForm = document.getElementById("forgotPasswordFormElement") as HTMLFormElement;
+const forgotBtn = document.getElementById("forgotBtn") as HTMLButtonElement;
+const forgotSuccess = document.getElementById("forgotSuccess") as HTMLElement;
+
+forgotForm?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const email = (document.getElementById("forgotEmail") as HTMLInputElement).value;
+
+  clearValidation("forgotEmail");
+
+  if (!email) {
+    showError("forgotEmail", "L'email est requis");
+    return;
+  }
+  if (!validateEmail(email)) {
+    showError("forgotEmail", "Format d'email invalide");
+    return;
+  }
+
+  forgotBtn.classList.add("loading");
+  forgotBtn.disabled = true;
+
+  try {
+    const apiUrl = import.meta.env.VITE_API_URL || '/api';
+    const response = await fetch(`${apiUrl}/auth/forgot-password`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: email.toLowerCase() }),
+    });
+
+    if (!response.ok) {
+      const data = await response.json();
+      showError("forgotEmail", data.message || "Erreur lors de l'envoi");
+      return;
+    }
+
+    // Afficher le message de succès
+    forgotForm.style.display = "none";
+    forgotSuccess.style.display = "block";
+  } catch (error) {
+    console.error("Reset password error:", error);
+    showError("forgotEmail", "Erreur. Veuillez réessayer.");
+  } finally {
+    forgotBtn.classList.remove("loading");
+    forgotBtn.disabled = false;
+  }
+});
+
+// ============================================
+// RESET PASSWORD (after clicking email link)
+// ============================================
+
+const resetForm = document.getElementById("resetPasswordFormElement") as HTMLFormElement;
+const resetBtn = document.getElementById("resetBtn") as HTMLButtonElement;
+
+// Password strength meter for reset form
+const resetPasswordInput = document.getElementById("resetPassword") as HTMLInputElement;
+const resetPasswordStrength = document.getElementById("resetPasswordStrength") as HTMLElement;
+const resetStrengthText = resetPasswordStrength?.querySelector(".strength-text") as HTMLElement;
+
+resetPasswordInput?.addEventListener("input", () => {
+  const password = resetPasswordInput.value;
+  const strength = calculatePasswordStrength(password);
+
+  resetPasswordStrength.className = "password-strength";
+
+  if (password.length === 0) {
+    resetPasswordStrength.classList.remove("weak", "medium", "strong");
+    resetStrengthText.textContent = "Minimum 8 caractères";
+  } else if (strength < 40) {
+    resetPasswordStrength.classList.add("weak");
+    resetStrengthText.textContent = "Faible";
+  } else if (strength < 70) {
+    resetPasswordStrength.classList.add("medium");
+    resetStrengthText.textContent = "Moyen";
+  } else {
+    resetPasswordStrength.classList.add("strong");
+    resetStrengthText.textContent = "Fort";
+  }
+});
+
+resetForm?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const password = (document.getElementById("resetPassword") as HTMLInputElement).value;
+  const confirmPassword = (document.getElementById("resetConfirmPassword") as HTMLInputElement).value;
+
+  clearValidation("resetPassword");
+  clearValidation("resetConfirmPassword");
+
+  let isValid = true;
+
+  if (!password) {
+    showError("resetPassword", "Le mot de passe est requis");
+    isValid = false;
+  } else if (password.length < 8) {
+    showError("resetPassword", "Le mot de passe doit contenir au moins 8 caractères");
+    isValid = false;
+  } else {
+    showSuccess("resetPassword");
+  }
+
+  if (!confirmPassword) {
+    showError("resetConfirmPassword", "Veuillez confirmer le mot de passe");
+    isValid = false;
+  } else if (password !== confirmPassword) {
+    showError("resetConfirmPassword", "Les mots de passe ne correspondent pas");
+    isValid = false;
+  } else {
+    showSuccess("resetConfirmPassword");
+  }
+
+  if (!isValid) return;
+
+  resetBtn.classList.add("loading");
+  resetBtn.disabled = true;
+
+  try {
+    const { error } = await supabase.auth.updateUser({ password });
+
+    if (error) {
+      console.error("Update password error:", error);
+      showError("resetPassword", error.message || "Erreur lors de la réinitialisation");
+      return;
+    }
+
+    // Envoyer la notification de changement de mot de passe via Brevo
+    const session = await supabase.auth.getSession();
+    if (session.data.session?.access_token) {
+      const apiUrl = import.meta.env.VITE_API_URL || '/api';
+      fetch(`${apiUrl}/auth/password-changed`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${session.data.session.access_token}`,
+        },
+      }).catch(() => {}); // fire-and-forget
+    }
+
+    showAuthNotification("success", "Mot de passe mis à jour ! Vous allez être redirigé...");
+
+    // Rediriger vers l'app après 2s
+    setTimeout(() => {
+      window.location.href = "/";
+    }, 2000);
+  } catch (error) {
+    console.error("Reset error:", error);
+    showError("resetPassword", "Erreur. Veuillez réessayer.");
+  } finally {
+    resetBtn.classList.remove("loading");
+    resetBtn.disabled = false;
+  }
+});
+
+// ============================================
+// DETECT RECOVERY/VERIFICATION TOKEN IN URL
+// ============================================
+
+let isRecoveryMode = false;
+
+(async () => {
+  const params = new URLSearchParams(window.location.search);
+  const hashParams = new URLSearchParams(window.location.hash.replace("#", "?"));
+
+  // Supabase recovery flow: URL contains type=recovery in hash or query
+  const type = params.get("type") || hashParams.get("type");
+  const accessToken = hashParams.get("access_token");
+
+  if (type === "recovery") {
+    isRecoveryMode = true;
+
+    if (accessToken) {
+      // Set the session from the recovery token
+      const refreshToken = hashParams.get("refresh_token") || "";
+      await supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken,
+      });
+    }
+
+    showForm("resetPasswordForm");
+    showAuthNotification("info", "Choisissez votre nouveau mot de passe.");
+  } else if (type === "signup" || type === "email_confirmation" || type === "magiclink") {
+    showAuthNotification("success", "Email vérifié ! Vous pouvez maintenant vous connecter.");
+    showForm("loginForm");
+  }
+
+  // Listen for Supabase auth events
+  supabase.auth.onAuthStateChange((event) => {
+    if (event === "PASSWORD_RECOVERY") {
+      isRecoveryMode = true;
+      showForm("resetPasswordForm");
+      showAuthNotification("info", "Choisissez votre nouveau mot de passe.");
+    } else if (event === "SIGNED_IN" && !isRecoveryMode) {
+      // Only auto-redirect if NOT in recovery mode
+      // (Supabase fires SIGNED_IN after setting recovery session)
+    }
+  });
+})();

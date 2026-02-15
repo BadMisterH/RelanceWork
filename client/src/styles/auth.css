@@ -871,6 +871,68 @@ body {
   outline-offset: 2px;
 }
 
+/* ============================================
+   FORGOT PASSWORD SUCCESS STATE
+   ============================================ */
+
+.forgot-success {
+  text-align: center;
+  padding: 32px 24px;
+}
+
+.forgot-success .success-icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 24px;
+  background: rgba(16, 185, 129, 0.1);
+  border-radius: 50%;
+}
+
+.forgot-success h2 {
+  font-family: "Archivo", sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--auth-text);
+  margin-bottom: 12px;
+}
+
+.forgot-success p {
+  font-size: 15px;
+  color: var(--auth-text-secondary);
+  line-height: 1.6;
+  margin-bottom: 28px;
+}
+
+/* ============================================
+   SECONDARY BUTTON
+   ============================================ */
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px 24px;
+  border: 2px solid var(--auth-primary);
+  border-radius: 12px;
+  background: transparent;
+  color: var(--auth-primary);
+  font-family: "Inter", sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+  background: var(--auth-primary);
+  color: white;
+}
+
 /* Reduce motion for users who prefer it */
 @media (prefers-reduced-motion: reduce) {
   *,

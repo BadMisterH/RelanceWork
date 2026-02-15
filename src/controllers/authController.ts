@@ -2,6 +2,27 @@ import { Request, Response } from "express";
 import { supabase } from "../config/supabase";
 import { validateEmail } from "../utils/emailValidator";
 import { subscriptionService } from "../services/subscriptionService";
+import {
+  sendVerificationEmail,
+  sendPasswordResetEmail,
+  sendPasswordChangedEmail,
+} from "../services/brevoEmailService";
+
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
+// En dev: FRONTEND_URL = http://localhost:5173 → /auth.html (Vite sert à la racine)
+// En prod: FRONTEND_URL = https://domaine.railway.app/app → /auth.html
+const AUTH_REDIRECT_URL = `${FRONTEND_URL}/auth.html`;
+
+// Force le redirect_to dans le lien Supabase pour pointer vers notre page auth
+function fixRedirectUrl(actionLink: string): string {
+  try {
+    const url = new URL(actionLink);
+    url.searchParams.set("redirect_to", AUTH_REDIRECT_URL);
+    return url.toString();
+  } catch {
+    return actionLink;
+  }
+}
 
 // Signup - Créer un nouveau compte avec Supabase Auth
 export const signup = async (req: Request, res: Response): Promise<void> => {
@@ -28,12 +49,12 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Créer l'utilisateur avec Supabase Auth Admin API
-    // @ts-ignore - Supabase types may not be fully recognized
+    // Créer l'utilisateur avec Supabase Auth Admin API (NON confirmé)
+    // @ts-ignore
     const { data, error } = await supabase.auth.admin.createUser({
       email: email.toLowerCase(),
       password,
-      email_confirm: false, // ⚠️ IMPORTANT: Nécessite vérification email (pas d'auto-confirm)
+      email_confirm: false,
       user_metadata: {
         name: name,
       },
@@ -42,7 +63,10 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
     if (error) {
       console.error("Supabase signup error:", error);
 
-      if (error.message.includes("already") || error.message.includes("exists")) {
+      if (
+        error.message.includes("already") ||
+        error.message.includes("exists")
+      ) {
         res.status(409).json({ message: "Cet email est déjà utilisé" });
         return;
       }
@@ -52,19 +76,60 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
     }
 
     if (!data.user) {
-      res.status(500).json({ message: "Erreur lors de la création du compte" });
+      res
+        .status(500)
+        .json({ message: "Erreur lors de la création du compte" });
       return;
     }
 
-    // ✅ Compte créé, mais vérification email requise
+    // Générer le lien de vérification via Supabase Admin
+    // @ts-ignore
+    const { data: linkData, error: linkError } =
+      await supabase.auth.admin.generateLink({
+        type: "signup",
+        email: email.toLowerCase(),
+        password: password,
+        options: {
+          redirectTo: `${FRONTEND_URL}/app/auth.html`,
+        },
+      });
+
+    if (linkError || !linkData?.properties?.action_link) {
+      console.error("Generate link error:", linkError);
+      res.status(201).json({
+        message: "Compte créé mais erreur d'envoi de l'email de vérification.",
+        emailVerificationRequired: true,
+        user: {
+          id: data.user.id,
+          name: data.user.user_metadata?.name || name,
+          email: data.user.email,
+        },
+      });
+      return;
+    }
+
+    // Envoyer l'email de vérification via Brevo
+    const verificationLink = fixRedirectUrl(linkData.properties.action_link);
+    console.log(`🔗 Lien de vérification généré pour ${email}:`, verificationLink);
+    const emailSent = await sendVerificationEmail(
+      email.toLowerCase(),
+      verificationLink,
+      name
+    );
+
+    if (!emailSent) {
+      console.error(`⚠️ Email de vérification NON envoyé à ${email}`);
+    }
+
     res.status(201).json({
-      message: "Compte créé avec succès ! Veuillez vérifier votre email pour activer votre compte.",
+      message: emailSent
+        ? "Compte créé ! Vérifiez votre email pour activer votre compte."
+        : "Compte créé mais l'email de vérification n'a pas pu être envoyé. Réessayez depuis la page de connexion.",
       emailVerificationRequired: true,
       user: {
         id: data.user.id,
         name: data.user.user_metadata?.name || name,
         email: data.user.email,
-        createdAt: data.user.created_at,
       },
     });
   } catch (error) {
@@ -93,6 +158,16 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 
     if (error) {
       console.error("Supabase login error:", error);
+
+      // Vérifier si c'est un problème de vérification email
+      if (error.message.includes("Email not confirmed")) {
+        res.status(403).json({
+          message: "Veuillez vérifier votre email avant de vous connecter.",
+          emailNotConfirmed: true,
+        });
+        return;
+      }
+
       res.status(401).json({ message: "Email ou mot de passe incorrect" });
       return;
     }
@@ -107,7 +182,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       token: data.session.access_token,
       user: {
         id: data.user.id,
-        name: data.user.user_metadata?.name || '',
+        name: data.user.user_metadata?.name || "",
         email: data.user.email,
       },
     });
@@ -117,18 +192,144 @@ export const login = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-// Logout - Déconnexion avec Supabase Auth
+// Forgot Password - Envoyer un email de réinitialisation via Brevo
+export const forgotPassword = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { email } = req.body;
+
+  try {
+    if (!email) {
+      res.status(400).json({ message: "L'email est requis" });
+      return;
+    }
+
+    // Générer le lien de reset via Supabase Admin
+    // @ts-ignore
+    const { data: linkData, error: linkError } =
+      await supabase.auth.admin.generateLink({
+        type: "recovery",
+        email: email.toLowerCase(),
+        options: {
+          redirectTo: `${FRONTEND_URL}/app/auth.html`,
+        },
+      });
+
+    if (linkError) {
+      console.error("Generate recovery link error:", linkError);
+      res.status(200).json({
+        message:
+          "Si un compte existe avec cet email, vous recevrez un lien de réinitialisation.",
+      });
+      return;
+    }
+
+    if (linkData?.properties?.action_link) {
+      const resetLink = fixRedirectUrl(linkData.properties.action_link);
+      console.log(`🔗 Lien de reset généré pour ${email}:`, resetLink);
+      const emailSent = await sendPasswordResetEmail(
+        email.toLowerCase(),
+        resetLink
+      );
+      if (!emailSent) {
+        console.error(`⚠️ Email de reset NON envoyé à ${email}`);
+      }
+    }
+
+    // Toujours retourner 200 (ne pas révéler si le compte existe)
+    res.status(200).json({
+      message:
+        "Si un compte existe avec cet email, vous recevrez un lien de réinitialisation.",
+    });
+  } catch (error) {
+    console.error("Forgot password error:", error);
+    res.status(200).json({
+      message:
+        "Si un compte existe avec cet email, vous recevrez un lien de réinitialisation.",
+    });
+  }
+};
+
+// Resend verification email
+export const resendVerification = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { email } = req.body;
+
+  try {
+    if (!email) {
+      res.status(400).json({ message: "L'email est requis" });
+      return;
+    }
+
+    // @ts-ignore
+    const { data: linkData, error: linkError } =
+      await supabase.auth.admin.generateLink({
+        type: "magiclink",
+        email: email.toLowerCase(),
+        options: {
+          redirectTo: `${FRONTEND_URL}/app/auth.html`,
+        },
+      });
+
+    if (linkError || !linkData?.properties?.action_link) {
+      console.error("Generate magiclink error:", linkError);
+      res.status(200).json({ message: "Email de vérification renvoyé." });
+      return;
+    }
+
+    const magicLink = fixRedirectUrl(linkData.properties.action_link);
+    console.log(`🔗 Lien magiclink généré pour ${email}:`, magicLink);
+    const emailSent = await sendVerificationEmail(
+      email.toLowerCase(),
+      magicLink,
+      ""
+    );
+
+    res.status(200).json({
+      message: emailSent
+        ? "Email de vérification renvoyé. Vérifiez votre boîte de réception."
+        : "Erreur lors de l'envoi. Réessayez dans quelques minutes.",
+    });
+  } catch (error) {
+    console.error("Resend verification error:", error);
+    res.status(200).json({ message: "Email de vérification renvoyé." });
+  }
+};
+
+// Logout
 export const logout = async (req: Request, res: Response): Promise<void> => {
   res.status(200).json({ message: "Déconnexion réussie" });
 };
 
-// Get current user - Récupérer l'utilisateur authentifié
+// Notify password changed (called by frontend after successful reset)
+export const notifyPasswordChanged = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const user = (req as any).user;
+    if (!user?.email) {
+      res.status(400).json({ message: "Utilisateur non trouvé" });
+      return;
+    }
+
+    await sendPasswordChangedEmail(user.email);
+    res.status(200).json({ message: "Notification envoyée" });
+  } catch (error) {
+    console.error("Notify password changed error:", error);
+    res.status(200).json({ message: "OK" });
+  }
+};
+
+// Get current user
 export const getCurrentUser = async (
   req: Request,
   res: Response
 ): Promise<void> => {
   try {
-    // L'utilisateur a été attaché par le middleware authenticateToken
     const user = (req as any).user;
 
     if (!user) {
@@ -136,16 +337,15 @@ export const getCurrentUser = async (
       return;
     }
 
-    // Récupérer le plan de l'utilisateur
     const planInfo = await subscriptionService.getUserPlan(user.id);
 
     res.status(200).json({
       user: {
         id: user.id,
-        name: user.user_metadata?.name || '',
+        name: user.user_metadata?.name || "",
         email: user.email,
         createdAt: user.created_at,
-        plan: planInfo.plan, // ⭐ Plan de l'utilisateur (free/pro)
+        plan: planInfo.plan,
         planStatus: planInfo.status,
       },
     });
