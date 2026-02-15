@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
 import { supabase } from "../config/supabase";
+import { validateEmail } from "../utils/emailValidator";
+import { subscriptionService } from "../services/subscriptionService";
 
 // Signup - Créer un nouveau compte avec Supabase Auth
 export const signup = async (req: Request, res: Response): Promise<void> => {
@@ -9,6 +11,13 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
     // Validate input
     if (!name || !email || !password) {
       res.status(400).json({ message: "Tous les champs sont requis" });
+      return;
+    }
+
+    // Valider l'email (format + domaines jetables)
+    const emailError = validateEmail(email);
+    if (emailError) {
+      res.status(400).json({ message: emailError });
       return;
     }
 
@@ -24,7 +33,7 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
     const { data, error } = await supabase.auth.admin.createUser({
       email: email.toLowerCase(),
       password,
-      email_confirm: true, // Auto-confirm en dev
+      email_confirm: false, // ⚠️ IMPORTANT: Nécessite vérification email (pas d'auto-confirm)
       user_metadata: {
         name: name,
       },
@@ -47,16 +56,10 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Créer une session pour le nouvel utilisateur
-    // @ts-ignore
-    const { data: sessionData, error: sessionError } = await supabase.auth.signInWithPassword({
-      email: email.toLowerCase(),
-      password,
-    });
-
+    // ✅ Compte créé, mais vérification email requise
     res.status(201).json({
-      message: "Compte créé avec succès",
-      token: sessionData?.session?.access_token || '',
+      message: "Compte créé avec succès ! Veuillez vérifier votre email pour activer votre compte.",
+      emailVerificationRequired: true,
       user: {
         id: data.user.id,
         name: data.user.user_metadata?.name || name,
@@ -133,12 +136,17 @@ export const getCurrentUser = async (
       return;
     }
 
+    // Récupérer le plan de l'utilisateur
+    const planInfo = await subscriptionService.getUserPlan(user.id);
+
     res.status(200).json({
       user: {
         id: user.id,
         name: user.user_metadata?.name || '',
         email: user.email,
         createdAt: user.created_at,
+        plan: planInfo.plan, // ⭐ Plan de l'utilisateur (free/pro)
+        planStatus: planInfo.status,
       },
     });
   } catch (error) {

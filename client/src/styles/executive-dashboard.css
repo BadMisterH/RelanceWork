@@ -27,6 +27,8 @@
   --dash-status-waiting-bg: #fef3c7;
   --dash-status-retired: #6b7280;
   --dash-status-retired-bg: #f3f4f6;
+  --dash-status-no-response: #6b7280;
+  --dash-status-no-response-bg: #f3f4f6;
 
   /* Stat Card Colors */
   --dash-stat-total: #3b82f6;
@@ -62,6 +64,54 @@
 
 /* Dark mode dash-* variables are defined in dark-mode.css (single source of truth) */
 /* Status badge dark overrides are also in dark-mode.css */
+
+/* ============================================
+   VIEW NAVIGATION
+   ============================================ */
+.view-navigation {
+  display: flex;
+  gap: var(--dash-space-sm);
+  margin-bottom: var(--dash-space-xl);
+  padding: var(--dash-space-xs);
+  background: var(--dash-bg);
+  border-radius: var(--dash-radius-lg);
+  width: fit-content;
+}
+
+.dash-nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  border: none;
+  background: transparent;
+  color: var(--dash-text-secondary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: var(--dash-radius-md);
+  cursor: pointer;
+  transition: var(--dash-transition-fast);
+}
+
+.dash-nav-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.dash-nav-btn:hover {
+  background: var(--dash-card-bg);
+  color: var(--dash-text);
+}
+
+.dash-nav-btn.active {
+  background: var(--dash-card-bg);
+  color: var(--dash-stat-total);
+  box-shadow: var(--dash-shadow-sm);
+}
+
+.dash-nav-btn.active svg {
+  color: var(--dash-stat-total);
+}
 
 /* ============================================
    STATS GRID
@@ -312,6 +362,12 @@
   color: var(--dash-status-rejected);
 }
 
+.dash-filter-btn.active.dash-filter-no-response {
+  border-color: var(--dash-status-no-response);
+  background: var(--dash-status-no-response-bg);
+  color: var(--dash-status-no-response);
+}
+
 .dash-filter-icon {
   font-size: 0.85rem;
 }
@@ -481,6 +537,11 @@
 .dash-status-retired {
   background: var(--dash-status-retired-bg);
   color: var(--dash-status-retired);
+}
+
+.dash-status-no-response {
+  background: var(--dash-status-no-response-bg);
+  color: var(--dash-status-no-response);
 }
 
 /* Date Column */
@@ -707,4 +768,121 @@
   .dash-action-btn {
     padding: 0.5rem;
   }
+}
+
+/* ============================================
+   STATUS DROPDOWN
+   ============================================ */
+.dash-status-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dash-status-trigger {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.375rem 0.625rem;
+  border: none;
+  background: transparent;
+  transition: var(--dash-transition-fast);
+}
+
+.dash-status-trigger:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--dash-shadow-md);
+}
+
+.dash-status-arrow {
+  margin-left: 0.25rem;
+  opacity: 0.6;
+  transition: transform 0.2s ease;
+}
+
+.dash-status-dropdown.active .dash-status-arrow {
+  transform: rotate(180deg);
+}
+
+.dash-status-menu {
+  position: absolute;
+  top: calc(100% + 0.25rem);
+  left: 0;
+  min-width: 180px;
+  background: var(--dash-card-bg);
+  border: 1px solid var(--dash-border);
+  border-radius: var(--dash-radius-md);
+  box-shadow: var(--dash-shadow-lg);
+  padding: 0.375rem;
+  z-index: 100;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-8px);
+  transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
+}
+
+.dash-status-dropdown.active .dash-status-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.dash-status-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: none;
+  background: transparent;
+  border-radius: var(--dash-radius-sm);
+  cursor: pointer;
+  transition: var(--dash-transition-fast);
+  font-size: 0.875rem;
+  color: var(--dash-text);
+  text-align: left;
+}
+
+.dash-status-option:hover {
+  background: var(--dash-bg);
+}
+
+.dash-status-option.active {
+  background: var(--dash-bg);
+  font-weight: 500;
+}
+
+.dash-status-option .dash-status-icon {
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.dash-status-option .dash-status-text {
+  flex: 1;
+}
+
+.dash-status-check {
+  color: var(--dash-status-accepted);
+  flex-shrink: 0;
+}
+
+/* Status colors for dropdown options */
+.dash-status-option.dash-status-waiting .dash-status-icon {
+  color: var(--dash-status-waiting);
+}
+
+.dash-status-option.dash-status-interview .dash-status-icon {
+  color: var(--dash-status-interview);
+}
+
+.dash-status-option.dash-status-accepted .dash-status-icon {
+  color: var(--dash-status-accepted);
+}
+
+.dash-status-option.dash-status-rejected .dash-status-icon {
+  color: var(--dash-status-rejected);
+}
+
+.dash-status-option.dash-status-no-response .dash-status-icon {
+  color: var(--dash-text-muted);
 }

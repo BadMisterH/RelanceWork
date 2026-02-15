@@ -3,6 +3,8 @@ node_modules/
 
 # Build output
 dist/
+client/dist/
+*.tsbuildinfo
 
 # Environment variables
 .env
@@ -10,9 +12,7 @@ dist/
 .env.*.local
 
 # Database
-data/*.sqlite
-data/*.sqlite-shm
-data/*.sqlite-wal
+data/
 
 # IDE
 .idea/
@@ -28,21 +28,8 @@ Thumbs.db
 *.log
 npm-debug.log*
 
-# Client build
-client/dist/
-
-# Secrets
-.env
-.env.local
-.env.*.local
-
-# Tokens
-data/
+# Tokens & credentials
 gmail-token.json
 
-
-# Logs
-*.log
-
-# OS
-.DS_Store
+# Backups
+*.backup

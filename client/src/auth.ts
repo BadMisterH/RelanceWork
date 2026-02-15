@@ -97,12 +97,81 @@ function calculatePasswordStrength(password: string): number {
 }
 
 // ============================================
+// AUTH NOTIFICATION SYSTEM
+// ============================================
+function showAuthNotification(type: 'success' | 'error' | 'info', message: string) {
+  // Supprimer une notification existante
+  document.querySelector('.auth-notification')?.remove();
+
+  const icons: Record<string, string> = {
+    success: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20"><polyline points="20 6 9 17 4 12"/></svg>',
+    error: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
+    info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
+  };
+
+  const colors: Record<string, string> = {
+    success: 'linear-gradient(135deg, #10b981, #059669)',
+    error: 'linear-gradient(135deg, #ef4444, #dc2626)',
+    info: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
+  };
+
+  const notif = document.createElement('div');
+  notif.className = 'auth-notification';
+  notif.style.cssText = `
+    position: fixed; top: 24px; right: 24px; z-index: 99999;
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 20px; border-radius: 12px;
+    background: ${colors[type]}; color: white;
+    font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 500;
+    max-width: 420px; box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+    animation: authNotifIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    line-height: 1.4;
+  `;
+  notif.innerHTML = `<span style="flex-shrink:0">${icons[type]}</span><span>${message}</span>`;
+
+  // Ajouter l'animation CSS
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes authNotifIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    @keyframes authNotifOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(120%); opacity: 0; } }
+  `;
+  document.head.appendChild(style);
+
+  document.body.appendChild(notif);
+
+  setTimeout(() => {
+    notif.style.animation = 'authNotifOut 0.3s ease forwards';
+    setTimeout(() => { notif.remove(); style.remove(); }, 300);
+  }, 5000);
+}
+
+// ============================================
 // FORM VALIDATION
 // ============================================
 
+// Liste des domaines d'emails jetables (même liste que le backend)
+const DISPOSABLE_DOMAINS = [
+  'temp-mail.org', 'tempmail.com', 'guerrillamail.com', 'mailinator.com',
+  'maildrop.cc', 'throwaway.email', 'getnada.com', 'trashmail.com',
+  'fakeinbox.com', 'sharklasers.com', 'guerrillamail.info', 'grr.la',
+  'guerrillamail.biz', 'guerrillamail.de', 'spam4.me', 'mailnesia.com',
+  'mytemp.email', 'temp-mail.io', 'mohmal.com', 'throwawaymail.com',
+  'yopmail.com', '10minutemail.com', 'emailondeck.com', 'mintemail.com',
+  'dispostable.com', 'emailfake.com', 'inboxkitten.com', 'anonymousemail.me',
+  'crazymailing.com', 'mailcatch.com', 'mailtothis.com', 'tempinbox.com',
+  'incognitomail.com', 'fakemail.net', 'tmails.net', 'tempmail.net',
+  'getairmail.com', 'mailsac.com', 'burnermail.io', 'emailtemporanea.net',
+  'emailtemporanea.com', 'correotemporal.org'
+];
+
 function validateEmail(email: string): boolean {
-  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return re.test(email);
+  // Vérifier le format
+  const re = /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+  if (!re.test(email)) return false;
+
+  // Vérifier que ce n'est pas un email jetable
+  const domain = email.toLowerCase().split('@')[1];
+  return !DISPOSABLE_DOMAINS.includes(domain);
 }
 
 function showError(inputId: string, message: string) {
@@ -265,7 +334,12 @@ signupForm?.addEventListener("submit", async (e) => {
     showError("signupEmail", "L'email est requis");
     isValid = false;
   } else if (!validateEmail(email)) {
-    showError("signupEmail", "Format d'email invalide");
+    const domain = email.toLowerCase().split('@')[1];
+    if (DISPOSABLE_DOMAINS.includes(domain)) {
+      showError("signupEmail", "Les emails temporaires ne sont pas autorisés. Utilisez un email permanent.");
+    } else {
+      showError("signupEmail", "Format d'email invalide");
+    }
     isValid = false;
   } else {
     showSuccess("signupEmail");
@@ -295,7 +369,7 @@ signupForm?.addEventListener("submit", async (e) => {
   }
 
   if (!acceptTerms) {
-    alert("Veuillez accepter les conditions d'utilisation");
+    showError("signupEmail", "Veuillez accepter les conditions d'utilisation");
     isValid = false;
   }
 
@@ -307,7 +381,8 @@ signupForm?.addEventListener("submit", async (e) => {
 
   try {
     // Appeler le backend qui auto-confirme l'email (évite rate limit)
-    const response = await fetch("http://localhost:3000/api/auth/signup", {
+    const apiUrl = import.meta.env.VITE_API_URL || '/api';
+    const response = await fetch(`${apiUrl}/auth/signup`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -325,29 +400,32 @@ signupForm?.addEventListener("submit", async (e) => {
     const data = await response.json();
     console.log("✅ Inscription réussie:", data.user?.email);
 
-    // Le backend retourne un token - se connecter avec Supabase pour créer la session
-    if (data.token) {
-      // Utiliser le token pour se connecter
+    // Vérifier si vérification email requise
+    if (data.emailVerificationRequired) {
+      // Email de vérification envoyé
+      loginFormContainer.classList.add("active");
+      signupFormContainer.classList.remove("active");
+      showAuthNotification('success', 'Compte créé ! Vérifiez votre email ' + data.user.email + ' pour activer votre compte.');
+    } else if (data.token) {
+      // Auto-confirm activé (dev) - se connecter directement
       const { error: signInError } = await supabase.auth.setSession({
         access_token: data.token,
-        refresh_token: data.token, // Le backend retourne le même token
+        refresh_token: data.token,
       });
 
       if (signInError) {
         console.error("Session error:", signInError);
-        // Fallback : rediriger vers login
         loginFormContainer.classList.add("active");
         signupFormContainer.classList.remove("active");
-        alert("Compte créé ! Veuillez vous connecter.");
+        showAuthNotification('success', 'Compte créé ! Connectez-vous maintenant.');
       } else {
-        // Session créée, rediriger vers l'application
         window.location.href = "/";
       }
     } else {
-      // Si pas de token, rediriger vers login
+      // Fallback
       loginFormContainer.classList.add("active");
       signupFormContainer.classList.remove("active");
-      alert("Compte créé ! Veuillez vous connecter.");
+      showAuthNotification('success', 'Compte créé ! Connectez-vous maintenant.');
     }
   } catch (error) {
     console.error("Signup error:", error);

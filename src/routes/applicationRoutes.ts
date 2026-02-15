@@ -3,6 +3,7 @@ import {
   getAllApplications,
   createApplication,
   updateRelanceStatus,
+  updateApplicationStatus,
   sendRelance,
   deleteApplication,
 } from "../controllers/applicationController";
@@ -19,6 +20,9 @@ router.post("/application", authenticateToken, checkApplicationLimit, createAppl
 
 // PUT /applications/:id/relance - Mettre à jour le statut de relance
 router.put("/applications/:id/relance", authenticateToken, updateRelanceStatus);
+
+// PUT /applications/:id/status - Mettre à jour le statut d'une candidature (accepté, refusé, pas de réponse)
+router.put("/applications/:id/status", authenticateToken, updateApplicationStatus);
 
 // PUT /applications/:id/send-relance - Enregistrer l'envoi d'une relance (incrémente le compteur)
 router.put("/applications/:id/send-relance", authenticateToken, sendRelance);

@@ -143,6 +143,7 @@ export class ExecutiveDashboard {
       { key: 'interview', label: 'Entretien', icon: '💼' },
       { key: 'accepted', label: 'Acceptée', icon: '✅' },
       { key: 'rejected', label: 'Refusée', icon: '❌' },
+      { key: 'no-response', label: 'Pas de réponse', icon: '🔇' },
     ];
 
     return filters.map(f => {
@@ -254,10 +255,18 @@ export class ExecutiveDashboard {
           <span class="dash-poste-text">${this.escapeHtml(app.poste)}</span>
         </td>
         <td class="dash-td dash-td-status">
-          <span class="dash-status-badge dash-status-${statusClass}">
-            <span class="dash-status-icon">${statusEmoji}</span>
-            <span class="dash-status-text">${this.escapeHtml(app.status)}</span>
-          </span>
+          <div class="dash-status-dropdown" data-app-id="${app.id}">
+            <button class="dash-status-badge dash-status-${statusClass} dash-status-trigger" type="button">
+              <span class="dash-status-icon">${statusEmoji}</span>
+              <span class="dash-status-text">${this.escapeHtml(app.status)}</span>
+              <svg class="dash-status-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+            <div class="dash-status-menu">
+              ${this.renderStatusOptions(app.status)}
+            </div>
+          </div>
         </td>
         <td class="dash-td dash-td-date">
           <span class="dash-date-text">${this.formatDate(app.date)}</span>
@@ -374,7 +383,7 @@ export class ExecutiveDashboard {
     if (s.includes('accepté') || s.includes('proposé')) return 'accepted';
     if (s.includes('refusé')) return 'rejected';
     if (s.includes('attente')) return 'waiting';
-    if (s.includes('retiré')) return 'retired';
+    if (s.includes('pas de réponse') || s.includes('retiré')) return 'no-response';
     return 'sent';
   }
 
@@ -388,8 +397,37 @@ export class ExecutiveDashboard {
     if (s.includes('accepté') || s.includes('proposé')) return '✅';
     if (s.includes('refusé')) return '❌';
     if (s.includes('attente')) return '⏳';
+    if (s.includes('pas de réponse')) return '🔇';
     if (s.includes('retiré')) return '🔙';
     return '📧';
+  }
+
+  /**
+   * Options du dropdown de statut
+   */
+  private renderStatusOptions(currentStatus: string): string {
+    const statuses = [
+      { label: 'En attente', emoji: '⏳', class: 'waiting' },
+      { label: 'Entretien', emoji: '💼', class: 'interview' },
+      { label: 'Accepté', emoji: '✅', class: 'accepted' },
+      { label: 'Refusé', emoji: '❌', class: 'rejected' },
+      { label: 'Pas de réponse', emoji: '🔇', class: 'no-response' },
+    ];
+
+    return statuses.map(s => {
+      const isActive = currentStatus.toLowerCase().includes(s.label.toLowerCase().split(' ')[0]);
+      return `
+        <button
+          class="dash-status-option dash-status-${s.class} ${isActive ? 'active' : ''}"
+          data-status="${s.label}"
+          type="button"
+        >
+          <span class="dash-status-icon">${s.emoji}</span>
+          <span class="dash-status-text">${s.label}</span>
+          ${isActive ? '<svg class="dash-status-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" width="14" height="14"><polyline points="20 6 9 17 4 12"></polyline></svg>' : ''}
+        </button>
+      `;
+    }).join('');
   }
 
   /**
@@ -503,6 +541,62 @@ export class ExecutiveDashboard {
         }
       });
     });
+
+    // Dropdowns de statut
+    this.attachStatusDropdownListeners();
+  }
+
+  /**
+   * Gérer les dropdowns de statut
+   */
+  private attachStatusDropdownListeners() {
+    // Ouvrir/fermer les dropdowns
+    document.querySelectorAll('.dash-status-trigger').forEach(trigger => {
+      trigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const dropdown = (trigger as HTMLElement).closest('.dash-status-dropdown');
+        const isOpen = dropdown?.classList.contains('active');
+
+        // Fermer tous les autres dropdowns
+        document.querySelectorAll('.dash-status-dropdown').forEach(d => d.classList.remove('active'));
+
+        // Toggle ce dropdown
+        if (!isOpen) {
+          dropdown?.classList.add('active');
+        }
+      });
+    });
+
+    // Sélection d'un statut
+    document.querySelectorAll('.dash-status-option').forEach(option => {
+      option.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const target = e.currentTarget as HTMLElement;
+        const newStatus = target.dataset.status;
+        const dropdown = target.closest('.dash-status-dropdown');
+        const appId = dropdown?.getAttribute('data-app-id');
+
+        if (newStatus && appId) {
+          await this.handleStatusChange(Number(appId), newStatus);
+        }
+
+        // Fermer le dropdown
+        dropdown?.classList.remove('active');
+      });
+    });
+
+    // Fermer les dropdowns au clic extérieur
+    document.addEventListener('click', () => {
+      document.querySelectorAll('.dash-status-dropdown').forEach(d => d.classList.remove('active'));
+    });
+  }
+
+  /**
+   * Gérer le changement de statut
+   */
+  private async handleStatusChange(id: number, newStatus: string) {
+    const event = new CustomEvent('status-change', { detail: { id, status: newStatus } });
+    window.dispatchEvent(event);
   }
 
   /**
@@ -571,6 +665,9 @@ export class ExecutiveDashboard {
           }
         });
       });
+
+      // Ré-attacher les événements de dropdown de statut
+      this.attachStatusDropdownListeners();
     }
 
     if (countBadge) {

@@ -12,6 +12,8 @@
 
     <link rel="stylesheet" href="/src/styles/slide-panel.css" />
     <link rel="stylesheet" href="/src/styles/executive-dashboard.css" />
+    <link rel="stylesheet" href="/src/styles/kanban-board.css" />
+    <link rel="stylesheet" href="/src/styles/analytics.css" />
     <link rel="stylesheet" href="/src/styles/dark-mode.css" />
     <link rel="stylesheet" href="/src/styles/gmail-connector.css" />
     <link rel="stylesheet" href="/src/styles/template-panel.css" />
@@ -68,6 +70,18 @@
               <line x1="16" y1="17" x2="8" y2="17" />
             </svg>
             Candidatures
+          </a>
+          <a href="#" class="nav-item" data-section="favorites">
+            <svg
+              class="nav-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+            </svg>
+            Favoris
           </a>
         </nav>
         <div class="sidebar-footer">
@@ -168,11 +182,48 @@
           <!-- Gmail Connector -->
           <div id="gmailConnector"></div>
 
-          <!-- Dashboard Content (rendered by ExecutiveDashboard) -->
+          <!-- View Navigation -->
+          <div class="view-navigation">
+            <button class="dash-nav-btn active" data-view="table">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="7" height="7" rx="1" />
+                <rect x="14" y="3" width="7" height="7" rx="1" />
+                <rect x="3" y="14" width="7" height="7" rx="1" />
+                <rect x="14" y="14" width="7" height="7" rx="1" />
+              </svg>
+              <span>Tableau</span>
+            </button>
+            <button class="dash-nav-btn" data-view="kanban">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="7" height="18" rx="1" />
+                <rect x="14" y="3" width="7" height="10" rx="1" />
+              </svg>
+              <span>Kanban</span>
+            </button>
+            <button class="dash-nav-btn" data-view="analytics">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="20" x2="12" y2="10"></line>
+                <line x1="18" y1="20" x2="18" y2="4"></line>
+                <line x1="6" y1="20" x2="6" y2="16"></line>
+              </svg>
+              <span>Analytics</span>
+            </button>
+          </div>
+
+          <!-- Dashboard Content (rendered by ExecutiveDashboard or KanbanBoard) -->
           <div id="applicationsList">
             <p class="loading-text">Chargement...</p>
           </div>
+
+          <!-- Analytics Content (rendered by AnalyticsDashboard) -->
+          <div id="analyticsList" style="display:none">
+          </div>
+
         </main>
+
+        <!-- Favorites Content (rendered by FavoritesList) - EN DEHORS de dashboard-content -->
+        <div id="favoritesList" style="display:none">
+        </div>
       </div>
     </div>
 
@@ -221,6 +272,10 @@
           </div>
 
           <div class="panel-filter-chips">
+            <label class="filter-chip filter-chip--favorites">
+              <input type="checkbox" id="filterFavorites" />
+              <span>❤️ Favoris</span>
+            </label>
             <label class="filter-chip">
               <input type="checkbox" id="filterNoWebsite" />
               <span>Sans site web</span>
@@ -264,40 +319,73 @@
       </div>
     </div>
 
+    <!-- Toast Notifications Container -->
+    <div id="toastContainer" class="toast-container"></div>
+
     <!-- Profile Modal -->
     <div class="profile-modal-overlay" id="profileModalOverlay">
       <div class="profile-modal">
         <div class="profile-modal-header">
-          <h3>Mon profil</h3>
-          <button class="panel-close-btn" id="closeProfileModal">
+          <div class="profile-modal-header-content">
+            <div class="profile-modal-avatar" id="profileAvatar">K</div>
+            <div class="profile-modal-header-text">
+              <h3>Mon profil</h3>
+              <p class="profile-modal-subtitle">Personnalisez vos informations</p>
+            </div>
+          </div>
+          <button class="profile-modal-close" id="closeProfileModal">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
         </div>
         <div class="profile-modal-body">
-          <p class="profile-modal-hint">Ces informations sont utilisées dans vos templates d'email via les variables <code>{{nom}}</code>, <code>{{titre}}</code>, <code>{{telephone}}</code>, <code>{{linkedin}}</code>, <code>{{signature}}</code>.</p>
+          <p class="profile-modal-hint">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            Variables disponibles dans vos templates : <code>{{nom}}</code> <code>{{titre}}</code> <code>{{telephone}}</code> <code>{{linkedin}}</code> <code>{{signature}}</code>
+          </p>
           <div class="profile-field">
-            <label for="profileInputName">Nom complet</label>
+            <label for="profileInputName">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              Nom complet
+            </label>
             <input type="text" id="profileInputName" placeholder="Ex: Jean Dupont">
           </div>
           <div class="profile-field">
-            <label for="profileInputTitle">Titre / Poste recherché</label>
+            <label for="profileInputTitle">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+              Titre / Poste recherché
+            </label>
             <input type="text" id="profileInputTitle" placeholder="Ex: Développeur Full Stack">
           </div>
-          <div class="profile-field">
-            <label for="profileInputPhone">Téléphone</label>
-            <input type="tel" id="profileInputPhone" placeholder="Ex: 06 12 34 56 78">
+          <div class="profile-fields-row">
+            <div class="profile-field">
+              <label for="profileInputPhone">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                Téléphone
+              </label>
+              <input type="tel" id="profileInputPhone" placeholder="06 12 34 56 78">
+            </div>
+            <div class="profile-field">
+              <label for="profileInputLinkedin">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+                LinkedIn
+              </label>
+              <input type="url" id="profileInputLinkedin" placeholder="linkedin.com/in/jean-dupont">
+            </div>
           </div>
           <div class="profile-field">
-            <label for="profileInputLinkedin">LinkedIn</label>
-            <input type="url" id="profileInputLinkedin" placeholder="Ex: linkedin.com/in/jean-dupont">
-          </div>
-          <div class="profile-field">
-            <label for="profileInputSignature">Signature email</label>
-            <textarea id="profileInputSignature" rows="4" placeholder="Ex: Cordialement,&#10;Jean Dupont&#10;06 12 34 56 78&#10;linkedin.com/in/jean-dupont"></textarea>
+            <label for="profileInputSignature">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              Signature email
+            </label>
+            <textarea id="profileInputSignature" rows="3" placeholder="Cordialement,&#10;Jean Dupont&#10;06 12 34 56 78"></textarea>
           </div>
         </div>
         <div class="profile-modal-footer">
-          <button class="profile-modal-save" id="saveProfileBtn">Enregistrer</button>
+          <button class="profile-modal-cancel" id="cancelProfileBtn">Annuler</button>
+          <button class="profile-modal-save" id="saveProfileBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="20 6 9 17 4 12"/></svg>
+            Enregistrer
+          </button>
         </div>
       </div>
     </div>

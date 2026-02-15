@@ -218,6 +218,63 @@ export const sendRelance = async (req: Request, res: Response): Promise<void> =>
   }
 };
 
+// PUT /applications/:id/status - Mettre à jour le statut d'une candidature
+export const updateApplicationStatus = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    // Récupérer l'ID de l'utilisateur authentifié
+    const userId = (req as any).user?.id;
+
+    if (!userId) {
+      res.status(401).json({ message: "Utilisateur non authentifié" });
+      return;
+    }
+
+    // Valider le statut
+    const validStatuses = ["accepté", "refusé", "pas de réponse", "en attente"];
+    if (!status || !validStatuses.includes(status.toLowerCase())) {
+      res.status(400).json({
+        message: "Statut invalide. Valeurs acceptées: accepté, refusé, pas de réponse, en attente"
+      });
+      return;
+    }
+
+    // Mettre à jour uniquement si l'application appartient à l'utilisateur
+    const { data: updatedApplication, error } = await supabase
+      .from('applications')
+      .update({ status })
+      .eq('id', id)
+      .eq('user_id', userId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('❌ Erreur mise à jour statut:', error);
+      if (error.code === 'PGRST116') {
+        res.status(404).json({ message: "Aucune candidature trouvée" });
+        return;
+      }
+      res.status(500).json({ message: "Erreur lors de la mise à jour du statut" });
+      return;
+    }
+
+    console.log(`✅ Statut mis à jour pour candidature #${id}: ${status}`);
+
+    res.json({
+      message: "Statut mis à jour avec succès",
+      data: updatedApplication,
+    });
+  } catch (error) {
+    console.error("❌ Erreur mise à jour statut:", error);
+    res.status(500).json({
+      message: "Erreur serveur",
+      error: error instanceof Error ? error.message : "Unknown error"
+    });
+  }
+};
+
 // DELETE /applications/:id - Supprimer une application
 export const deleteApplication = async (req: Request, res: Response): Promise<void> => {
   try {

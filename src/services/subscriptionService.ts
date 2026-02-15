@@ -1,5 +1,6 @@
 import Stripe from "stripe";
 import { supabase } from "../config/supabase";
+import { isProUser, getUserPlan as getAdminPlan } from "../config/admin";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2026-01-28.clover",
@@ -24,6 +25,18 @@ export class SubscriptionService {
    * Retourne le plan actuel d'un utilisateur
    */
   async getUserPlan(userId: string): Promise<SubscriptionInfo> {
+    // ⭐ Vérifier d'abord si l'utilisateur est Admin/Pro (hardcodé)
+    if (isProUser(userId)) {
+      const adminPlan = getAdminPlan(userId);
+      return {
+        plan: adminPlan === 'admin' || adminPlan === 'pro' ? 'pro' : 'free',
+        status: 'active',
+        stripe_customer_id: null,
+        current_period_end: null,
+      };
+    }
+
+    // Sinon, vérifier dans la base de données (abonnements Stripe)
     const { data } = await supabase
       .from("subscriptions")
       .select("*")
@@ -64,8 +77,8 @@ export class SubscriptionService {
       customer: customerId,
       mode: "subscription",
       line_items: [{ price: priceId, quantity: 1 }],
-      success_url: "http://localhost:5173/?upgrade=success",
-      cancel_url: "http://localhost:5173/?upgrade=cancel",
+      success_url: `${process.env.FRONTEND_URL || "http://localhost:5173"}/?upgrade=success`,
+      cancel_url: `${process.env.FRONTEND_URL || "http://localhost:5173"}/?upgrade=cancel`,
       metadata: { user_id: userId },
     });
 
@@ -88,7 +101,7 @@ export class SubscriptionService {
 
     const session = await stripe.billingPortal.sessions.create({
       customer: data.stripe_customer_id,
-      return_url: "http://localhost:5173/",
+      return_url: `${process.env.FRONTEND_URL || "http://localhost:5173"}/`,
     });
 
     return session.url;
@@ -198,7 +211,7 @@ export class SubscriptionService {
     const { plan } = await this.getUserPlan(userId);
 
     if (plan === "pro") {
-      return { allowed: true, current: 0, max: Infinity };
+      return { allowed: true, current: 0, max: -1 };
     }
 
     if (limitType === "applications") {
@@ -219,7 +232,7 @@ export class SubscriptionService {
       return this.checkSearchLimit(userId);
     }
 
-    return { allowed: true, current: 0, max: Infinity };
+    return { allowed: true, current: 0, max: -1 };
   }
 
   /**
@@ -231,7 +244,7 @@ export class SubscriptionService {
     const { plan } = await this.getUserPlan(userId);
 
     if (plan === "pro") {
-      return { allowed: true, current: 0, max: Infinity };
+      return { allowed: true, current: 0, max: -1 };
     }
 
     const currentMonth = new Date().toISOString().slice(0, 7); // "2026-02"
@@ -286,7 +299,7 @@ export class SubscriptionService {
 
     const { plan } = await this.getUserPlan(userId);
     const max =
-      plan === "pro" ? Infinity : FREE_LIMITS.max_searches_per_month;
+      plan === "pro" ? -1 : FREE_LIMITS.max_searches_per_month;
 
     return { current: newCount, max };
   }

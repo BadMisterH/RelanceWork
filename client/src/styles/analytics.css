@@ -1,0 +1,275 @@
+/**
+ * ANALYTICS DASHBOARD - Chart.js Integration
+ */
+
+/* ============================================
+   ANALYTICS GRID
+   ============================================ */
+.analytics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+  gap: var(--dash-space-xl);
+  padding: 0;
+}
+
+/* ============================================
+   ANALYTICS CARD
+   ============================================ */
+.analytics-card {
+  background: var(--dash-card-bg);
+  border: 1px solid var(--dash-border);
+  border-radius: var(--dash-radius-lg);
+  padding: var(--dash-space-xl);
+  transition: var(--dash-transition);
+}
+
+.analytics-card:hover {
+  box-shadow: var(--dash-shadow-md);
+}
+
+.analytics-card-header {
+  margin-bottom: var(--dash-space-lg);
+}
+
+.analytics-card-header h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--dash-text);
+  margin: 0 0 0.25rem 0;
+}
+
+.analytics-card-subtitle {
+  font-size: 0.875rem;
+  color: var(--dash-text-secondary);
+}
+
+/* ============================================
+   CHART CONTAINER
+   ============================================ */
+.analytics-chart-container {
+  position: relative;
+  width: 100%;
+  padding: var(--dash-space-md) 0;
+}
+
+/* ============================================
+   METRICS GRID
+   ============================================ */
+.analytics-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--dash-space-lg);
+  margin-bottom: var(--dash-space-lg);
+}
+
+.analytics-metric {
+  text-align: center;
+  padding: var(--dash-space-lg);
+  background: var(--dash-bg);
+  border-radius: var(--dash-radius-md);
+  transition: var(--dash-transition-fast);
+}
+
+.analytics-metric:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--dash-shadow-sm);
+}
+
+.analytics-metric-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--dash-text);
+  margin-bottom: 0.25rem;
+}
+
+.analytics-metric-positive {
+  color: var(--dash-status-accepted);
+}
+
+.analytics-metric-label {
+  font-size: 0.8125rem;
+  color: var(--dash-text-secondary);
+  font-weight: 500;
+}
+
+/* ============================================
+   INSIGHTS
+   ============================================ */
+.analytics-insight {
+  padding: var(--dash-space-md) var(--dash-space-lg);
+  background: var(--dash-bg);
+  border-left: 3px solid var(--dash-text-muted);
+  border-radius: var(--dash-radius-sm);
+  font-size: 0.875rem;
+  color: var(--dash-text-secondary);
+  line-height: 1.5;
+}
+
+.analytics-insight-positive {
+  background: rgba(16, 185, 129, 0.05);
+  border-left-color: var(--dash-status-accepted);
+  color: var(--dash-status-accepted);
+}
+
+/* ============================================
+   EMPTY STATE
+   ============================================ */
+.analytics-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--dash-space-2xl) var(--dash-space-xl);
+  text-align: center;
+  min-height: 400px;
+}
+
+.analytics-empty svg {
+  opacity: 0.3;
+  margin-bottom: var(--dash-space-lg);
+  color: var(--dash-text-muted);
+}
+
+.analytics-empty h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--dash-text);
+  margin: 0 0 var(--dash-space-sm) 0;
+}
+
+.analytics-empty p {
+  font-size: 0.9375rem;
+  color: var(--dash-text-secondary);
+  max-width: 400px;
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* ============================================
+   SPECIFIC CARD STYLES
+   ============================================ */
+
+/* Funnel Card */
+.analytics-funnel-card {
+  grid-column: span 1;
+}
+
+/* Relance Card */
+.analytics-relance-card {
+  grid-column: span 1;
+}
+
+/* Activity Card */
+.analytics-activity-card {
+  grid-column: span 1;
+}
+
+/* Status Card */
+.analytics-status-card {
+  grid-column: span 1;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 1200px) {
+  .analytics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .analytics-funnel-card,
+  .analytics-relance-card,
+  .analytics-activity-card,
+  .analytics-status-card {
+    grid-column: span 1;
+  }
+}
+
+@media (max-width: 768px) {
+  .analytics-grid {
+    gap: var(--dash-space-lg);
+  }
+
+  .analytics-card {
+    padding: var(--dash-space-lg);
+  }
+
+  .analytics-metrics-grid {
+    grid-template-columns: 1fr;
+    gap: var(--dash-space-md);
+  }
+
+  .analytics-metric-value {
+    font-size: 1.75rem;
+  }
+
+  .analytics-chart-container {
+    height: 240px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .analytics-card-header h3 {
+    font-size: 1rem;
+  }
+
+  .analytics-metric {
+    padding: var(--dash-space-md);
+  }
+
+  .analytics-metric-value {
+    font-size: 1.5rem;
+  }
+
+  .analytics-chart-container {
+    height: 220px !important;
+  }
+}
+
+/* ============================================
+   DARK MODE
+   ============================================ */
+:root[data-theme="dark"] .analytics-card {
+  background: var(--color-surface);
+  border-color: var(--color-border);
+}
+
+:root[data-theme="dark"] .analytics-card-header h3 {
+  color: var(--color-text);
+}
+
+:root[data-theme="dark"] .analytics-card-subtitle {
+  color: var(--color-text-secondary);
+}
+
+:root[data-theme="dark"] .analytics-metric {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+:root[data-theme="dark"] .analytics-metric-value {
+  color: var(--color-text);
+}
+
+:root[data-theme="dark"] .analytics-metric-label {
+  color: var(--color-text-secondary);
+}
+
+:root[data-theme="dark"] .analytics-insight {
+  background: rgba(255, 255, 255, 0.03);
+  border-left-color: var(--color-border);
+  color: var(--color-text-secondary);
+}
+
+:root[data-theme="dark"] .analytics-insight-positive {
+  background: rgba(16, 185, 129, 0.1);
+  border-left-color: #34d399;
+  color: #34d399;
+}
+
+:root[data-theme="dark"] .analytics-empty h3 {
+  color: var(--color-text);
+}
+
+:root[data-theme="dark"] .analytics-empty p {
+  color: var(--color-text-secondary);
+}

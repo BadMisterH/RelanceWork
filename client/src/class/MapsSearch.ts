@@ -15,6 +15,8 @@ export interface BusinessPlace {
   };
   types?: string[];
   rating?: number;
+  isFavorite?: boolean;
+  emailFoundViaHunter?: boolean;
 }
 
 export class MapsSearch {
@@ -26,6 +28,9 @@ export class MapsSearch {
   private googleMapsLoaded: boolean = false;
   private userLocation: { lat: number; lng: number } | null = null;
   private searchUsage: { current: number; max: number; allowed: boolean } | null = null;
+  private favorites: Set<string> = new Set();
+  private STORAGE_KEY = 'relancework_favorites';
+  private CACHE_KEY = 'relancework_cached_businesses';
 
   // Requêtes de recherche ciblées sur les entreprises tech/web qui recrutent
   private techSearchQueries = [
@@ -41,7 +46,143 @@ export class MapsSearch {
 
   constructor() {
     // Attacher les événements immédiatement (pas besoin de Google Maps pour ça)
+    this.loadFavorites(); // Charger favoris de manière asynchrone
     this.initEvents();
+  }
+
+  /**
+   * Charger les favoris depuis le backend
+   */
+  private async loadFavorites() {
+    try {
+      // Charger depuis le backend
+      const response = await api.get('/favorites');
+      const favoritePlaceIds = response.data.map((fav: any) => fav.placeId);
+      this.favorites = new Set(favoritePlaceIds);
+      console.log(`✅ ${this.favorites.size} favoris chargés depuis le backend`);
+
+      // Sauvegarder dans localStorage pour synchro locale
+      this.saveFavorites();
+    } catch (error: any) {
+      console.error('Erreur lors du chargement des favoris depuis le backend:', error);
+
+      // Fallback sur localStorage en cas d'erreur
+      try {
+        const saved = localStorage.getItem(this.STORAGE_KEY);
+        if (saved) {
+          this.favorites = new Set(JSON.parse(saved));
+          console.log(`✅ ${this.favorites.size} favoris chargés depuis localStorage (fallback)`);
+        }
+      } catch (e) {
+        console.error('Erreur lors du chargement des favoris depuis localStorage:', e);
+        this.favorites = new Set();
+      }
+    }
+  }
+
+  /**
+   * Sauvegarder les favoris dans localStorage
+   */
+  private saveFavorites() {
+    try {
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify([...this.favorites]));
+      console.log(`💾 ${this.favorites.size} favoris sauvegardés`);
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde des favoris:', error);
+    }
+  }
+
+  /**
+   * Mettre en cache les données des entreprises pour la page favoris
+   */
+  private cacheBusinessData() {
+    try {
+      console.log(`💾 Mise en cache de ${this.currentResults.length} résultats actuels`);
+
+      // Charger le cache existant
+      const existingCache = localStorage.getItem(this.CACHE_KEY);
+      let cachedBusinesses: BusinessPlace[] = existingCache ? JSON.parse(existingCache) : [];
+
+      console.log(`💾 Cache existant: ${cachedBusinesses.length} entreprises`);
+
+      // Fusionner les nouvelles données avec le cache existant
+      this.currentResults.forEach(business => {
+        const existingIndex = cachedBusinesses.findIndex(b => b.placeId === business.placeId);
+        if (existingIndex >= 0) {
+          // Mettre à jour l'entrée existante
+          console.log(`♻️ Mise à jour du cache pour: ${business.name} (${business.placeId})`);
+          cachedBusinesses[existingIndex] = business;
+        } else {
+          // Ajouter nouvelle entrée
+          console.log(`➕ Ajout au cache: ${business.name} (${business.placeId})`);
+          cachedBusinesses.push(business);
+        }
+      });
+
+      // Limiter le cache à 500 entreprises max pour ne pas surcharger localStorage
+      if (cachedBusinesses.length > 500) {
+        cachedBusinesses = cachedBusinesses.slice(-500);
+      }
+
+      localStorage.setItem(this.CACHE_KEY, JSON.stringify(cachedBusinesses));
+      console.log(`✅ ${cachedBusinesses.length} entreprises en cache total`);
+    } catch (error) {
+      console.error('Erreur lors de la mise en cache des entreprises:', error);
+    }
+  }
+
+  /**
+   * Basculer l'état favori d'une entreprise
+   */
+  private async toggleFavorite(placeId: string) {
+    const wasAdded = !this.favorites.has(placeId);
+    const business = this.currentResults.find(b => b.placeId === placeId);
+
+    if (!business) {
+      console.error('Business non trouvé:', placeId);
+      return;
+    }
+
+    try {
+      if (this.favorites.has(placeId)) {
+        // Supprimer du backend
+        await api.delete(`/favorites/${placeId}`);
+        this.favorites.delete(placeId);
+        business.isFavorite = false;
+        console.log(`💔 Retiré des favoris (backend): ${placeId}`);
+      } else {
+        // Ajouter au backend
+        await api.post('/favorites', {
+          placeId: business.placeId,
+          businessData: business
+        });
+        this.favorites.add(placeId);
+        business.isFavorite = true;
+        console.log(`❤️ Ajouté aux favoris (backend): ${placeId}`);
+      }
+
+      // Mettre à jour localStorage pour synchro locale
+      this.saveFavorites();
+
+      // Forcer la mise en cache immédiate quand un favori est ajouté
+      if (wasAdded && this.currentResults.length > 0) {
+        console.log('💾 Mise en cache forcée après ajout favori');
+        this.cacheBusinessData();
+      }
+
+      // Émettre un événement pour notifier que les favoris ont été mis à jour
+      window.dispatchEvent(new CustomEvent('favorites-updated'));
+
+      // Rafraîchir l'affichage
+      this.applyFilters();
+    } catch (error: any) {
+      console.error('❌ Erreur lors de la mise à jour du favori:', error);
+      if (error.response?.status === 401) {
+        (window as any).showToast?.('warning', 'Connectez-vous pour ajouter des favoris');
+      } else {
+        (window as any).showToast?.('error', 'Erreur lors de la mise à jour du favori');
+      }
+    }
   }
 
   // Méthode appelée quand Google Maps API est chargée
@@ -332,6 +473,7 @@ export class MapsSearch {
     const filterNoWebsite = document.getElementById("filterNoWebsite") as HTMLInputElement;
     const filterNoEmail = document.getElementById("filterNoEmail") as HTMLInputElement;
     const filterWithEmail = document.getElementById("filterWithEmail") as HTMLInputElement;
+    const filterFavorites = document.getElementById("filterFavorites") as HTMLInputElement;
 
     // Helper function to toggle filter chip active class
     const toggleFilterChipClass = (checkbox: HTMLInputElement) => {
@@ -362,6 +504,13 @@ export class MapsSearch {
     if (filterWithEmail) {
       filterWithEmail.addEventListener("change", () => {
         toggleFilterChipClass(filterWithEmail);
+        this.applyFilters();
+      });
+    }
+
+    if (filterFavorites) {
+      filterFavorites.addEventListener("change", () => {
+        toggleFilterChipClass(filterFavorites);
         this.applyFilters();
       });
     }
@@ -508,6 +657,8 @@ export class MapsSearch {
             },
             types: place.types,
             rating: place.rating,
+            isFavorite: this.favorites.has(placeId),
+            emailFoundViaHunter: false,
           };
           resolve(business);
         } else {
@@ -521,11 +672,13 @@ export class MapsSearch {
     const filterNoWebsite = document.getElementById("filterNoWebsite") as HTMLInputElement;
     const filterNoEmail = document.getElementById("filterNoEmail") as HTMLInputElement;
     const filterWithEmail = document.getElementById("filterWithEmail") as HTMLInputElement;
+    const filterFavorites = document.getElementById("filterFavorites") as HTMLInputElement;
 
     console.log('🔍 Application des filtres:', {
       filterNoWebsite: filterNoWebsite?.checked,
       filterNoEmail: filterNoEmail?.checked,
       filterWithEmail: filterWithEmail?.checked,
+      filterFavorites: filterFavorites?.checked,
       totalResults: this.currentResults.length
     });
 
@@ -546,12 +699,20 @@ export class MapsSearch {
       console.log(`Filtre avec email: ${filteredResults.length} résultats`);
     }
 
+    if (filterFavorites?.checked) {
+      filteredResults = filteredResults.filter((r) => this.favorites.has(r.placeId));
+      console.log(`Filtre favoris: ${filteredResults.length} résultats`);
+    }
+
     console.log(`📊 Résultats après filtres: ${filteredResults.length}`);
     this.displayResults(filteredResults);
   }
 
   private displayResults(results: BusinessPlace[]) {
     console.log(`🎨 Affichage de ${results.length} résultats`);
+
+    // Mettre en cache les données pour la page favoris
+    this.cacheBusinessData();
 
     const resultsContainer = document.getElementById("businessResults");
     const resultsCount = document.getElementById("resultsCount");
@@ -620,8 +781,12 @@ export class MapsSearch {
             try { domain = new URL(business.website).hostname.replace('www.', ''); } catch { /* ignore */ }
           }
 
+          const isFavorite = this.favorites.has(business.placeId);
+          const hasHunterEmail = business.emailFoundViaHunter === true;
+
           return `
-      <div class="business-card" data-index="${index}">
+      <div class="business-card ${isFavorite ? 'is-favorite' : ''} ${hasHunterEmail ? 'has-hunter-email' : ''}" data-index="${index}" data-place-id="${business.placeId}">
+        ${hasHunterEmail ? '<div class="hunter-badge" title="Email trouvé via Hunter.io">🎯 Hunter.io</div>' : ''}
         <div class="biz-top">
           <div class="biz-avatar">${business.name.charAt(0).toUpperCase()}</div>
           <div class="biz-identity">
@@ -629,6 +794,11 @@ export class MapsSearch {
             <span class="biz-address">${business.address}</span>
           </div>
           ${business.rating ? `<span class="biz-rating">${business.rating}</span>` : ''}
+          <button class="biz-favorite-btn ${isFavorite ? 'active' : ''}" data-place-id="${business.placeId}" title="${isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}">
+            <svg viewBox="0 0 24 24" fill="${isFavorite ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" width="20" height="20">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+            </svg>
+          </button>
         </div>
 
         <div class="biz-tags">
@@ -639,7 +809,7 @@ export class MapsSearch {
             ? `<span class="biz-tag biz-tag--phone">${business.phone}</span>`
             : ''}
           ${business.email
-            ? `<span class="biz-tag biz-tag--email">${business.email}</span>`
+            ? `<span class="biz-tag biz-tag--email ${hasHunterEmail ? 'hunter-email' : ''}">${business.email}</span>`
             : `<span class="biz-tag biz-tag--noemail">Pas d'email</span>`}
         </div>
 
@@ -731,6 +901,18 @@ export class MapsSearch {
         }
       });
     });
+
+    // Boutons "Favori"
+    document.querySelectorAll(".biz-favorite-btn").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const target = e.currentTarget as HTMLButtonElement;
+        const placeId = target.getAttribute("data-place-id");
+        if (placeId) {
+          this.toggleFavorite(placeId);
+        }
+      });
+    });
   }
 
   /**
@@ -741,7 +923,7 @@ export class MapsSearch {
     const businessesWithoutEmail = results.filter(b => !b.email);
 
     if (businessesWithoutEmail.length === 0) {
-      alert("Toutes les entreprises ont déjà un email!");
+      (window as any).showToast?.('info', 'Toutes les entreprises ont déjà un email !');
       return;
     }
 
@@ -784,20 +966,24 @@ export class MapsSearch {
         const business = this.currentResults.find(b => b.name === result.companyName);
         if (business && result.emails.length > 0) {
           business.email = result.emails[0]; // Prendre le premier email
+          business.emailFoundViaHunter = true; // Marquer comme trouvé via Hunter.io
           emailsFound++;
         }
       });
 
       console.log(`✅ ${emailsFound} email(s) trouvé(s) sur ${businessesWithoutEmail.length} entreprises`);
 
+      // Mettre à jour le cache avec les nouveaux emails
+      this.cacheBusinessData();
+
       // Rafraîchir l'affichage
       this.applyFilters();
 
       // Afficher un message de succès
-      alert(`✅ Enrichissement terminé!\n\n${emailsFound} email(s) trouvé(s) sur ${businessesWithoutEmail.length} entreprises.\n\nLes résultats ont été mis à jour.`);
+      (window as any).showToast?.('success', `${emailsFound} email(s) trouvé(s) sur ${businessesWithoutEmail.length} entreprises`, 5000);
     } catch (error) {
       console.error("❌ Erreur lors de l'enrichissement:", error);
-      alert(`❌ Erreur lors de l'enrichissement des emails.\n\nVérifiez que:\n1. Le backend est lancé (npm run dev)\n2. La clé API Hunter.io est configurée dans .env\n3. Votre connexion internet fonctionne\n4. Vous n'avez pas dépassé votre quota Hunter.io\n\nDétails: ${error instanceof Error ? error.message : 'Erreur inconnue'}`);
+      (window as any).showToast?.('error', `Erreur lors de l'enrichissement. Vérifiez votre clé API Hunter.io.`, 5000);
 
       // Restaurer le bouton
       if (enrichBtn) {
@@ -846,7 +1032,7 @@ export class MapsSearch {
       this.searchUsage = {
         current: response.data.current,
         max: response.data.max,
-        allowed: response.data.current < response.data.max,
+        allowed: response.data.max < 0 || response.data.current < response.data.max,
       };
       this.renderSearchCounter();
     } catch (error) {
@@ -858,7 +1044,7 @@ export class MapsSearch {
    * Affiche le compteur de recherches dans le modal
    */
   private renderSearchCounter() {
-    if (!this.searchUsage || this.searchUsage.max === Infinity) return;
+    if (!this.searchUsage || !this.searchUsage.max || this.searchUsage.max < 0) return;
 
     const { current, max } = this.searchUsage;
     const existingCounter = document.getElementById('searchUsageCounter');

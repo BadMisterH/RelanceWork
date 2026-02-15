@@ -47,6 +47,8 @@
   --dash-status-waiting-bg: rgba(245, 158, 11, 0.15);
   --dash-status-retired: #9ca3af;
   --dash-status-retired-bg: rgba(107, 114, 128, 0.15);
+  --dash-status-no-response: #9ca3af;
+  --dash-status-no-response-bg: rgba(107, 114, 128, 0.15);
 }
 
 /* ---- Theme Toggle ---- */

@@ -1,9 +1,33 @@
 /**
- * Analytics Dashboard - Metriques de conversion et efficacite des relances
- * Calculs 100% frontend a partir des donnees existantes
+ * Analytics Dashboard - Métriques avec Chart.js
  */
 
 import type { Application } from '../main';
+import {
+  Chart,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  ArcElement,
+  Title,
+  Tooltip,
+  Legend,
+  BarController,
+  DoughnutController
+} from 'chart.js';
+
+// Enregistrer les composants Chart.js nécessaires
+Chart.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  ArcElement,
+  Title,
+  Tooltip,
+  Legend,
+  BarController,
+  DoughnutController
+);
 
 interface StatusGroup {
   label: string;
@@ -19,6 +43,7 @@ interface WeekData {
 
 export class AnalyticsDashboard {
   private container: HTMLElement | null;
+  private charts: { [key: string]: Chart } = {};
 
   constructor(containerId: string = 'analyticsList') {
     this.container = document.getElementById(containerId);
@@ -26,6 +51,10 @@ export class AnalyticsDashboard {
 
   public render(applications: Application[]) {
     if (!this.container) return;
+
+    // Détruire les graphiques existants
+    Object.values(this.charts).forEach(chart => chart.destroy());
+    this.charts = {};
 
     if (applications.length === 0) {
       this.container.innerHTML = this.renderEmptyState();
@@ -40,6 +69,168 @@ export class AnalyticsDashboard {
         ${this.renderStatusDistribution(applications)}
       </div>
     `;
+
+    // Créer les graphiques après le rendu HTML
+    this.createCharts(applications);
+  }
+
+  private createCharts(apps: Application[]) {
+    // Graphique de l'activité hebdomadaire
+    const weekCanvas = document.getElementById('weeklyChart') as HTMLCanvasElement;
+    if (weekCanvas) {
+      const weeks = this.getWeeklyData(apps, 8);
+      this.charts['weekly'] = new Chart(weekCanvas, {
+        type: 'bar',
+        data: {
+          labels: weeks.map(w => w.label),
+          datasets: [{
+            label: 'Candidatures',
+            data: weeks.map(w => w.count),
+            backgroundColor: '#3b82f6',
+            borderRadius: 8,
+            barThickness: 32,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              padding: 12,
+              titleFont: { size: 14 },
+              bodyFont: { size: 13 },
+              callbacks: {
+                label: (context) => `${context.parsed.y} candidature${context.parsed.y > 1 ? 's' : ''}`
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: { stepSize: 1, color: '#6b7280' },
+              grid: { color: 'rgba(0, 0, 0, 0.05)' }
+            },
+            x: {
+              ticks: { color: '#6b7280' },
+              grid: { display: false }
+            }
+          }
+        }
+      });
+    }
+
+    // Graphique de répartition des statuts (Doughnut)
+    const statusCanvas = document.getElementById('statusChart') as HTMLCanvasElement;
+    if (statusCanvas) {
+      const groups: StatusGroup[] = [
+        { label: 'Envoyées', count: apps.filter(a => this.isSent(a)).length, color: '#3b82f6', emoji: '📤' },
+        { label: 'En attente', count: apps.filter(a => this.isPending(a)).length, color: '#f59e0b', emoji: '⏳' },
+        { label: 'Entretiens', count: apps.filter(a => this.isInterview(a)).length, color: '#8b5cf6', emoji: '💼' },
+        { label: 'Acceptées', count: apps.filter(a => this.isAccepted(a)).length, color: '#10b981', emoji: '✅' },
+        { label: 'Refusées', count: apps.filter(a => this.isRejected(a)).length, color: '#ef4444', emoji: '❌' },
+      ].filter(g => g.count > 0);
+
+      this.charts['status'] = new Chart(statusCanvas, {
+        type: 'doughnut',
+        data: {
+          labels: groups.map(g => `${g.emoji} ${g.label}`),
+          datasets: [{
+            data: groups.map(g => g.count),
+            backgroundColor: groups.map(g => g.color),
+            borderWidth: 0,
+            hoverOffset: 10
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '65%',
+          plugins: {
+            legend: {
+              display: true,
+              position: 'bottom',
+              labels: {
+                padding: 15,
+                font: { size: 13 },
+                color: '#374151',
+                usePointStyle: true,
+                pointStyle: 'circle'
+              }
+            },
+            tooltip: {
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              padding: 12,
+              titleFont: { size: 14 },
+              bodyFont: { size: 13 },
+              callbacks: {
+                label: (context) => {
+                  const total = groups.reduce((sum, g) => sum + g.count, 0);
+                  const pct = Math.round((context.parsed / total) * 100);
+                  return `${context.label}: ${context.parsed} (${pct}%)`;
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // Graphique d'entonnoir de conversion (Bar horizontal)
+    const funnelCanvas = document.getElementById('funnelChart') as HTMLCanvasElement;
+    if (funnelCanvas) {
+      const total = apps.length;
+      const pending = apps.filter(a => this.isPending(a)).length;
+      const interviews = apps.filter(a => this.isInterview(a)).length;
+      const accepted = apps.filter(a => this.isAccepted(a)).length;
+
+      this.charts['funnel'] = new Chart(funnelCanvas, {
+        type: 'bar',
+        data: {
+          labels: ['Candidatures', 'En attente', 'Entretiens', 'Acceptées'],
+          datasets: [{
+            data: [total, pending, interviews, accepted],
+            backgroundColor: ['#3b82f6', '#f59e0b', '#8b5cf6', '#10b981'],
+            borderRadius: 6,
+            barThickness: 40,
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              padding: 12,
+              titleFont: { size: 14 },
+              bodyFont: { size: 13 },
+              callbacks: {
+                label: (context) => {
+                  const value = context.parsed.x;
+                  const prevValue = context.dataIndex > 0 ? context.dataset.data[context.dataIndex - 1] as number : value;
+                  const rate = prevValue > 0 ? Math.round((value / prevValue) * 100) : 100;
+                  return `${value} candidatures (${context.dataIndex > 0 ? rate + '% du précédent' : '100%'})`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              beginAtZero: true,
+              ticks: { color: '#6b7280' },
+              grid: { color: 'rgba(0, 0, 0, 0.05)' }
+            },
+            y: {
+              ticks: { color: '#374151', font: { size: 13, weight: '500' } },
+              grid: { display: false }
+            }
+          }
+        }
+      });
+    }
   }
 
   // ============================================
@@ -47,51 +238,24 @@ export class AnalyticsDashboard {
   // ============================================
   private renderConversionFunnel(apps: Application[]): string {
     const total = apps.length;
-    const pending = apps.filter(a => this.isPending(a)).length;
     const interviews = apps.filter(a => this.isInterview(a)).length;
-    const accepted = apps.filter(a => this.isAccepted(a)).length;
-
-    const stages = [
-      { label: 'Candidatures envoyees', count: total, color: '#3b82f6' },
-      { label: 'En attente de reponse', count: pending, color: '#f59e0b' },
-      { label: 'Entretiens obtenus', count: interviews, color: '#8b5cf6' },
-      { label: 'Acceptees', count: accepted, color: '#10b981' },
-    ];
-
-    const maxCount = Math.max(total, 1);
+    const conversionRate = total > 0 ? Math.round((interviews / total) * 100) : 0;
 
     return `
-      <div class="analytics-card analytics-funnel">
+      <div class="analytics-card analytics-funnel-card">
         <div class="analytics-card-header">
-          <h3>Entonnoir de conversion</h3>
-          <span class="analytics-card-subtitle">${total > 0 ? Math.round((interviews / total) * 100) : 0}% arrivent en entretien</span>
+          <h3>📊 Entonnoir de conversion</h3>
+          <span class="analytics-card-subtitle">${conversionRate}% arrivent en entretien</span>
         </div>
-        <div class="analytics-funnel-stages">
-          ${stages.map((stage, i) => {
-            const width = Math.max((stage.count / maxCount) * 100, 4);
-            const rate = i > 0 && stages[i - 1]!.count > 0
-              ? Math.round((stage.count / stages[i - 1]!.count) * 100)
-              : 100;
-            return `
-              <div class="analytics-funnel-row">
-                <div class="analytics-funnel-label">
-                  <span>${stage.label}</span>
-                  <strong>${stage.count}</strong>
-                </div>
-                <div class="analytics-funnel-bar-wrapper">
-                  <div class="analytics-funnel-bar" style="width:${width}%; background:${stage.color};"></div>
-                </div>
-                ${i > 0 ? `<span class="analytics-funnel-rate">${rate}%</span>` : ''}
-              </div>
-            `;
-          }).join('')}
+        <div class="analytics-chart-container" style="height: 280px;">
+          <canvas id="funnelChart"></canvas>
         </div>
       </div>
     `;
   }
 
   // ============================================
-  // EFFICACITE DES RELANCES
+  // EFFICACITÉ DES RELANCES
   // ============================================
   private renderRelanceMetrics(apps: Application[]): string {
     const relanced = apps.filter(a => a.relance_count > 0);
@@ -115,10 +279,10 @@ export class AnalyticsDashboard {
       : '-';
 
     return `
-      <div class="analytics-card analytics-relance">
+      <div class="analytics-card analytics-relance-card">
         <div class="analytics-card-header">
-          <h3>Efficacite des relances</h3>
-          <span class="analytics-card-subtitle">${totalRelances} relances envoyees au total</span>
+          <h3>🔔 Efficacité des relances</h3>
+          <span class="analytics-card-subtitle">${totalRelances} relances envoyées</span>
         </div>
         <div class="analytics-metrics-grid">
           <div class="analytics-metric">
@@ -127,28 +291,28 @@ export class AnalyticsDashboard {
           </div>
           <div class="analytics-metric">
             <div class="analytics-metric-value">${avgBeforeResponse}</div>
-            <div class="analytics-metric-label">Relances avant reponse</div>
+            <div class="analytics-metric-label">Relances avant réponse</div>
           </div>
           <div class="analytics-metric">
             <div class="analytics-metric-value analytics-metric-positive">${relanceRate}%</div>
-            <div class="analytics-metric-label">Taux reponse avec relance</div>
+            <div class="analytics-metric-label">Avec relance</div>
           </div>
           <div class="analytics-metric">
             <div class="analytics-metric-value">${noRelanceRate}%</div>
-            <div class="analytics-metric-label">Taux reponse sans relance</div>
+            <div class="analytics-metric-label">Sans relance</div>
           </div>
         </div>
         ${relanceRate > noRelanceRate ? `
           <div class="analytics-insight analytics-insight-positive">
-            Les candidatures relancees ont ${relanceRate - noRelanceRate} points de plus de chances d'obtenir un entretien.
+            ✨ Les candidatures relancées ont +${relanceRate - noRelanceRate} points de réussite
           </div>
         ` : relanced.length > 0 ? `
           <div class="analytics-insight">
-            Continuez a relancer - les resultats s'ameliorent avec le volume de donnees.
+            📈 Continuez à relancer pour améliorer vos résultats
           </div>
         ` : `
           <div class="analytics-insight">
-            Commencez a relancer vos candidatures pour voir l'impact sur vos reponses.
+            💡 Commencez à relancer pour booster vos chances
           </div>
         `}
       </div>
@@ -156,79 +320,38 @@ export class AnalyticsDashboard {
   }
 
   // ============================================
-  // RYTHME DE CANDIDATURE (8 dernieres semaines)
+  // ACTIVITÉ HEBDOMADAIRE
   // ============================================
   private renderWeeklyActivity(apps: Application[]): string {
     const weeks = this.getWeeklyData(apps, 8);
-    const maxCount = Math.max(...weeks.map(w => w.count), 1);
-
     const totalRecent = weeks.reduce((s, w) => s + w.count, 0);
     const avgPerWeek = weeks.length > 0 ? (totalRecent / weeks.length).toFixed(1) : '0';
 
     return `
-      <div class="analytics-card analytics-activity">
+      <div class="analytics-card analytics-activity-card">
         <div class="analytics-card-header">
-          <h3>Rythme de candidature</h3>
+          <h3>📅 Activité hebdomadaire</h3>
           <span class="analytics-card-subtitle">Moyenne ${avgPerWeek} / semaine</span>
         </div>
-        <div class="analytics-weeks">
-          ${weeks.map(week => {
-            const width = Math.max((week.count / maxCount) * 100, 2);
-            return `
-              <div class="analytics-week-row">
-                <span class="analytics-week-label">${week.label}</span>
-                <div class="analytics-week-bar-wrapper">
-                  <div class="analytics-week-bar" style="width:${width}%;"></div>
-                </div>
-                <span class="analytics-week-count">${week.count}</span>
-              </div>
-            `;
-          }).join('')}
+        <div class="analytics-chart-container" style="height: 260px;">
+          <canvas id="weeklyChart"></canvas>
         </div>
       </div>
     `;
   }
 
   // ============================================
-  // REPARTITION DES STATUTS
+  // RÉPARTITION DES STATUTS
   // ============================================
   private renderStatusDistribution(apps: Application[]): string {
-    const groups: StatusGroup[] = [
-      { label: 'Envoyees', count: apps.filter(a => this.isSent(a)).length, color: '#3b82f6', emoji: '📤' },
-      { label: 'En attente', count: apps.filter(a => this.isPending(a)).length, color: '#f59e0b', emoji: '⏳' },
-      { label: 'Entretiens', count: apps.filter(a => this.isInterview(a)).length, color: '#8b5cf6', emoji: '💼' },
-      { label: 'Acceptees', count: apps.filter(a => this.isAccepted(a)).length, color: '#10b981', emoji: '✅' },
-      { label: 'Refusees', count: apps.filter(a => this.isRejected(a)).length, color: '#ef4444', emoji: '❌' },
-    ];
-
-    const total = apps.length;
-
     return `
-      <div class="analytics-card analytics-status">
+      <div class="analytics-card analytics-status-card">
         <div class="analytics-card-header">
-          <h3>Repartition des statuts</h3>
-          <span class="analytics-card-subtitle">${total} candidatures au total</span>
+          <h3>🎯 Répartition des statuts</h3>
+          <span class="analytics-card-subtitle">${apps.length} candidatures</span>
         </div>
-
-        <div class="analytics-status-bar">
-          ${groups.filter(g => g.count > 0).map(g => {
-            const pct = Math.round((g.count / total) * 100);
-            return `<div class="analytics-status-segment" style="width:${pct}%; background:${g.color};" title="${g.label}: ${g.count} (${pct}%)"></div>`;
-          }).join('')}
-        </div>
-
-        <div class="analytics-status-legend">
-          ${groups.map(g => {
-            const pct = total > 0 ? Math.round((g.count / total) * 100) : 0;
-            return `
-              <div class="analytics-status-item">
-                <span class="analytics-status-dot" style="background:${g.color};"></span>
-                <span class="analytics-status-label">${g.emoji} ${g.label}</span>
-                <span class="analytics-status-count">${g.count}</span>
-                <span class="analytics-status-pct">${pct}%</span>
-              </div>
-            `;
-          }).join('')}
+        <div class="analytics-chart-container" style="height: 300px;">
+          <canvas id="statusChart"></canvas>
         </div>
       </div>
     `;
@@ -310,12 +433,12 @@ export class AnalyticsDashboard {
   private renderEmptyState(): string {
     return `
       <div class="analytics-empty">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="64" height="64">
           <path d="M3 3v18h18"/>
           <path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"/>
         </svg>
-        <h3>Pas encore de donnees</h3>
-        <p>Ajoutez des candidatures pour voir vos statistiques de conversion et l'efficacite de vos relances.</p>
+        <h3>Pas encore de données</h3>
+        <p>Ajoutez des candidatures pour voir vos statistiques et l'efficacité de vos relances.</p>
       </div>
     `;
   }

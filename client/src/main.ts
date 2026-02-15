@@ -1,11 +1,49 @@
 import { MapsSearch } from "./class/MapsSearch.ts";
 import { ExecutiveDashboard } from "./class/ExecutiveDashboard.ts";
+import { KanbanBoard } from "./class/KanbanBoard.ts";
 import { GmailConnector } from "./class/GmailConnector.ts";
 import { TemplateManager } from "./class/TemplateManager.ts";
 import { AnalyticsDashboard } from "./class/AnalyticsDashboard.ts";
+import { FavoritesList } from "./class/FavoritesList.ts";
 import "./style.css";
+import "./styles/favorites-page.css";
 import api from "./lib/api";
 import { supabase } from "./lib/supabase";
+
+// ============================================
+// GLOBAL TOAST NOTIFICATION SYSTEM
+// ============================================
+export function showToast(type: 'success' | 'error' | 'info' | 'warning', message: string, duration = 3500) {
+  const container = document.getElementById('toastContainer');
+  if (!container) return;
+
+  const icons: Record<string, string> = {
+    success: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20"><polyline points="20 6 9 17 4 12"/></svg>',
+    error: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
+    info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
+    warning: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+  };
+
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  toast.innerHTML = `
+    <span class="toast-icon">${icons[type]}</span>
+    <span class="toast-content">${message}</span>
+    <button class="toast-close" onclick="this.parentElement.classList.add('toast-exit'); setTimeout(() => this.parentElement.remove(), 300);">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  `;
+
+  container.appendChild(toast);
+
+  setTimeout(() => {
+    toast.classList.add('toast-exit');
+    toast.addEventListener('animationend', () => toast.remove());
+  }, duration);
+}
+
+// Rendre showToast accessible globalement
+(window as any).showToast = showToast;
 
 // Interface TypeScript pour typer les candidatures
 export interface Application {
@@ -78,9 +116,12 @@ function updateUserProfile(user: any) {
 }
 
 const executiveDashboard = new ExecutiveDashboard();
+const kanbanBoard = new KanbanBoard();
 const templateManager = new TemplateManager();
 const analyticsDashboard = new AnalyticsDashboard();
+const favoritesList = new FavoritesList();
 let currentApplications: Application[] = [];
+let currentView: 'table' | 'kanban' = 'table';
 let userPlan: 'free' | 'pro' = 'free';
 let planLimits: {
   applications: { current: number; max: number; allowed: boolean };
@@ -137,7 +178,7 @@ function renderUpgradeBanner() {
   const { current, max, allowed } = planLimits.applications;
   const appPercentage = Math.round((current / max) * 100);
   const searchCurrent = planLimits.searches?.current || 0;
-  const searchMax = planLimits.searches?.max || 15;
+  const searchMax = planLimits.searches?.max && planLimits.searches.max > 0 ? planLimits.searches.max : 15;
   const searchPercentage = Math.round((searchCurrent / searchMax) * 100);
 
   // Afficher la bannière si > 50% utilisé ou limite atteinte (candidatures ou recherches)
@@ -185,7 +226,14 @@ async function GetAllDataPost() {
     console.log("✅ Candidatures reçues:", result.data.length, "items");
 
     currentApplications = result.data;
-    executiveDashboard.render(result.data);
+
+    // Afficher la vue appropriée
+    if (currentView === 'kanban') {
+      kanbanBoard.render(result.data);
+    } else {
+      executiveDashboard.render(result.data);
+    }
+
     analyticsDashboard.render(result.data);
   } catch (error) {
     console.error("❌ ERREUR lors du chargement des candidatures:", error);
@@ -243,6 +291,20 @@ window.addEventListener('delete-application', async (e: Event) => {
 });
 
 // ============================================
+// CHANGEMENT DE STATUT
+// ============================================
+window.addEventListener('status-change', async (e: Event) => {
+  const { id, status } = (e as CustomEvent).detail;
+
+  try {
+    await api.put(`/applications/${id}/status`, { status });
+    GetAllDataPost();
+  } catch (error) {
+    console.error("Erreur lors du changement de statut:", error);
+  }
+});
+
+// ============================================
 // ENRICHISSEMENT ENTREPRISE
 // ============================================
 window.addEventListener('enrich-company', async (e: Event) => {
@@ -264,7 +326,7 @@ window.addEventListener('enrich-company', async (e: Event) => {
 });
 
 // ============================================
-// NAVIGATION DASHBOARD / ANALYTICS
+// NAVIGATION DASHBOARD / ANALYTICS / KANBAN
 // ============================================
 function initViewNavigation() {
   const dashboardView = document.getElementById('applicationsList');
@@ -281,11 +343,57 @@ function initViewNavigation() {
       if (view === 'analytics') {
         dashboardView?.setAttribute('style', 'display:none');
         analyticsView?.setAttribute('style', '');
-      } else {
+      } else if (view === 'kanban') {
+        currentView = 'kanban';
         dashboardView?.setAttribute('style', '');
         analyticsView?.setAttribute('style', 'display:none');
+        kanbanBoard.render(currentApplications);
+      } else {
+        currentView = 'table';
+        dashboardView?.setAttribute('style', '');
+        analyticsView?.setAttribute('style', 'display:none');
+        executiveDashboard.render(currentApplications);
       }
     });
+  });
+}
+
+// ============================================
+// SIDEBAR NAVIGATION - Dashboard, Applications, Favoris
+// ============================================
+function initSidebarNavigation() {
+  const dashboardContent = document.querySelector('.dashboard-content') as HTMLElement;
+  const favoritesView = document.getElementById('favoritesList');
+  const sidebarNavItems = document.querySelectorAll('.nav-item');
+
+  sidebarNavItems.forEach(item => {
+    item.addEventListener('click', (e) => {
+      e.preventDefault();
+      const section = (item as HTMLElement).dataset.section;
+
+      // Mettre à jour l'état actif
+      sidebarNavItems.forEach(navItem => navItem.classList.remove('active'));
+      item.classList.add('active');
+
+      if (section === 'dashboard' || section === 'applications') {
+        // Afficher le dashboard/applications
+        dashboardContent?.setAttribute('style', '');
+        favoritesView?.setAttribute('style', 'display:none');
+      } else if (section === 'favorites') {
+        // Afficher les favoris
+        dashboardContent?.setAttribute('style', 'display:none');
+        favoritesView?.setAttribute('style', '');
+        favoritesList.render();
+      }
+    });
+  });
+
+  // Rafraîchir les favoris quand ils sont mis à jour
+  window.addEventListener('favorites-updated', () => {
+    // Si la vue favoris est visible, la rafraîchir
+    if (favoritesView?.style.display !== 'none') {
+      favoritesList.render();
+    }
   });
 }
 
@@ -412,6 +520,9 @@ checkAuth().then((isAuthenticated) => {
     // Initialiser la navigation entre vues
     initViewNavigation();
 
+    // Initialiser la navigation sidebar
+    initSidebarNavigation();
+
     // Charger les données
     GetAllDataPost();
 
@@ -487,10 +598,21 @@ profileBtn?.addEventListener('click', () => {
   (document.getElementById('profileInputLinkedin') as HTMLInputElement).value = profile.linkedin;
   (document.getElementById('profileInputSignature') as HTMLTextAreaElement).value = profile.signature;
 
+  // Mettre à jour l'avatar avec les initiales
+  const avatar = document.getElementById('profileAvatar');
+  if (avatar && profile.name) {
+    const initials = profile.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+    avatar.textContent = initials || profile.name[0]?.toUpperCase() || 'U';
+  }
+
   profileModalOverlay?.classList.add('active');
 });
 
 document.getElementById('closeProfileModal')?.addEventListener('click', () => {
+  profileModalOverlay?.classList.remove('active');
+});
+
+document.getElementById('cancelProfileBtn')?.addEventListener('click', () => {
   profileModalOverlay?.classList.remove('active');
 });
 
@@ -508,6 +630,7 @@ document.getElementById('saveProfileBtn')?.addEventListener('click', () => {
   };
   saveUserProfile(profile);
   profileModalOverlay?.classList.remove('active');
+  showToast('success', 'Profil enregistré avec succès');
 });
 
 // ============================================
