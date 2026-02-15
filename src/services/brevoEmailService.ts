@@ -54,31 +54,7 @@ export async function sendVerificationEmail(to: string, verificationLink: string
   return sendEmail({
     to,
     subject: "Vérifiez votre email - RelanceWork",
-    html: `
-      <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 560px; margin: 0 auto; padding: 40px 24px; color: #1a1a2e;">
-        <div style="text-align: center; margin-bottom: 32px;">
-          <div style="display: inline-block; background: #2563eb; color: white; font-size: 28px; font-weight: 800; width: 48px; height: 48px; line-height: 48px; border-radius: 12px;">R</div>
-          <h1 style="font-size: 22px; font-weight: 700; margin: 16px 0 0; color: #0f172a;">RelanceWork</h1>
-        </div>
-        <h2 style="font-size: 20px; font-weight: 600; margin-bottom: 12px;">Bienvenue ${userName} !</h2>
-        <p style="font-size: 15px; color: #475569; line-height: 1.6; margin-bottom: 24px;">
-          Merci de vous être inscrit sur RelanceWork. Cliquez sur le bouton ci-dessous pour vérifier votre adresse email et activer votre compte.
-        </p>
-        <div style="text-align: center; margin: 32px 0;">
-          <a href="${verificationLink}" style="display: inline-block; background: #2563eb; color: white; text-decoration: none; padding: 14px 32px; border-radius: 10px; font-size: 15px; font-weight: 600;">
-            Vérifier mon email
-          </a>
-        </div>
-        <p style="font-size: 13px; color: #94a3b8; line-height: 1.5;">
-          Si vous n'avez pas créé de compte, ignorez cet email.<br>
-          Ce lien expire dans 24 heures.
-        </p>
-        <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 32px 0;" />
-        <p style="font-size: 12px; color: #94a3b8; text-align: center;">
-          RelanceWork - Gérez vos candidatures avec confiance
-        </p>
-      </div>
-    `,
+    html: `<div style="font-family:'Segoe UI',Arial,sans-serif;max-width:560px;margin:0 auto;padding:40px 24px;color:#1a1a2e;"><div style="text-align:center;margin-bottom:32px;"><div style="display:inline-block;background:#2563eb;color:white;font-size:28px;font-weight:800;width:48px;height:48px;line-height:48px;border-radius:12px;">R</div><h1 style="font-size:22px;font-weight:700;margin:16px 0 0;color:#0f172a;">RelanceWork</h1></div><h2 style="font-size:20px;font-weight:600;margin-bottom:12px;">Bienvenue${userName ? " " + userName : ""} !</h2><p style="font-size:15px;color:#475569;line-height:1.6;margin-bottom:24px;">Merci de vous être inscrit. Cliquez ci-dessous pour activer votre compte.</p><table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:24px 0;"><tr><td align="center"><table cellpadding="0" cellspacing="0" border="0"><tr><td style="background:#2563eb;border-radius:10px;padding:14px 32px;"><a href="${verificationLink}" style="color:#ffffff;text-decoration:none;font-size:15px;font-weight:600;display:block;" target="_blank">Vérifier mon email</a></td></tr></table></td></tr></table><p style="font-size:13px;color:#94a3b8;line-height:1.5;">Si vous n'avez pas créé de compte, ignorez cet email.<br>Ce lien expire dans 24 heures.</p><hr style="border:none;border-top:1px solid #e2e8f0;margin:32px 0;"><p style="font-size:12px;color:#94a3b8;text-align:center;">RelanceWork - Gérez vos candidatures avec confiance</p></div>`,
   });
 }
 
@@ -115,30 +91,6 @@ export async function sendPasswordResetEmail(to: string, resetLink: string): Pro
   return sendEmail({
     to,
     subject: "Réinitialisez votre mot de passe - RelanceWork",
-    html: `
-      <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 560px; margin: 0 auto; padding: 40px 24px; color: #1a1a2e;">
-        <div style="text-align: center; margin-bottom: 32px;">
-          <div style="display: inline-block; background: #2563eb; color: white; font-size: 28px; font-weight: 800; width: 48px; height: 48px; line-height: 48px; border-radius: 12px;">R</div>
-          <h1 style="font-size: 22px; font-weight: 700; margin: 16px 0 0; color: #0f172a;">RelanceWork</h1>
-        </div>
-        <h2 style="font-size: 20px; font-weight: 600; margin-bottom: 12px;">Réinitialisation du mot de passe</h2>
-        <p style="font-size: 15px; color: #475569; line-height: 1.6; margin-bottom: 24px;">
-          Vous avez demandé à réinitialiser votre mot de passe. Cliquez sur le bouton ci-dessous pour en choisir un nouveau.
-        </p>
-        <div style="text-align: center; margin: 32px 0;">
-          <a href="${resetLink}" style="display: inline-block; background: #2563eb; color: white; text-decoration: none; padding: 14px 32px; border-radius: 10px; font-size: 15px; font-weight: 600;">
-            Réinitialiser mon mot de passe
-          </a>
-        </div>
-        <p style="font-size: 13px; color: #94a3b8; line-height: 1.5;">
-          Si vous n'avez pas fait cette demande, ignorez cet email. Votre mot de passe ne sera pas modifié.<br>
-          Ce lien expire dans 1 heure.
-        </p>
-        <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 32px 0;" />
-        <p style="font-size: 12px; color: #94a3b8; text-align: center;">
-          RelanceWork - Gérez vos candidatures avec confiance
-        </p>
-      </div>
-    `,
+    html: `<div style="font-family:'Segoe UI',Arial,sans-serif;max-width:560px;margin:0 auto;padding:40px 24px;color:#1a1a2e;"><div style="text-align:center;margin-bottom:32px;"><div style="display:inline-block;background:#2563eb;color:white;font-size:28px;font-weight:800;width:48px;height:48px;line-height:48px;border-radius:12px;">R</div><h1 style="font-size:22px;font-weight:700;margin:16px 0 0;color:#0f172a;">RelanceWork</h1></div><h2 style="font-size:20px;font-weight:600;margin-bottom:12px;">Réinitialisation du mot de passe</h2><p style="font-size:15px;color:#475569;line-height:1.6;margin-bottom:24px;">Vous avez demandé à réinitialiser votre mot de passe. Cliquez ci-dessous pour en choisir un nouveau.</p><table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:24px 0;"><tr><td align="center"><table cellpadding="0" cellspacing="0" border="0"><tr><td style="background:#2563eb;border-radius:10px;padding:14px 32px;"><a href="${resetLink}" style="color:#ffffff;text-decoration:none;font-size:15px;font-weight:600;display:block;" target="_blank">Réinitialiser mon mot de passe</a></td></tr></table></td></tr></table><p style="font-size:13px;color:#94a3b8;line-height:1.5;">Si vous n'avez pas fait cette demande, ignorez cet email.<br>Ce lien expire dans 1 heure.</p><hr style="border:none;border-top:1px solid #e2e8f0;margin:32px 0;"><p style="font-size:12px;color:#94a3b8;text-align:center;">RelanceWork - Gérez vos candidatures avec confiance</p></div>`,
   });
 }
