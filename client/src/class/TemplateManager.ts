@@ -243,9 +243,6 @@ export class TemplateManager {
     return { name: '', title: '', phone: '', linkedin: '', signature: '' };
   }
 
-  private getUserName(): string {
-    return this.getUserProfile().name;
-  }
 
   // ============================================
   // RENDERING

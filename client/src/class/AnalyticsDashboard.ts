@@ -102,7 +102,7 @@ export class AnalyticsDashboard {
               titleFont: { size: 14 },
               bodyFont: { size: 13 },
               callbacks: {
-                label: (context) => `${context.parsed.y} candidature${context.parsed.y > 1 ? 's' : ''}`
+                label: (context) => { const y = context.parsed.y ?? 0; return `${y} candidature${y > 1 ? 's' : ''}`; }
               }
             }
           },
@@ -209,8 +209,8 @@ export class AnalyticsDashboard {
               bodyFont: { size: 13 },
               callbacks: {
                 label: (context) => {
-                  const value = context.parsed.x;
-                  const prevValue = context.dataIndex > 0 ? context.dataset.data[context.dataIndex - 1] as number : value;
+                  const value = context.parsed.x ?? 0;
+                  const prevValue = (context.dataIndex > 0 ? context.dataset.data[context.dataIndex - 1] as number : value) ?? 0;
                   const rate = prevValue > 0 ? Math.round((value / prevValue) * 100) : 100;
                   return `${value} candidatures (${context.dataIndex > 0 ? rate + '% du précédent' : '100%'})`;
                 }
@@ -224,7 +224,7 @@ export class AnalyticsDashboard {
               grid: { color: 'rgba(0, 0, 0, 0.05)' }
             },
             y: {
-              ticks: { color: '#374151', font: { size: 13, weight: '500' } },
+              ticks: { color: '#374151', font: { size: 13, weight: 500 } },
               grid: { display: false }
             }
           }

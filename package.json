@@ -5,7 +5,7 @@
   "main": "dist/server.js",
   "scripts": {
     "dev": "nodemon --exec ts-node src/server.ts",
-    "build": "tsc -p tsconfig.backend.json",
+    "build": "tsc -p tsconfig.backend.json && cd client && npm install && npm run build",
     "start": "node ./dist/server.js",
     "db:init": "ts-node src/scripts/createTable.ts",
     "db:users": "ts-node src/scripts/createUsersTable.ts",
