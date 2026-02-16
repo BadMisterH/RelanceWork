@@ -286,7 +286,7 @@ loginForm?.addEventListener("submit", async (e) => {
 
     if (data.session) {
       console.log("✅ Connexion réussie:", data.user?.email);
-      window.location.href = "/";
+      window.location.href = "/app";
     }
   } catch (error) {
     console.error("Login error:", error);
@@ -428,7 +428,7 @@ signupForm?.addEventListener("submit", async (e) => {
         signupFormContainer.classList.remove("active");
         showAuthNotification('success', 'Compte créé ! Connectez-vous maintenant.');
       } else {
-        window.location.href = "/";
+        window.location.href = "/app";
       }
     } else {
       // Fallback
@@ -629,7 +629,7 @@ resetForm?.addEventListener("submit", async (e) => {
 
     // Rediriger vers l'app après 2s
     setTimeout(() => {
-      window.location.href = "/";
+      window.location.href = "/app";
     }, 2000);
   } catch (error) {
     console.error("Reset error:", error);
