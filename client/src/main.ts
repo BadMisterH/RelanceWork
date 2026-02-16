@@ -63,6 +63,27 @@ export interface Application {
 }
 
 // ============================================
+// INACTIVITY AUTO-LOGOUT (30 minutes)
+// ============================================
+const INACTIVITY_TIMEOUT = 30 * 60 * 1000;
+let inactivityTimer: ReturnType<typeof setTimeout> | null = null;
+
+function resetInactivityTimer() {
+  if (inactivityTimer) clearTimeout(inactivityTimer);
+  inactivityTimer = setTimeout(async () => {
+    await supabase.auth.signOut();
+    window.location.href = "/app/auth.html";
+  }, INACTIVITY_TIMEOUT);
+}
+
+function startInactivityWatch() {
+  resetInactivityTimer();
+  ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'].forEach(evt => {
+    document.addEventListener(evt, resetInactivityTimer, { passive: true });
+  });
+}
+
+// ============================================
 // AUTH GUARD - Vérifier l'authentification
 // ============================================
 async function checkAuth() {
@@ -71,7 +92,7 @@ async function checkAuth() {
 
     if (error || !session) {
       console.warn("⚠️ Utilisateur non authentifié - redirection vers /auth.html");
-      window.location.href = "/auth.html";
+      window.location.href = "/app/auth.html";
       return false;
     }
 
@@ -80,10 +101,13 @@ async function checkAuth() {
     // Afficher les infos utilisateur dans le header
     updateUserProfile(session.user);
 
+    // Start inactivity auto-logout
+    startInactivityWatch();
+
     return true;
   } catch (error) {
     console.error("❌ Erreur auth guard:", error);
-    window.location.href = "/auth.html";
+    window.location.href = "/app/auth.html";
     return false;
   }
 }

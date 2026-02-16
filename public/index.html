@@ -33,8 +33,8 @@
                     <a href="#features">Fonctionnalites</a>
                     <a href="#how-it-works">Comment ca marche</a>
                     <a href="/pricing.html" class="nav-link-pricing">Tarifs</a>
-                    <a href="/app/auth.html" class="btn btn-outline btn-sm">Se connecter</a>
-                    <a href="/app/auth.html" class="btn btn-primary btn-sm">Commencer gratuit</a>
+                    <a href="/app/auth.html" class="btn btn-outline btn-sm" id="loginBtn">Se connecter</a>
+                    <a href="/app/auth.html" class="btn btn-primary btn-sm" id="ctaBtn">Commencer gratuit</a>
                 </div>
                 <div class="nav-right">
                     <button class="theme-toggle" id="themeToggle" aria-label="Changer le theme">
@@ -421,5 +421,61 @@
     </footer>
 
     <script src="js/main.js"></script>
+
+    <!-- Auth state + inactivity logout -->
+    <script type="module">
+      import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+      const supabaseUrl = 'https://owiwkxcwutaprgndlkhp.supabase.co';
+      const supabaseAnonKey = 'sb_publishable_rr2bz-6nDx-vilDTvskaGg_wx7UiMMa';
+      const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+      const INACTIVITY_TIMEOUT = 30 * 60 * 1000; // 30 minutes
+      let inactivityTimer = null;
+
+      function resetInactivityTimer() {
+        if (inactivityTimer) clearTimeout(inactivityTimer);
+        inactivityTimer = setTimeout(async () => {
+          await supabase.auth.signOut();
+          window.location.reload();
+        }, INACTIVITY_TIMEOUT);
+      }
+
+      async function initAuth() {
+        const { data: { session } } = await supabase.auth.getSession();
+        const loginBtn = document.getElementById('loginBtn');
+        const ctaBtn = document.getElementById('ctaBtn');
+
+        if (session?.user) {
+          // User is logged in - update nav buttons
+          const email = session.user.email;
+          const initial = email.charAt(0).toUpperCase();
+
+          if (loginBtn) {
+            loginBtn.href = '/app';
+            loginBtn.textContent = 'Mon espace';
+          }
+          if (ctaBtn) {
+            ctaBtn.href = '#';
+            ctaBtn.innerHTML = 'Deconnexion';
+            ctaBtn.classList.remove('btn-primary');
+            ctaBtn.classList.add('btn-outline');
+            ctaBtn.addEventListener('click', async (e) => {
+              e.preventDefault();
+              await supabase.auth.signOut();
+              window.location.reload();
+            });
+          }
+
+          // Start inactivity timer
+          resetInactivityTimer();
+          ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'].forEach(evt => {
+            document.addEventListener(evt, resetInactivityTimer, { passive: true });
+          });
+        }
+      }
+
+      initAuth();
+    </script>
 </body>
 </html>
