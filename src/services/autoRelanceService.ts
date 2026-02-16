@@ -1,4 +1,4 @@
-import db from "../config/database";
+import { supabase } from "../config/supabase";
 import { sendRelanceReminder } from "./emailServices";
 
 // Nombre de jours avant de marquer comme "à relancer"
@@ -42,11 +42,19 @@ export async function checkAndUpdateRelances(): Promise<number> {
     today.setHours(0, 0, 0, 0); // Normaliser à minuit
 
     // Récupérer toutes les candidatures non relancées
-    const applications = db
-      .prepare("SELECT id, date, company, poste, userEmail FROM applications WHERE relanced = 0")
-      .all() as Array<{ id: number; date: string; company: string; poste: string; userEmail: string | null }>;
+    const { data: applications, error } = await supabase
+      .from('applications')
+      .select('id, date, company, poste, user_email')
+      .eq('relanced', false);
 
-    // Grouper les candidatures par userEmail
+    if (error) {
+      console.error("❌ Erreur récupération applications:", error);
+      return 0;
+    }
+
+    if (!applications || applications.length === 0) return 0;
+
+    // Grouper les candidatures par user_email
     const applicationsByUser: Map<string, Array<{ company: string; poste: string; date: string }>> = new Map();
 
     let totalRelanced = 0;
@@ -63,10 +71,13 @@ export async function checkAndUpdateRelances(): Promise<number> {
 
       if (daysPassed >= DAYS_BEFORE_RELANCE) {
         // Marquer comme à relancer
-        db.prepare("UPDATE applications SET relanced = 1 WHERE id = ?").run(app.id);
+        await supabase
+          .from('applications')
+          .update({ relanced: true })
+          .eq('id', app.id);
 
-        // Grouper par userEmail (ou utiliser EMAIL_TO si pas de userEmail)
-        const userEmail = app.userEmail || process.env.EMAIL_TO || "default";
+        // Grouper par user_email
+        const userEmail = app.user_email || process.env.EMAIL_TO || "default";
 
         if (!applicationsByUser.has(userEmail)) {
           applicationsByUser.set(userEmail, []);

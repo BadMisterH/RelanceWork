@@ -1,10 +1,9 @@
 import { Request, Response } from "express";
-import db from "../config/database";
+import { supabase } from "../config/supabase";
 
 // GET /api/favorites - Récupérer tous les favoris de l'utilisateur connecté
 export const getFavorites = async (req: Request, res: Response): Promise<void> => {
   try {
-    // Récupérer l'ID de l'utilisateur authentifié
     const userId = (req as any).user?.id;
 
     if (!userId) {
@@ -12,21 +11,22 @@ export const getFavorites = async (req: Request, res: Response): Promise<void> =
       return;
     }
 
-    // Récupérer les favoris de l'utilisateur depuis SQLite
-    const stmt = db.prepare(`
-      SELECT id, place_id, business_data, created_at
-      FROM favorites
-      WHERE user_id = ?
-      ORDER BY created_at DESC
-    `);
+    const { data: favorites, error } = await supabase
+      .from('favorites')
+      .select('id, place_id, business_data, created_at')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
 
-    const favorites = stmt.all(userId);
+    if (error) {
+      console.error("❌ Erreur récupération favoris:", error);
+      res.status(500).json({ message: "Erreur lors de la récupération des favoris" });
+      return;
+    }
 
-    // Parser le JSON stocké dans business_data
-    const parsedFavorites = favorites.map((fav: any) => ({
+    const parsedFavorites = (favorites || []).map((fav: any) => ({
       id: fav.id,
       placeId: fav.place_id,
-      businessData: JSON.parse(fav.business_data),
+      businessData: typeof fav.business_data === 'string' ? JSON.parse(fav.business_data) : fav.business_data,
       createdAt: fav.created_at,
     }));
 
@@ -45,7 +45,6 @@ export const addFavorite = async (req: Request, res: Response): Promise<void> =>
   try {
     const { placeId, businessData } = req.body;
 
-    // Récupérer l'ID de l'utilisateur authentifié
     const userId = (req as any).user?.id;
 
     if (!userId) {
@@ -53,7 +52,6 @@ export const addFavorite = async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
-    // Vérifier que les champs obligatoires sont présents
     if (!placeId || !businessData) {
       res.status(400).json({
         message: "Champs obligatoires manquants: placeId, businessData"
@@ -62,12 +60,12 @@ export const addFavorite = async (req: Request, res: Response): Promise<void> =>
     }
 
     // Vérifier si le favori existe déjà
-    const checkStmt = db.prepare(`
-      SELECT id FROM favorites
-      WHERE user_id = ? AND place_id = ?
-    `);
-
-    const existing = checkStmt.get(userId, placeId);
+    const { data: existing } = await supabase
+      .from('favorites')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('place_id', placeId)
+      .maybeSingle();
 
     if (existing) {
       res.status(409).json({ message: "Ce favori existe déjà" });
@@ -75,21 +73,21 @@ export const addFavorite = async (req: Request, res: Response): Promise<void> =>
     }
 
     // Insérer le favori
-    const insertStmt = db.prepare(`
-      INSERT INTO favorites (user_id, place_id, business_data)
-      VALUES (?, ?, ?)
-    `);
+    const { data: newFavorite, error } = await supabase
+      .from('favorites')
+      .insert({
+        user_id: userId,
+        place_id: placeId,
+        business_data: typeof businessData === 'string' ? businessData : JSON.stringify(businessData),
+      })
+      .select('id, place_id, business_data, created_at')
+      .single();
 
-    const result = insertStmt.run(userId, placeId, JSON.stringify(businessData));
-
-    // Récupérer le favori créé
-    const getStmt = db.prepare(`
-      SELECT id, place_id, business_data, created_at
-      FROM favorites
-      WHERE id = ?
-    `);
-
-    const newFavorite = getStmt.get(result.lastInsertRowid) as any;
+    if (error) {
+      console.error('❌ Erreur insertion favori:', error);
+      res.status(500).json({ message: "Erreur lors de l'ajout du favori" });
+      return;
+    }
 
     console.log(`✅ Favori ajouté: ${placeId}`);
 
@@ -98,7 +96,7 @@ export const addFavorite = async (req: Request, res: Response): Promise<void> =>
       data: {
         id: newFavorite.id,
         placeId: newFavorite.place_id,
-        businessData: JSON.parse(newFavorite.business_data),
+        businessData: typeof newFavorite.business_data === 'string' ? JSON.parse(newFavorite.business_data) : newFavorite.business_data,
         createdAt: newFavorite.created_at,
       }
     });
@@ -116,7 +114,6 @@ export const deleteFavorite = async (req: Request, res: Response): Promise<void>
   try {
     const { placeId } = req.params;
 
-    // Récupérer l'ID de l'utilisateur authentifié
     const userId = (req as any).user?.id;
 
     if (!userId) {
@@ -124,13 +121,13 @@ export const deleteFavorite = async (req: Request, res: Response): Promise<void>
       return;
     }
 
-    // Vérifier que le favori existe et appartient à l'utilisateur
-    const checkStmt = db.prepare(`
-      SELECT id FROM favorites
-      WHERE user_id = ? AND place_id = ?
-    `);
-
-    const existing = checkStmt.get(userId, placeId);
+    // Vérifier que le favori existe
+    const { data: existing } = await supabase
+      .from('favorites')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('place_id', placeId)
+      .maybeSingle();
 
     if (!existing) {
       res.status(404).json({ message: "Favori non trouvé" });
@@ -138,12 +135,17 @@ export const deleteFavorite = async (req: Request, res: Response): Promise<void>
     }
 
     // Supprimer le favori
-    const deleteStmt = db.prepare(`
-      DELETE FROM favorites
-      WHERE user_id = ? AND place_id = ?
-    `);
+    const { error } = await supabase
+      .from('favorites')
+      .delete()
+      .eq('user_id', userId)
+      .eq('place_id', placeId);
 
-    deleteStmt.run(userId, placeId);
+    if (error) {
+      console.error('❌ Erreur suppression favori:', error);
+      res.status(500).json({ message: "Erreur lors de la suppression" });
+      return;
+    }
 
     console.log(`✅ Favori supprimé: ${placeId}`);
 
