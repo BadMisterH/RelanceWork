@@ -25,6 +25,7 @@ export default defineConfig(({ command, mode }) => {
         input: {
           main: resolve(__dirname, "index.html"),
           auth: resolve(__dirname, "auth.html"),
+          pricing: resolve(__dirname, "pricing.html"),
         },
       },
     },
