@@ -14,6 +14,9 @@ import favoritesRoutes from "./routes/favoritesRoutes";
 
 const app = express();
 
+// Trust reverse proxy (Railway, Render, etc.) for correct IP detection
+app.set("trust proxy", 1);
+
 // ============================================
 // SECURITY - Helmet (headers de sécurité)
 // ============================================
