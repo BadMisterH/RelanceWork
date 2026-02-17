@@ -634,12 +634,13 @@ resetForm?.addEventListener("submit", async (e) => {
       }).catch(() => {}); // fire-and-forget
     }
 
-    showAuthNotification("success", "Mot de passe mis à jour ! Vous allez être redirigé...");
-
-    // Rediriger vers l'app après 2s
-    setTimeout(() => {
-      window.location.href = "/app";
-    }, 2000);
+    if (isRecoveryMode) {
+      showAuthNotification("success", "Mot de passe mis à jour ! Vous pouvez vous connecter.");
+      showForm("loginForm");
+    } else {
+      showAuthNotification("success", "Mot de passe mis à jour ! Vous pouvez vous connecter.");
+      showForm("loginForm");
+    }
   } catch (error) {
     console.error("Reset error:", error);
     showError("resetPassword", "Erreur. Veuillez réessayer.");
@@ -655,9 +656,58 @@ resetForm?.addEventListener("submit", async (e) => {
 
 let isRecoveryMode = false;
 
+function getSearchParams(): URLSearchParams {
+  return new URLSearchParams(window.location.search);
+}
+
+function getHashParams(): URLSearchParams {
+  const raw = window.location.hash.startsWith("#")
+    ? window.location.hash.slice(1)
+    : window.location.hash;
+  return new URLSearchParams(raw);
+}
+
+function enterRecoveryMode(message = "Choisissez votre nouveau mot de passe.") {
+  isRecoveryMode = true;
+  showForm("resetPasswordForm");
+  showAuthNotification("info", message);
+}
+
+async function handleRecoveryFromUrl(): Promise<boolean> {
+  const params = getSearchParams();
+  const hashParams = getHashParams();
+
+  const type = params.get("type") || hashParams.get("type");
+  if (type !== "recovery") return false;
+
+  // Hash-based implicit flow: #access_token=...&refresh_token=...&type=recovery
+  const accessToken = hashParams.get("access_token");
+  const refreshToken = hashParams.get("refresh_token") || "";
+
+  try {
+    if (accessToken) {
+      await supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken,
+      });
+    } else {
+      // Support PKCE flow if code is present in query/hash
+      const code = params.get("code") || hashParams.get("code");
+      if (code) {
+        await supabase.auth.exchangeCodeForSession(code);
+      }
+    }
+  } catch (error) {
+    console.error("Recovery session error:", error);
+  }
+
+  enterRecoveryMode();
+  return true;
+}
+
 (async () => {
-  const params = new URLSearchParams(window.location.search);
-  const hashParams = new URLSearchParams(window.location.hash.replace("#", "?"));
+  const params = getSearchParams();
+  const hashParams = getHashParams();
 
   const errorCode = params.get("error_code") || hashParams.get("error_code");
   const errorDescription = params.get("error_description") || hashParams.get("error_description");
@@ -676,24 +726,13 @@ let isRecoveryMode = false;
   }
 
   // Supabase recovery flow: URL contains type=recovery in hash or query
+  const handledRecovery = await handleRecoveryFromUrl();
+  if (handledRecovery) {
+    return;
+  }
+
   const type = params.get("type") || hashParams.get("type");
-  const accessToken = hashParams.get("access_token");
-
-  if (type === "recovery") {
-    isRecoveryMode = true;
-
-    if (accessToken) {
-      // Set the session from the recovery token
-      const refreshToken = hashParams.get("refresh_token") || "";
-      await supabase.auth.setSession({
-        access_token: accessToken,
-        refresh_token: refreshToken,
-      });
-    }
-
-    showForm("resetPasswordForm");
-    showAuthNotification("info", "Choisissez votre nouveau mot de passe.");
-  } else if (type === "signup" || type === "email_confirmation" || type === "magiclink") {
+  if (type === "signup" || type === "email_confirmation" || type === "magiclink") {
     showAuthNotification("success", "Email vérifié ! Vous pouvez maintenant vous connecter.");
     showForm("loginForm");
   }
@@ -701,9 +740,7 @@ let isRecoveryMode = false;
   // Listen for Supabase auth events
   supabase.auth.onAuthStateChange((event) => {
     if (event === "PASSWORD_RECOVERY") {
-      isRecoveryMode = true;
-      showForm("resetPasswordForm");
-      showAuthNotification("info", "Choisissez votre nouveau mot de passe.");
+      enterRecoveryMode();
     } else if (event === "SIGNED_IN" && !isRecoveryMode) {
       // Only auto-redirect if NOT in recovery mode
       // (Supabase fires SIGNED_IN after setting recovery session)
