@@ -294,7 +294,18 @@ loginForm?.addEventListener("submit", async (e) => {
     }
 
     if (data.session) {
-      console.log("✅ Connexion réussie:", data.user?.email);
+      // Bloquer la connexion si l'email n'est pas confirmé (sécurité côté client)
+      const user = data.user;
+      const isEmailConfirmed = !!(user?.email_confirmed_at || (user as any)?.confirmed_at);
+
+      if (!isEmailConfirmed) {
+        await supabase.auth.signOut();
+        showError("loginEmail", "Veuillez vérifier votre email avant de vous connecter.");
+        showAuthNotification("error", "Veuillez vérifier votre email avant de vous connecter.");
+        return;
+      }
+
+      console.log("✅ Connexion réussie:", user?.email);
       window.location.href = "/app";
     }
   } catch (error) {
