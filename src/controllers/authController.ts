@@ -12,22 +12,26 @@ const FRONTEND_URL = process.env.FRONTEND_URL;
 if (!FRONTEND_URL) {
   throw new Error("FRONTEND_URL is not set");
 }
+const FRONTEND_URL_SAFE = FRONTEND_URL;
 const FRONTEND_BASE_PATH =
   (process.env.FRONTEND_BASE_PATH ??
     (process.env.NODE_ENV === "production" ? "/app" : "")).replace(/\/$/, "");
 
-function buildFrontendUrl(path: string): string {
+function buildFrontendUrl(path: string, baseUrl: string): string {
   try {
-    return new URL(path, FRONTEND_URL).toString();
+    return new URL(path, baseUrl).toString();
   } catch {
-    const base = FRONTEND_URL.replace(/\/$/, "");
+    const base = baseUrl.replace(/\/$/, "");
     return `${base}${path}`;
   }
 }
 
 // FRONTEND_URL doit être défini (ex: https://domaine.railway.app)
 // FRONTEND_BASE_PATH permet d'ajouter /app si nécessaire
-const AUTH_REDIRECT_URL = buildFrontendUrl(`${FRONTEND_BASE_PATH}/auth.html`);
+const AUTH_REDIRECT_URL = buildFrontendUrl(
+  `${FRONTEND_BASE_PATH}/auth.html`,
+  FRONTEND_URL_SAFE
+);
 
 // Force le redirect_to dans le lien Supabase pour pointer vers notre page auth
 function fixRedirectUrl(actionLink: string): string {
