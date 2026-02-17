@@ -4,7 +4,13 @@ import { supabase } from "./lib/supabase";
 // ============================================
 // LANDING PAGE LINK (dev/prod)
 // ============================================
-const landingUrl = import.meta.env.VITE_LANDING_URL || "/";
+const rawLandingUrl = import.meta.env.VITE_LANDING_URL;
+const fallbackLandingUrl = `${window.location.origin}/`;
+const landingUrl =
+  rawLandingUrl &&
+  !(import.meta.env.PROD && /localhost|127\.0\.0\.1/.test(rawLandingUrl))
+    ? rawLandingUrl
+    : fallbackLandingUrl;
 
 document.querySelectorAll<HTMLAnchorElement>("[data-landing-link]").forEach((link) => {
   link.href = landingUrl;
