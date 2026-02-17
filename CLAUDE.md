@@ -101,3 +101,4 @@ npm run create-table
 **Static Files**:
 - Landing page served from `./public` at root `/`
 - Client application served from `./client/dist` at `/app`
+

@@ -126,6 +126,28 @@
   height: 14px;
 }
 
+.search-status-badge--error {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.maps-config-notice {
+  margin: 10px 0 14px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(239, 68, 68, 0.08);
+  color: #b91c1c;
+  font-size: 0.8125rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.maps-config-notice strong {
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
 .panel-search-input-group {
   display: flex;
   gap: 10px;
@@ -155,6 +177,12 @@
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
+.panel-search-input-group input.maps-disabled {
+  background: #f1f5f9;
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
 .panel-search-input-group button {
   padding: 12px 24px;
   background: var(--color-primary, #2563eb);
@@ -176,6 +204,14 @@
 .panel-search-input-group button:hover {
   opacity: 0.9;
   transform: translateY(-1px);
+}
+
+.panel-search-input-group button:disabled,
+.panel-search-input-group button.maps-disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 .panel-search-input-group button svg {

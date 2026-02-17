@@ -441,6 +441,7 @@ declare global {
     initMap: () => void;
     mapsSearchInstance: MapsSearch;
     google?: any;
+    gm_authFailure?: () => void;
   }
 }
 
@@ -460,6 +461,9 @@ function loadGoogleMapsScript() {
     console.error('❌ VITE_GOOGLE_MAPS_API_KEY non trouvée dans le fichier .env');
     console.error('Créez un fichier .env dans le dossier client/ avec :');
     console.error('VITE_GOOGLE_MAPS_API_KEY=votre_cle_api_ici');
+    mapsSearch.setMapsUnavailable(
+      "Google Maps n'est pas configuré. Ajoutez VITE_GOOGLE_MAPS_API_KEY dans l'environnement."
+    );
     return;
   }
 
@@ -475,6 +479,16 @@ function loadGoogleMapsScript() {
     console.error('1. Votre clé API est valide');
     console.error('2. Places API est activée dans Google Cloud Console');
     console.error('3. La facturation est configurée sur votre projet Google Cloud');
+    mapsSearch.setMapsUnavailable(
+      "Impossible de charger Google Maps. Vérifiez la clé API, les restrictions et la facturation."
+    );
+  };
+
+  window.gm_authFailure = () => {
+    console.error('❌ Google Maps auth failure (clé invalide ou referer non autorisé)');
+    mapsSearch.setMapsUnavailable(
+      "Accès Google Maps refusé. Vérifiez les domaines autorisés pour la clé API."
+    );
   };
 
   document.head.appendChild(script);

@@ -31,6 +31,9 @@ export class MapsSearch {
   private favorites: Set<string> = new Set();
   private STORAGE_KEY = 'relancework_favorites';
   private CACHE_KEY = 'relancework_cached_businesses';
+  private mapsErrorMessage: string | null = null;
+  private defaultBadgeHtml: string | null = null;
+  private defaultSearchPlaceholder: string | null = null;
 
   // Requêtes de recherche ciblées sur les entreprises tech/web qui recrutent
   private techSearchQueries = [
@@ -188,9 +191,126 @@ export class MapsSearch {
   // Méthode appelée quand Google Maps API est chargée
   public onGoogleMapsLoaded() {
     this.googleMapsLoaded = true;
+    this.mapsErrorMessage = null;
+    this.updateMapsAvailabilityUI();
     this.initMap();
     console.log('Google Maps initialisé et prêt');
     // La recherche automatique sera lancée quand le modal s'ouvre
+  }
+
+  public setMapsUnavailable(message: string) {
+    this.mapsErrorMessage = message;
+    this.googleMapsLoaded = false;
+    this.updateMapsAvailabilityUI();
+  }
+
+  private updateMapsAvailabilityUI() {
+    const searchBtn = document.getElementById("mapsSearchBtn") as HTMLButtonElement | null;
+    const searchInput = document.getElementById("mapsSearchInput") as HTMLInputElement | null;
+    const badge = document.querySelector(".search-status-badge") as HTMLElement | null;
+    const controls = document.querySelector(".panel-search-controls") as HTMLElement | null;
+    const resultsContainer = document.getElementById("businessResults");
+
+    if (badge && !this.defaultBadgeHtml) {
+      this.defaultBadgeHtml = badge.innerHTML;
+    }
+    if (searchInput && !this.defaultSearchPlaceholder) {
+      this.defaultSearchPlaceholder = searchInput.placeholder;
+    }
+
+    if (this.mapsErrorMessage) {
+      if (searchBtn) {
+        searchBtn.disabled = true;
+        searchBtn.classList.add("maps-disabled");
+      }
+      if (searchInput) {
+        searchInput.disabled = true;
+        searchInput.classList.add("maps-disabled");
+        searchInput.placeholder = "Google Maps non configuré";
+      }
+      if (badge) {
+        badge.classList.add("search-status-badge--error");
+        badge.innerHTML = `
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 5v6h-2V7h2zm0 8v2h-2v-2h2z"/>
+          </svg>
+          <span>Recherche automatique indisponible</span>
+        `;
+      }
+
+      if (controls) {
+        let notice = document.getElementById("mapsConfigNotice");
+        if (!notice) {
+          notice = document.createElement("div");
+          notice.id = "mapsConfigNotice";
+          notice.className = "maps-config-notice";
+          const badgeEl = controls.querySelector(".search-status-badge");
+          if (badgeEl && badgeEl.parentNode) {
+            badgeEl.parentNode.insertBefore(notice, badgeEl.nextSibling);
+          } else {
+            controls.prepend(notice);
+          }
+        }
+        notice.innerHTML = `
+          <strong>Google Maps indisponible</strong>
+          <span>${this.mapsErrorMessage}</span>
+        `;
+      }
+
+      if (resultsContainer) {
+        resultsContainer.innerHTML = `
+          <div class="panel-empty-state" data-maps-unavailable="1">
+            <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(239, 68, 68, 0.1); display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" width="32" height="32">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8" x2="12" y2="12"/>
+                <line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+            </div>
+            <h4>Google Maps non configuré</h4>
+            <p>${this.mapsErrorMessage}</p>
+          </div>
+        `;
+      }
+      return;
+    }
+
+    if (searchBtn) {
+      searchBtn.disabled = false;
+      searchBtn.classList.remove("maps-disabled");
+    }
+    if (searchInput) {
+      searchInput.disabled = false;
+      searchInput.classList.remove("maps-disabled");
+      if (this.defaultSearchPlaceholder) {
+        searchInput.placeholder = this.defaultSearchPlaceholder;
+      }
+    }
+    if (badge) {
+      badge.classList.remove("search-status-badge--error");
+      if (this.defaultBadgeHtml) {
+        badge.innerHTML = this.defaultBadgeHtml;
+      }
+    }
+
+    const notice = document.getElementById("mapsConfigNotice");
+    notice?.remove();
+
+    if (resultsContainer) {
+      const hasUnavailable = resultsContainer.querySelector("[data-maps-unavailable]");
+      if (hasUnavailable) {
+        resultsContainer.innerHTML = `
+          <div class="panel-empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <h4>Aucun résultat pour le moment</h4>
+            <p>Recherche automatique des entreprises tech/web en cours...</p>
+          </div>
+        `;
+      }
+    }
   }
 
   private initMap() {
@@ -413,6 +533,10 @@ export class MapsSearch {
         console.log('Ouverture du modal de recherche');
         modal.classList.add("active");
 
+        if (this.mapsErrorMessage) {
+          this.updateMapsAvailabilityUI();
+        }
+
         // Afficher le compteur si on a des données
         if (this.searchUsage) {
           this.renderSearchCounter();
@@ -533,8 +657,7 @@ export class MapsSearch {
           <div class="error-text">
             <p style="margin-bottom: 12px;">⚠️ Google Maps n'est pas configuré</p>
             <p style="font-size: 0.8rem; color: var(--text-secondary);">
-              Vous devez configurer une clé API Google Maps.<br/>
-              Consultez le fichier <strong>GOOGLE_MAPS_SETUP.md</strong> pour les instructions.
+              Ajoutez <strong>VITE_GOOGLE_MAPS_API_KEY</strong> dans votre environnement, puis redeployez.
             </p>
           </div>
         `;
