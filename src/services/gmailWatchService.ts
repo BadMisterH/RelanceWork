@@ -91,14 +91,25 @@ export class GmailWatchService {
     console.log('✅ Gmail API client initialized');
   }
 
+  private async ensureGmailClient(): Promise<void> {
+    if (this.gmail) return;
+
+    const ok = await gmailAuthService.ensureAuthenticated();
+    if (!ok) {
+      throw new Error('Gmail API not initialized. Please authenticate first.');
+    }
+
+    const auth = gmailAuthService.getOAuth2Client();
+    this.gmail = google.gmail({ version: 'v1', auth });
+    console.log('✅ Gmail API client initialized');
+  }
+
   /**
    * Configure la surveillance Gmail avec Push Notifications
    */
   public async setupWatch(topicName: string): Promise<void> {
     try {
-      if (!this.gmail) {
-        throw new Error('Gmail API not initialized. Please authenticate first.');
-      }
+      await this.ensureGmailClient();
 
       await gmailAuthService.refreshTokenIfNeeded();
 
@@ -149,9 +160,7 @@ export class GmailWatchService {
    */
   public async stopWatch(): Promise<void> {
     try {
-      if (!this.gmail) {
-        throw new Error('Gmail API not initialized');
-      }
+      await this.ensureGmailClient();
 
       if (this.watchRenewalInterval) {
         clearInterval(this.watchRenewalInterval);
@@ -174,9 +183,7 @@ export class GmailWatchService {
    */
   public async getMessage(messageId: string): Promise<any> {
     try {
-      if (!this.gmail) {
-        throw new Error('Gmail API not initialized');
-      }
+      await this.ensureGmailClient();
 
       await gmailAuthService.refreshTokenIfNeeded();
 
@@ -272,9 +279,7 @@ export class GmailWatchService {
    */
   public async listRecentSentEmails(maxResults: number = 10): Promise<any[]> {
     try {
-      if (!this.gmail) {
-        throw new Error('Gmail API not initialized');
-      }
+      await this.ensureGmailClient();
 
       await gmailAuthService.refreshTokenIfNeeded();
 

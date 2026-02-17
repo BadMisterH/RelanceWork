@@ -80,6 +80,17 @@ FROM pg_policies
 WHERE tablename = 'applications';
 
 -- ============================================
+-- Gmail (single-user) - Tokens de service
+-- ============================================
+-- Stockage du token OAuth Gmail pour l'API côté serveur (Railway)
+CREATE TABLE IF NOT EXISTS public.gmail_service_tokens (
+  id TEXT PRIMARY KEY,
+  token_json JSONB NOT NULL,
+  token_expiry TIMESTAMP WITH TIME ZONE,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- ============================================
 -- Notes importantes:
 -- ============================================
 --
