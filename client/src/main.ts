@@ -456,6 +456,7 @@ window.initMap = function() {
 // Charger le script Google Maps dynamiquement avec la clé API depuis .env
 function loadGoogleMapsScript() {
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+  console.log("MAPS KEY =", apiKey);
 
   if (!apiKey) {
     console.error('❌ VITE_GOOGLE_MAPS_API_KEY non trouvée dans le fichier .env');
