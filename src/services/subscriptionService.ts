@@ -6,6 +6,11 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2026-01-28.clover",
 });
 
+const FRONTEND_URL = process.env.FRONTEND_URL;
+if (!FRONTEND_URL) {
+  throw new Error("FRONTEND_URL is not set");
+}
+
 export type Plan = "free" | "pro";
 
 interface SubscriptionInfo {
@@ -77,8 +82,8 @@ export class SubscriptionService {
       customer: customerId,
       mode: "subscription",
       line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `${process.env.FRONTEND_URL || "http://localhost:5173"}/?upgrade=success`,
-      cancel_url: `${process.env.FRONTEND_URL || "http://localhost:5173"}/?upgrade=cancel`,
+      success_url: `${FRONTEND_URL}/?upgrade=success`,
+      cancel_url: `${FRONTEND_URL}/?upgrade=cancel`,
       metadata: { user_id: userId },
     });
 
@@ -101,7 +106,7 @@ export class SubscriptionService {
 
     const session = await stripe.billingPortal.sessions.create({
       customer: data.stripe_customer_id,
-      return_url: `${process.env.FRONTEND_URL || "http://localhost:5173"}/`,
+      return_url: `${FRONTEND_URL}/`,
     });
 
     return session.url;

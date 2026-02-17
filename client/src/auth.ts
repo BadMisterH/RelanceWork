@@ -4,9 +4,7 @@ import { supabase } from "./lib/supabase";
 // ============================================
 // LANDING PAGE LINK (dev/prod)
 // ============================================
-const landingUrl =
-  import.meta.env.VITE_LANDING_URL ||
-  (import.meta.env.DEV ? "http://localhost:3000/" : "/");
+const landingUrl = import.meta.env.VITE_LANDING_URL || "/";
 
 document.querySelectorAll<HTMLAnchorElement>("[data-landing-link]").forEach((link) => {
   link.href = landingUrl;

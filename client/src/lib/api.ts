@@ -2,7 +2,7 @@ import axios from 'axios';
 import { supabase } from './supabase';
 
 // Créer une instance axios avec la base URL de l'API
-// En production, utilise la même origine que le site. En dev, pointe vers localhost:3000
+// Utilise VITE_API_URL si défini, sinon la même origine (/api)
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '/api'
 });

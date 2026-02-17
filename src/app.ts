@@ -54,9 +54,17 @@ app.use("/api/auth/signup", authLimiter);
 // ============================================
 // CORS
 // ============================================
-const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(",").map((o) => o.trim())
-  : ["http://localhost:5173", "http://localhost:3000"];
+const rawAllowedOrigins = process.env.ALLOWED_ORIGINS;
+if (!rawAllowedOrigins) {
+  throw new Error("ALLOWED_ORIGINS is not set");
+}
+const ALLOWED_ORIGINS = rawAllowedOrigins
+  .split(",")
+  .map((o) => o.trim())
+  .filter(Boolean);
+if (ALLOWED_ORIGINS.length === 0) {
+  throw new Error("ALLOWED_ORIGINS is empty");
+}
 
 app.use((req: Request, res: Response, next: NextFunction) => {
   const origin = req.headers.origin;
@@ -72,7 +80,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
   res.header("Access-Control-Allow-Credentials", "true");
 
-  // Permettre l'accès depuis des adresses privées (extension Chrome vers localhost)
+  // Permettre l'accès depuis des adresses privées (extensions locales)
   if (req.headers["access-control-request-private-network"]) {
     res.header("Access-Control-Allow-Private-Network", "true");
   }

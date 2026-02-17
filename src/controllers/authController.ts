@@ -8,7 +8,10 @@ import {
   sendPasswordChangedEmail,
 } from "../services/brevoEmailService";
 
-const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
+const FRONTEND_URL = process.env.FRONTEND_URL;
+if (!FRONTEND_URL) {
+  throw new Error("FRONTEND_URL is not set");
+}
 const FRONTEND_BASE_PATH =
   (process.env.FRONTEND_BASE_PATH ??
     (process.env.NODE_ENV === "production" ? "/app" : "")).replace(/\/$/, "");
@@ -22,8 +25,8 @@ function buildFrontendUrl(path: string): string {
   }
 }
 
-// En dev: FRONTEND_URL = http://localhost:5173 + base path "" → /auth.html
-// En prod: FRONTEND_URL = https://domaine.railway.app + base path "/app" → /app/auth.html
+// FRONTEND_URL doit être défini (ex: https://domaine.railway.app)
+// FRONTEND_BASE_PATH permet d'ajouter /app si nécessaire
 const AUTH_REDIRECT_URL = buildFrontendUrl(`${FRONTEND_BASE_PATH}/auth.html`);
 
 // Force le redirect_to dans le lien Supabase pour pointer vers notre page auth
