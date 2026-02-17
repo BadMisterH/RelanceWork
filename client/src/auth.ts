@@ -661,6 +661,22 @@ let isRecoveryMode = false;
   const params = new URLSearchParams(window.location.search);
   const hashParams = new URLSearchParams(window.location.hash.replace("#", "?"));
 
+  const errorCode = params.get("error_code") || hashParams.get("error_code");
+  const errorDescription = params.get("error_description") || hashParams.get("error_description");
+  if (errorCode) {
+    if (errorCode === "otp_expired") {
+      showAuthNotification("error", "Lien expiré. Veuillez demander un nouvel email de vérification.");
+    } else if (errorDescription) {
+      const friendly = errorDescription.replace(/\+/g, " ");
+      showAuthNotification("error", friendly);
+    } else {
+      showAuthNotification("error", "Lien invalide ou expiré. Veuillez réessayer.");
+    }
+    showForm("loginForm");
+    history.replaceState(null, document.title, window.location.pathname + window.location.search);
+    return;
+  }
+
   // Supabase recovery flow: URL contains type=recovery in hash or query
   const type = params.get("type") || hashParams.get("type");
   const accessToken = hashParams.get("access_token");
