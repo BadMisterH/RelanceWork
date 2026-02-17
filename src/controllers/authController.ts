@@ -9,9 +9,22 @@ import {
 } from "../services/brevoEmailService";
 
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
-// En dev: FRONTEND_URL = http://localhost:5173 → /auth.html (Vite sert à la racine)
-// En prod: FRONTEND_URL = https://domaine.railway.app/app → /auth.html
-const AUTH_REDIRECT_URL = `${FRONTEND_URL}/auth.html`;
+const FRONTEND_BASE_PATH =
+  (process.env.FRONTEND_BASE_PATH ??
+    (process.env.NODE_ENV === "production" ? "/app" : "")).replace(/\/$/, "");
+
+function buildFrontendUrl(path: string): string {
+  try {
+    return new URL(path, FRONTEND_URL).toString();
+  } catch {
+    const base = FRONTEND_URL.replace(/\/$/, "");
+    return `${base}${path}`;
+  }
+}
+
+// En dev: FRONTEND_URL = http://localhost:5173 + base path "" → /auth.html
+// En prod: FRONTEND_URL = https://domaine.railway.app + base path "/app" → /app/auth.html
+const AUTH_REDIRECT_URL = buildFrontendUrl(`${FRONTEND_BASE_PATH}/auth.html`);
 
 // Force le redirect_to dans le lien Supabase pour pointer vers notre page auth
 function fixRedirectUrl(actionLink: string): string {
@@ -90,7 +103,7 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
         email: email.toLowerCase(),
         password: password,
         options: {
-          redirectTo: `${FRONTEND_URL}/app/auth.html`,
+          redirectTo: AUTH_REDIRECT_URL,
         },
       });
 
@@ -212,7 +225,7 @@ export const forgotPassword = async (
         type: "recovery",
         email: email.toLowerCase(),
         options: {
-          redirectTo: `${FRONTEND_URL}/app/auth.html`,
+          redirectTo: AUTH_REDIRECT_URL,
         },
       });
 
@@ -270,7 +283,7 @@ export const resendVerification = async (
         type: "magiclink",
         email: email.toLowerCase(),
         options: {
-          redirectTo: `${FRONTEND_URL}/app/auth.html`,
+          redirectTo: AUTH_REDIRECT_URL,
         },
       });
 
