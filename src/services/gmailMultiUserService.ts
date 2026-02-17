@@ -31,11 +31,26 @@ export class GmailMultiUserService {
   /**
    * Génère l'URL d'authentification OAuth pour un utilisateur
    */
+  private getRedirectUri(): string {
+    const redirectUri = process.env.GMAIL_REDIRECT_URI;
+    if (!redirectUri) {
+      throw new Error('GMAIL_REDIRECT_URI is not set');
+    }
+    if (
+      process.env.NODE_ENV === 'production' &&
+      /localhost|127\.0\.0\.1/.test(redirectUri)
+    ) {
+      throw new Error('GMAIL_REDIRECT_URI points to localhost in production');
+    }
+    return redirectUri;
+  }
+
   public getAuthUrl(userId: string, userEmail: string): string {
+    const redirectUri = this.getRedirectUri();
     const oauth2Client = new google.auth.OAuth2(
       process.env.GMAIL_CLIENT_ID,
       process.env.GMAIL_CLIENT_SECRET,
-      process.env.GMAIL_REDIRECT_URI
+      redirectUri
     );
 
     const authUrl = oauth2Client.generateAuthUrl({
@@ -53,10 +68,11 @@ export class GmailMultiUserService {
    * Échange le code OAuth contre des tokens et les stocke
    */
   public async handleOAuthCallback(code: string, userId: string): Promise<void> {
+    const redirectUri = this.getRedirectUri();
     const oauth2Client = new google.auth.OAuth2(
       process.env.GMAIL_CLIENT_ID,
       process.env.GMAIL_CLIENT_SECRET,
-      process.env.GMAIL_REDIRECT_URI
+      redirectUri
     );
 
     // Échanger le code contre des tokens

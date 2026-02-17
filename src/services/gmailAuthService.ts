@@ -47,6 +47,12 @@ export class GmailAuthService {
       const envRedirectUri = process.env.GMAIL_REDIRECT_URI;
 
       if (envClientId && envClientSecret && envRedirectUri) {
+        if (
+          process.env.NODE_ENV === 'production' &&
+          /localhost|127\.0\.0\.1/.test(envRedirectUri)
+        ) {
+          throw new Error('GMAIL_REDIRECT_URI points to localhost in production');
+        }
         this.credentials = {
           client_id: envClientId,
           client_secret: envClientSecret,

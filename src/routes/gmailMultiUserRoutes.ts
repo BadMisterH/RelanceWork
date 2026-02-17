@@ -9,6 +9,132 @@ import { gmailMultiUserService } from '../services/gmailMultiUserService';
 
 const router = express.Router();
 
+function renderGmailCallbackPage(options: {
+  title: string;
+  headline: string;
+  message: string;
+  variant: 'success' | 'error';
+  actionLabel?: string;
+  actionHref?: string;
+}) {
+  const { title, headline, message, variant, actionLabel, actionHref } = options;
+  const accent = variant === 'success' ? '#10b981' : '#ef4444';
+  const button = actionLabel
+    ? `<a class="btn" href="${actionHref || '/app'}">${actionLabel}</a>`
+    : '';
+
+  return `
+    <html lang="fr">
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>${title}</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+        <style>
+          :root {
+            color-scheme: light;
+          }
+          * { box-sizing: border-box; }
+          body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at top, rgba(37,99,235,0.35), rgba(15,23,42,1) 45%), #0b1020;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            color: #e2e8f0;
+            padding: 24px;
+          }
+          .card {
+            width: min(520px, 100%);
+            background: rgba(15, 23, 42, 0.92);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 20px;
+            padding: 40px 36px;
+            box-shadow: 0 30px 60px rgba(15, 23, 42, 0.45);
+            text-align: center;
+          }
+          .logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            font-family: 'Archivo', sans-serif;
+            font-weight: 800;
+            letter-spacing: 0.4px;
+            margin-bottom: 24px;
+          }
+          .logo-badge {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            background: #2563eb;
+            color: white;
+            display: grid;
+            place-items: center;
+            font-size: 22px;
+            font-weight: 800;
+          }
+          h1 {
+            font-family: 'Archivo', sans-serif;
+            font-size: 24px;
+            margin: 0 0 12px;
+            color: ${accent};
+          }
+          p {
+            margin: 0;
+            color: #cbd5f5;
+            line-height: 1.6;
+            font-size: 15px;
+          }
+          .status {
+            margin: 24px auto 18px;
+            width: 64px;
+            height: 64px;
+            border-radius: 20px;
+            display: grid;
+            place-items: center;
+            background: rgba(37, 99, 235, 0.15);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            font-size: 34px;
+          }
+          .btn {
+            margin-top: 28px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 24px;
+            border-radius: 12px;
+            background: #2563eb;
+            color: #fff;
+            text-decoration: none;
+            font-weight: 600;
+            box-shadow: 0 10px 20px rgba(37, 99, 235, 0.25);
+            transition: transform 0.2s ease, background 0.2s ease;
+          }
+          .btn:hover { background: #1d4ed8; transform: translateY(-1px); }
+          .note { margin-top: 16px; font-size: 13px; color: #94a3b8; }
+        </style>
+      </head>
+      <body>
+        <div class="card">
+          <div class="logo">
+            <div class="logo-badge">R</div>
+            RelanceWork
+          </div>
+          <div class="status">${variant === 'success' ? '✅' : '⚠️'}</div>
+          <h1>${headline}</h1>
+          <p>${message}</p>
+          ${button}
+          <div class="note">Vous pouvez fermer cette fenêtre ou retourner à l'application.</div>
+        </div>
+      </body>
+    </html>
+  `;
+}
+
 /**
  * GET /api/gmail-user/status
  * Vérifie si l'utilisateur a connecté son Gmail
@@ -75,94 +201,31 @@ router.get('/callback', async (req: Request, res: Response) => {
 
     await gmailMultiUserService.handleOAuthCallback(code, userId);
 
-    res.send(`
-      <html>
-        <head>
-          <title>Gmail Connecté ✅</title>
-          <style>
-            body {
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-              display: flex;
-              justify-content: center;
-              align-items: center;
-              height: 100vh;
-              margin: 0;
-              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            }
-            .container {
-              background: white;
-              padding: 40px;
-              border-radius: 16px;
-              box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-              text-align: center;
-              max-width: 500px;
-            }
-            h1 { color: #4CAF50; margin-bottom: 20px; font-size: 28px; }
-            p { color: #666; margin: 15px 0; font-size: 16px; }
-            .success-icon { font-size: 80px; margin-bottom: 20px; }
-            .close-btn {
-              margin-top: 30px;
-              padding: 12px 30px;
-              background: #667eea;
-              color: white;
-              border: none;
-              border-radius: 8px;
-              cursor: pointer;
-              font-size: 16px;
-              font-weight: 500;
-            }
-            .close-btn:hover { background: #764ba2; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="success-icon">✅</div>
-            <h1>Gmail Connecté avec Succès !</h1>
-            <p>RelanceWork va maintenant détecter automatiquement vos candidatures depuis votre Gmail.</p>
-            <p><strong>Vous pouvez fermer cette fenêtre et retourner à l'application.</strong></p>
-            <button class="close-btn" onclick="window.close()">Fermer</button>
-          </div>
-        </body>
-      </html>
-    `);
+    res.send(
+      renderGmailCallbackPage({
+        title: 'Gmail connecté - RelanceWork',
+        headline: 'Gmail connecté avec succès',
+        message:
+          'RelanceWork va maintenant détecter automatiquement vos candidatures depuis votre Gmail.',
+        variant: 'success',
+        actionLabel: "Retourner à l'application",
+        actionHref: '/app'
+      })
+    );
 
     console.log(`✅ Gmail connected successfully for user ${userId}`);
   } catch (error: any) {
     console.error('Error in OAuth callback:', error);
-    res.status(500).send(`
-      <html>
-        <head>
-          <title>Erreur de Connexion</title>
-          <style>
-            body {
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-              display: flex;
-              justify-content: center;
-              align-items: center;
-              height: 100vh;
-              margin: 0;
-              background: #f44336;
-            }
-            .container {
-              background: white;
-              padding: 40px;
-              border-radius: 16px;
-              box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-              text-align: center;
-            }
-            h1 { color: #f44336; }
-            p { color: #666; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <h1>❌ Échec de la Connexion</h1>
-            <p>${error.message}</p>
-            <p>Veuillez réessayer ou consulter les logs du serveur.</p>
-          </div>
-        </body>
-      </html>
-    `);
+    res.status(500).send(
+      renderGmailCallbackPage({
+        title: 'Connexion Gmail échouée - RelanceWork',
+        headline: 'Connexion Gmail échouée',
+        message: `${error.message}. Veuillez réessayer ou contacter le support.`,
+        variant: 'error',
+        actionLabel: "Retourner à l'application",
+        actionHref: '/app'
+      })
+    );
   }
 });
 

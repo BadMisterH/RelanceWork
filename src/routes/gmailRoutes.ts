@@ -75,50 +75,109 @@ router.get('/auth/callback', async (req: Request, res: Response) => {
     await gmailAuthService.getTokenFromCode(code);
 
     res.send(`
-      <html>
+      <html lang="fr">
         <head>
-          <title>Authentication Successful</title>
+          <meta charset="UTF-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+          <title>Gmail connecté - RelanceWork</title>
+          <link rel="preconnect" href="https://fonts.googleapis.com">
+          <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+          <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
           <style>
+            * { box-sizing: border-box; }
             body {
-              font-family: Arial, sans-serif;
-              display: flex;
-              justify-content: center;
-              align-items: center;
-              height: 100vh;
               margin: 0;
-              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              min-height: 100vh;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              background: radial-gradient(circle at top, rgba(37,99,235,0.35), rgba(15,23,42,1) 45%), #0b1020;
+              font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+              color: #e2e8f0;
+              padding: 24px;
             }
-            .container {
-              background: white;
-              padding: 40px;
-              border-radius: 10px;
-              box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            .card {
+              width: min(520px, 100%);
+              background: rgba(15, 23, 42, 0.92);
+              border: 1px solid rgba(148, 163, 184, 0.2);
+              border-radius: 20px;
+              padding: 40px 36px;
+              box-shadow: 0 30px 60px rgba(15, 23, 42, 0.45);
               text-align: center;
-              max-width: 500px;
             }
-            h1 { color: #4CAF50; margin-bottom: 20px; }
-            p { color: #666; margin: 10px 0; }
-            .success-icon { font-size: 60px; margin-bottom: 20px; }
-            .close-btn {
-              margin-top: 20px;
-              padding: 10px 20px;
-              background: #667eea;
+            .logo {
+              display: inline-flex;
+              align-items: center;
+              gap: 12px;
+              font-family: 'Archivo', sans-serif;
+              font-weight: 800;
+              letter-spacing: 0.4px;
+              margin-bottom: 24px;
+            }
+            .logo-badge {
+              width: 44px;
+              height: 44px;
+              border-radius: 14px;
+              background: #2563eb;
               color: white;
-              border: none;
-              border-radius: 5px;
-              cursor: pointer;
-              font-size: 16px;
+              display: grid;
+              place-items: center;
+              font-size: 22px;
+              font-weight: 800;
             }
-            .close-btn:hover { background: #764ba2; }
+            h1 {
+              font-family: 'Archivo', sans-serif;
+              font-size: 24px;
+              margin: 0 0 12px;
+              color: #10b981;
+            }
+            p {
+              margin: 0;
+              color: #cbd5f5;
+              line-height: 1.6;
+              font-size: 15px;
+            }
+            .status {
+              margin: 24px auto 18px;
+              width: 64px;
+              height: 64px;
+              border-radius: 20px;
+              display: grid;
+              place-items: center;
+              background: rgba(37, 99, 235, 0.15);
+              border: 1px solid rgba(148, 163, 184, 0.2);
+              font-size: 34px;
+            }
+            .btn {
+              margin-top: 28px;
+              display: inline-flex;
+              align-items: center;
+              justify-content: center;
+              padding: 12px 24px;
+              border-radius: 12px;
+              background: #2563eb;
+              color: #fff;
+              text-decoration: none;
+              font-weight: 600;
+              box-shadow: 0 10px 20px rgba(37, 99, 235, 0.25);
+              transition: transform 0.2s ease, background 0.2s ease;
+            }
+            .btn:hover { background: #1d4ed8; transform: translateY(-1px); }
+            .note { margin-top: 16px; font-size: 13px; color: #94a3b8; }
           </style>
         </head>
         <body>
-          <div class="container">
-            <div class="success-icon">✅</div>
-            <h1>Authentication Successful!</h1>
-            <p>RelanceWork is now connected to your Gmail account.</p>
-            <p>You can close this window and return to your terminal.</p>
-            <button class="close-btn" onclick="window.close()">Close Window</button>
+          <div class="card">
+            <div class="logo">
+              <div class="logo-badge">R</div>
+              RelanceWork
+            </div>
+            <div class="status">✅</div>
+            <h1>Gmail connecté avec succès</h1>
+            <p>RelanceWork est maintenant connecté à votre Gmail.</p>
+            <p>Vous pouvez fermer cette fenêtre ou retourner à l'application.</p>
+            <a class="btn" href="/app">Retourner à l'application</a>
+            <div class="note">Si la fenêtre ne se ferme pas automatiquement, vous pouvez la fermer manuellement.</div>
           </div>
         </body>
       </html>
@@ -129,35 +188,109 @@ router.get('/auth/callback', async (req: Request, res: Response) => {
   } catch (error: any) {
     console.error('Error in OAuth callback:', error);
     res.status(500).send(`
-      <html>
+      <html lang="fr">
         <head>
-          <title>Authentication Failed</title>
+          <meta charset="UTF-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+          <title>Connexion Gmail échouée - RelanceWork</title>
+          <link rel="preconnect" href="https://fonts.googleapis.com">
+          <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+          <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
           <style>
+            * { box-sizing: border-box; }
             body {
-              font-family: Arial, sans-serif;
-              display: flex;
-              justify-content: center;
-              align-items: center;
-              height: 100vh;
               margin: 0;
-              background: #f44336;
+              min-height: 100vh;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              background: radial-gradient(circle at top, rgba(239,68,68,0.25), rgba(15,23,42,1) 45%), #0b1020;
+              font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+              color: #e2e8f0;
+              padding: 24px;
             }
-            .container {
-              background: white;
-              padding: 40px;
-              border-radius: 10px;
-              box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            .card {
+              width: min(520px, 100%);
+              background: rgba(15, 23, 42, 0.92);
+              border: 1px solid rgba(148, 163, 184, 0.2);
+              border-radius: 20px;
+              padding: 40px 36px;
+              box-shadow: 0 30px 60px rgba(15, 23, 42, 0.45);
               text-align: center;
             }
-            h1 { color: #f44336; }
-            p { color: #666; }
+            .logo {
+              display: inline-flex;
+              align-items: center;
+              gap: 12px;
+              font-family: 'Archivo', sans-serif;
+              font-weight: 800;
+              letter-spacing: 0.4px;
+              margin-bottom: 24px;
+            }
+            .logo-badge {
+              width: 44px;
+              height: 44px;
+              border-radius: 14px;
+              background: #2563eb;
+              color: white;
+              display: grid;
+              place-items: center;
+              font-size: 22px;
+              font-weight: 800;
+            }
+            h1 {
+              font-family: 'Archivo', sans-serif;
+              font-size: 24px;
+              margin: 0 0 12px;
+              color: #ef4444;
+            }
+            p {
+              margin: 0;
+              color: #cbd5f5;
+              line-height: 1.6;
+              font-size: 15px;
+            }
+            .status {
+              margin: 24px auto 18px;
+              width: 64px;
+              height: 64px;
+              border-radius: 20px;
+              display: grid;
+              place-items: center;
+              background: rgba(239, 68, 68, 0.15);
+              border: 1px solid rgba(148, 163, 184, 0.2);
+              font-size: 34px;
+            }
+            .btn {
+              margin-top: 28px;
+              display: inline-flex;
+              align-items: center;
+              justify-content: center;
+              padding: 12px 24px;
+              border-radius: 12px;
+              background: #2563eb;
+              color: #fff;
+              text-decoration: none;
+              font-weight: 600;
+              box-shadow: 0 10px 20px rgba(37, 99, 235, 0.25);
+              transition: transform 0.2s ease, background 0.2s ease;
+            }
+            .btn:hover { background: #1d4ed8; transform: translateY(-1px); }
+            .note { margin-top: 16px; font-size: 13px; color: #94a3b8; }
           </style>
         </head>
         <body>
-          <div class="container">
-            <h1>❌ Authentication Failed</h1>
+          <div class="card">
+            <div class="logo">
+              <div class="logo-badge">R</div>
+              RelanceWork
+            </div>
+            <div class="status">⚠️</div>
+            <h1>Connexion Gmail échouée</h1>
             <p>${error.message}</p>
-            <p>Please try again or check the console for more details.</p>
+            <p>Veuillez réessayer ou contacter le support.</p>
+            <a class="btn" href="/app">Retourner à l'application</a>
+            <div class="note">Si le problème persiste, vérifiez la configuration Gmail OAuth.</div>
           </div>
         </body>
       </html>
