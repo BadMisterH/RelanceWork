@@ -11,6 +11,17 @@ import api from "./lib/api";
 import { supabase } from "./lib/supabase";
 
 // ============================================
+// LANDING PAGE LINK (dev/prod)
+// ============================================
+const landingUrl =
+  import.meta.env.VITE_LANDING_URL ||
+  (import.meta.env.DEV ? "http://localhost:3000/" : "/");
+
+document.querySelectorAll<HTMLAnchorElement>("[data-landing-link]").forEach((link) => {
+  link.href = landingUrl;
+});
+
+// ============================================
 // GLOBAL TOAST NOTIFICATION SYSTEM
 // ============================================
 export function showToast(type: 'success' | 'error' | 'info' | 'warning', message: string, duration = 3500) {
