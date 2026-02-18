@@ -9,6 +9,37 @@ import { gmailMultiUserService } from '../services/gmailMultiUserService';
 
 const router = express.Router();
 
+function getPublicBaseUrl(req: Request): string {
+  const forwardedProto = req.headers['x-forwarded-proto'];
+  const forwardedHost = req.headers['x-forwarded-host'];
+  const proto = (Array.isArray(forwardedProto) ? forwardedProto[0] : forwardedProto)
+    ?.split(',')[0]
+    ?.trim() || req.protocol;
+  const host = (Array.isArray(forwardedHost) ? forwardedHost[0] : forwardedHost)
+    ?.split(',')[0]
+    ?.trim() || req.get('host');
+  if (!host) {
+    throw new Error('Unable to determine host for Gmail redirect URI');
+  }
+  return `${proto}://${host}`;
+}
+
+function resolveGmailRedirectUri(req: Request): { redirectUri: string; source: 'env' | 'request' } {
+  const envRedirect = process.env.GMAIL_REDIRECT_URI;
+  const allowLocalhost = process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test';
+  const derived = new URL('/api/gmail-user/callback', getPublicBaseUrl(req)).toString();
+
+  if (!envRedirect) {
+    return { redirectUri: derived, source: 'request' };
+  }
+
+  if (!allowLocalhost && /localhost|127\.0\.0\.1/.test(envRedirect)) {
+    return { redirectUri: derived, source: 'request' };
+  }
+
+  return { redirectUri: envRedirect, source: 'env' };
+}
+
 function renderGmailCallbackPage(options: {
   title: string;
   headline: string;
@@ -169,7 +200,11 @@ router.get('/connect', authenticateToken, (req: Request, res: Response) => {
     const userId = user.id;
     const userEmail = user.email;
 
-    const authUrl = gmailMultiUserService.getAuthUrl(userId, userEmail);
+    const { redirectUri, source } = resolveGmailRedirectUri(req);
+    if (source !== 'env') {
+      console.warn(`[gmail] Using redirect URI from request: ${redirectUri}`);
+    }
+    const authUrl = gmailMultiUserService.getAuthUrl(userId, userEmail, redirectUri);
 
     res.json({
       auth_url: authUrl,
@@ -199,7 +234,11 @@ router.get('/callback', async (req: Request, res: Response) => {
 
     const userId = state; // state contient le userId
 
-    await gmailMultiUserService.handleOAuthCallback(code, userId);
+    const { redirectUri, source } = resolveGmailRedirectUri(req);
+    if (source !== 'env') {
+      console.warn(`[gmail] Using redirect URI from request: ${redirectUri}`);
+    }
+    await gmailMultiUserService.handleOAuthCallback(code, userId, redirectUri);
 
     res.send(
       renderGmailCallbackPage({

@@ -67,8 +67,8 @@ export class GmailMultiUserService {
     return redirectUri;
   }
 
-  public getAuthUrl(userId: string, userEmail: string): string {
-    const redirectUri = this.getRedirectUri();
+  public getAuthUrl(userId: string, userEmail: string, redirectUriOverride?: string): string {
+    const redirectUri = redirectUriOverride ?? this.getRedirectUri();
     const oauth2Client = new google.auth.OAuth2(
       process.env.GMAIL_CLIENT_ID,
       process.env.GMAIL_CLIENT_SECRET,
@@ -89,8 +89,8 @@ export class GmailMultiUserService {
   /**
    * Échange le code OAuth contre des tokens et les stocke
    */
-  public async handleOAuthCallback(code: string, userId: string): Promise<void> {
-    const redirectUri = this.getRedirectUri();
+  public async handleOAuthCallback(code: string, userId: string, redirectUriOverride?: string): Promise<void> {
+    const redirectUri = redirectUriOverride ?? this.getRedirectUri();
     const oauth2Client = new google.auth.OAuth2(
       process.env.GMAIL_CLIENT_ID,
       process.env.GMAIL_CLIENT_SECRET,
