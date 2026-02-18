@@ -13,6 +13,23 @@ const TOKEN_PATH = path.join(__dirname, '../../data/gmail-token.json');
 const CREDENTIALS_PATH = path.join(__dirname, '../../data/gmail-credentials.json');
 const SERVICE_TOKEN_ID = 'service';
 
+function allowLocalhostRedirect(): boolean {
+  const env = process.env.NODE_ENV;
+  return env === 'development' || env === 'test';
+}
+
+function assertRedirectUriAllowed(redirectUri: string): void {
+  if (!allowLocalhostRedirect() && /localhost|127\.0\.0\.1/.test(redirectUri)) {
+    const env = process.env.NODE_ENV ?? 'undefined';
+    throw new Error(`GMAIL_REDIRECT_URI points to localhost (NODE_ENV=${env})`);
+  }
+}
+
+function logRedirectUri(source: string, redirectUri: string): void {
+  if (process.env.NODE_ENV === 'test') return;
+  console.log(`[gmail] Redirect URI (${source}): ${redirectUri}`);
+}
+
 export interface GmailCredentials {
   client_id: string;
   client_secret: string;
@@ -47,18 +64,14 @@ export class GmailAuthService {
       const envRedirectUri = process.env.GMAIL_REDIRECT_URI;
 
       if (envClientId && envClientSecret && envRedirectUri) {
-        if (
-          process.env.NODE_ENV === 'production' &&
-          /localhost|127\.0\.0\.1/.test(envRedirectUri)
-        ) {
-          throw new Error('GMAIL_REDIRECT_URI points to localhost in production');
-        }
+        assertRedirectUriAllowed(envRedirectUri);
         this.credentials = {
           client_id: envClientId,
           client_secret: envClientSecret,
           redirect_uri: envRedirectUri
         };
         console.log('✅ Gmail credentials loaded from environment');
+        logRedirectUri('env', envRedirectUri);
         return;
       }
 
@@ -83,6 +96,10 @@ export class GmailAuthService {
           this.credentials = data;
         }
 
+        if (this.credentials?.redirect_uri) {
+          assertRedirectUriAllowed(this.credentials.redirect_uri);
+          logRedirectUri('file', this.credentials.redirect_uri);
+        }
         console.log('✅ Gmail credentials loaded successfully');
       } else {
         console.log('⚠️  Gmail credentials file not found. Please run the setup first.');
@@ -189,12 +206,14 @@ export class GmailAuthService {
    * Configure les credentials manuellement (pour setup automatique)
    */
   public setCredentials(credentials: GmailCredentials): void {
+    assertRedirectUriAllowed(credentials.redirect_uri);
     this.credentials = credentials;
     this.oauth2Client = new google.auth.OAuth2(
       credentials.client_id,
       credentials.client_secret,
       credentials.redirect_uri
     );
+    logRedirectUri('runtime', credentials.redirect_uri);
 
     // Sauvegarder les credentials
     const dataDir = path.dirname(CREDENTIALS_PATH);

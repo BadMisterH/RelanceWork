@@ -23,10 +23,33 @@ interface GmailToken {
 
 const POLLING_INTERVAL = 30000; // 30 secondes
 
+function allowLocalhostRedirect(): boolean {
+  const env = process.env.NODE_ENV;
+  return env === 'development' || env === 'test';
+}
+
+function assertRedirectUriAllowed(redirectUri: string): void {
+  if (!allowLocalhostRedirect() && /localhost|127\.0\.0\.1/.test(redirectUri)) {
+    const env = process.env.NODE_ENV ?? 'undefined';
+    throw new Error(`GMAIL_REDIRECT_URI points to localhost (NODE_ENV=${env})`);
+  }
+}
+
 export class GmailMultiUserService {
   private oauth2Clients: Map<string, any> = new Map(); // userId -> OAuth2Client
   private pollingIntervals: Map<string, NodeJS.Timeout> = new Map(); // userId -> interval
   private processedMessageIds: Map<string, Set<string>> = new Map(); // userId -> Set de messageIds déjà traités
+  private hasLoggedRedirectUri = false;
+
+  constructor() {
+    if (process.env.NODE_ENV === 'test') return;
+    const redirectUri = process.env.GMAIL_REDIRECT_URI;
+    if (redirectUri) {
+      console.log(`[gmail] Redirect URI (env): ${redirectUri}`);
+    } else {
+      console.warn('[gmail] GMAIL_REDIRECT_URI is not set');
+    }
+  }
 
   /**
    * Génère l'URL d'authentification OAuth pour un utilisateur
@@ -36,11 +59,10 @@ export class GmailMultiUserService {
     if (!redirectUri) {
       throw new Error('GMAIL_REDIRECT_URI is not set');
     }
-    if (
-      process.env.NODE_ENV === 'production' &&
-      /localhost|127\.0\.0\.1/.test(redirectUri)
-    ) {
-      throw new Error('GMAIL_REDIRECT_URI points to localhost in production');
+    assertRedirectUriAllowed(redirectUri);
+    if (!this.hasLoggedRedirectUri && process.env.NODE_ENV !== 'test') {
+      console.log(`[gmail] Redirect URI: ${redirectUri}`);
+      this.hasLoggedRedirectUri = true;
     }
     return redirectUri;
   }
