@@ -12,6 +12,9 @@ const FRONTEND_URL = process.env.FRONTEND_URL;
 if (!FRONTEND_URL) {
   throw new Error("FRONTEND_URL is not set");
 }
+if (process.env.NODE_ENV === "production" && /localhost|127\.0\.0\.1/.test(FRONTEND_URL)) {
+  throw new Error("FRONTEND_URL points to localhost in production");
+}
 const FRONTEND_URL_SAFE = FRONTEND_URL;
 const FRONTEND_BASE_PATH =
   (process.env.FRONTEND_BASE_PATH ??
@@ -32,6 +35,9 @@ const AUTH_REDIRECT_URL = buildFrontendUrl(
   `${FRONTEND_BASE_PATH}/auth.html`,
   FRONTEND_URL_SAFE
 );
+if (process.env.NODE_ENV !== "test") {
+  console.log(`[auth] Redirect URL: ${AUTH_REDIRECT_URL}`);
+}
 
 // Force le redirect_to dans le lien Supabase pour pointer vers notre page auth
 function fixRedirectUrl(actionLink: string): string {
