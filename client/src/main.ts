@@ -13,13 +13,44 @@ import { supabase } from "./lib/supabase";
 // ============================================
 // LANDING PAGE LINK (dev/prod)
 // ============================================
-const rawLandingUrl = import.meta.env.VITE_LANDING_URL;
-const fallbackLandingUrl = `${window.location.origin}/`;
-const landingUrl =
-  rawLandingUrl &&
-  !(import.meta.env.PROD && /localhost|127\.0\.0\.1/.test(rawLandingUrl))
-    ? rawLandingUrl
-    : fallbackLandingUrl;
+function normalizeLandingUrl(raw?: string): string | undefined {
+  if (!raw) return undefined;
+  try {
+    const url = new URL(raw, window.location.origin);
+    if (url.pathname === "/app" || url.pathname === "/app/") {
+      url.pathname = "/";
+    }
+    return url.toString();
+  } catch {
+    return raw;
+  }
+}
+
+function resolveLandingUrl(): string {
+  const rawLanding = normalizeLandingUrl(import.meta.env.VITE_LANDING_URL);
+  if (rawLanding && !(import.meta.env.PROD && /localhost|127\.0\.0\.1/.test(rawLanding))) {
+    return rawLanding;
+  }
+
+  const origin = window.location.origin;
+  const originIsLocal = /localhost|127\.0\.0\.1/.test(origin);
+  if (!originIsLocal) {
+    return `${origin}/`;
+  }
+
+  const rawApiUrl = import.meta.env.VITE_API_URL;
+  if (rawApiUrl && /^https?:\/\//.test(rawApiUrl) && !/localhost|127\.0\.0\.1/.test(rawApiUrl)) {
+    try {
+      return `${new URL(rawApiUrl).origin}/`;
+    } catch {
+      // ignore
+    }
+  }
+
+  return `${origin}/`;
+}
+
+const landingUrl = resolveLandingUrl();
 
 document.querySelectorAll<HTMLAnchorElement>("[data-landing-link]").forEach((link) => {
   link.href = landingUrl;

@@ -19,6 +19,9 @@ export default defineConfig(({ command, mode }) => {
       "import.meta.env.VITE_API_URL": JSON.stringify(
         env.VITE_API_URL || process.env.VITE_API_URL
       ),
+      "import.meta.env.VITE_LANDING_URL": JSON.stringify(
+        env.VITE_LANDING_URL || process.env.VITE_LANDING_URL
+      ),
     },
     build: {
       rollupOptions: {
