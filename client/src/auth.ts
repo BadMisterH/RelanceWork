@@ -16,6 +16,13 @@ document.querySelectorAll<HTMLAnchorElement>("[data-landing-link]").forEach((lin
   link.href = landingUrl;
 });
 
+function getApiUrl(): string {
+  const rawApiUrl = import.meta.env.VITE_API_URL;
+  return rawApiUrl && !(import.meta.env.PROD && /localhost|127\.0\.0\.1/.test(rawApiUrl))
+    ? rawApiUrl
+    : '/api';
+}
+
 // ============================================
 // FORM TOGGLE
 // ============================================
@@ -416,7 +423,7 @@ signupForm?.addEventListener("submit", async (e) => {
 
   try {
     // Appeler le backend qui auto-confirme l'email (évite rate limit)
-    const apiUrl = import.meta.env.VITE_API_URL || '/api';
+    const apiUrl = getApiUrl();
     const response = await fetch(`${apiUrl}/auth/signup`, {
       method: "POST",
       headers: {
@@ -535,7 +542,7 @@ forgotForm?.addEventListener("submit", async (e) => {
   forgotBtn.disabled = true;
 
   try {
-    const apiUrl = import.meta.env.VITE_API_URL || '/api';
+    const apiUrl = getApiUrl();
     const response = await fetch(`${apiUrl}/auth/forgot-password`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -641,7 +648,7 @@ resetForm?.addEventListener("submit", async (e) => {
     // Envoyer la notification de changement de mot de passe via Brevo
     const session = await supabase.auth.getSession();
     if (session.data.session?.access_token) {
-      const apiUrl = import.meta.env.VITE_API_URL || '/api';
+      const apiUrl = getApiUrl();
       fetch(`${apiUrl}/auth/password-changed`, {
         method: "POST",
         headers: {

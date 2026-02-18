@@ -3,8 +3,15 @@ import { supabase } from './supabase';
 
 // Créer une instance axios avec la base URL de l'API
 // Utilise VITE_API_URL si défini, sinon la même origine (/api)
+// En prod, ignorer un VITE_API_URL qui pointe vers localhost.
+const rawApiUrl = import.meta.env.VITE_API_URL;
+const apiBaseUrl =
+  rawApiUrl && !(import.meta.env.PROD && /localhost|127\.0\.0\.1/.test(rawApiUrl))
+    ? rawApiUrl
+    : '/api';
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api'
+  baseURL: apiBaseUrl
 });
 
 // Intercepteur pour attacher automatiquement le token Supabase à chaque requête
