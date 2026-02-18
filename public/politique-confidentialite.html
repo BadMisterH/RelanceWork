@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Politique de confidentialite - RelanceWork</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css" />
+    <style>
+      .legal-header {
+        position: sticky;
+        top: 0;
+        background: var(--nav-bg);
+        border-bottom: 1px solid var(--border);
+        backdrop-filter: blur(12px);
+        z-index: 5;
+      }
+      .legal-header .container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 24px;
+      }
+      .legal-hero {
+        padding: 56px 0 24px;
+      }
+      .legal-title {
+        font-size: clamp(2rem, 4vw, 2.8rem);
+        margin-bottom: 10px;
+      }
+      .legal-subtitle {
+        color: var(--text-secondary);
+        max-width: 720px;
+      }
+      .legal-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: clamp(24px, 3vw, 36px);
+        box-shadow: var(--shadow-sm);
+        margin-bottom: 48px;
+      }
+      .legal-section {
+        margin-top: 24px;
+      }
+      .legal-section h2 {
+        font-size: 1.2rem;
+        margin-bottom: 10px;
+      }
+      .legal-section p {
+        color: var(--text-secondary);
+      }
+      .legal-list {
+        margin: 12px 0 0 0;
+        padding-left: 20px;
+        color: var(--text-secondary);
+      }
+      .legal-meta {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        margin-top: 12px;
+      }
+      .legal-link {
+        text-decoration: none;
+        font-weight: 600;
+        color: var(--primary);
+      }
+      .legal-link:hover {
+        color: var(--primary-dark);
+      }
+    </style>
+  </head>
+  <body>
+    <header class="legal-header">
+      <div class="container">
+        <a href="/" class="logo">
+          <div class="logo-mark">R</div>
+          <span class="logo-text">RelanceWork</span>
+        </a>
+        <a class="btn btn-outline" href="/">Retour a l'accueil</a>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="legal-hero">
+        <h1 class="legal-title">Politique de confidentialite</h1>
+        <p class="legal-subtitle">
+          Cette politique de confidentialite explique comment RelanceWork collecte, utilise
+          et protege vos donnees lorsque vous utilisez l'application.
+        </p>
+        <div class="legal-meta">Derniere mise a jour : 18 fevrier 2026</div>
+      </section>
+
+      <section class="legal-card">
+        <div class="legal-section">
+          <h2>1. Donnees collectees</h2>
+          <p>Nous collectons les informations suivantes :</p>
+          <ul class="legal-list">
+            <li>Informations de compte : nom, email, mot de passe chiffre.</li>
+            <li>Donnees d'utilisation : pages visitees, actions effectuees, preferences.</li>
+            <li>Donnees Gmail (avec votre consentement) : metadonnees et contenu necessaires
+              a la detection automatique de candidatures et a l'envoi de relances.</li>
+            <li>Donnees de paiement (si abonnement Pro) via Stripe.</li>
+          </ul>
+        </div>
+
+        <div class="legal-section">
+          <h2>2. Utilisation des donnees</h2>
+          <p>Nous utilisons vos donnees pour :</p>
+          <ul class="legal-list">
+            <li>Fournir les fonctionnalites de suivi et de relance.</li>
+            <li>Detecter automatiquement vos candidatures depuis Gmail (si active).</li>
+            <li>Assurer la securite du compte et prevenir les abus.</li>
+            <li>Gerer la facturation et les abonnements.</li>
+          </ul>
+        </div>
+
+        <div class="legal-section">
+          <h2>3. Partage des donnees</h2>
+          <p>Nous partageons certaines donnees avec des prestataires necessaires au service :</p>
+          <ul class="legal-list">
+            <li>Supabase : authentification et stockage.</li>
+            <li>Google (Gmail API) : connexion Gmail, lecture et envoi d'emails.</li>
+            <li>Stripe : paiements et facturation.</li>
+            <li>Brevo / Resend : emails transactionnels.</li>
+          </ul>
+          <p class="legal-meta">Aucune donnee n'est vendue a des tiers.</p>
+        </div>
+
+        <div class="legal-section">
+          <h2>4. Conservation et securite</h2>
+          <p>
+            Nous conservons vos donnees aussi longtemps que votre compte est actif ou si
+            necessaire pour fournir le service. Des mesures techniques et organisationnelles
+            sont mises en place pour proteger vos donnees.
+          </p>
+        </div>
+
+        <div class="legal-section">
+          <h2>5. Vos droits</h2>
+          <p>Vous pouvez demander :</p>
+          <ul class="legal-list">
+            <li>L'acces a vos donnees.</li>
+            <li>La correction ou la suppression de vos donnees.</li>
+            <li>La desactivation de la connexion Gmail.</li>
+          </ul>
+        </div>
+
+        <div class="legal-section">
+          <h2>6. Contact</h2>
+          <p>
+            Pour toute question ou demande, contactez-nous a :
+            <a class="legal-link" href="mailto:support@relancework.app">support@relancework.app</a>.
+          </p>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

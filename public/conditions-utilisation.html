@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Conditions d'utilisation - RelanceWork</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css" />
+    <style>
+      .legal-header {
+        position: sticky;
+        top: 0;
+        background: var(--nav-bg);
+        border-bottom: 1px solid var(--border);
+        backdrop-filter: blur(12px);
+        z-index: 5;
+      }
+      .legal-header .container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 24px;
+      }
+      .legal-hero {
+        padding: 56px 0 24px;
+      }
+      .legal-title {
+        font-size: clamp(2rem, 4vw, 2.8rem);
+        margin-bottom: 10px;
+      }
+      .legal-subtitle {
+        color: var(--text-secondary);
+        max-width: 720px;
+      }
+      .legal-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: clamp(24px, 3vw, 36px);
+        box-shadow: var(--shadow-sm);
+        margin-bottom: 48px;
+      }
+      .legal-section {
+        margin-top: 24px;
+      }
+      .legal-section h2 {
+        font-size: 1.2rem;
+        margin-bottom: 10px;
+      }
+      .legal-section p {
+        color: var(--text-secondary);
+      }
+      .legal-list {
+        margin: 12px 0 0 0;
+        padding-left: 20px;
+        color: var(--text-secondary);
+      }
+      .legal-meta {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        margin-top: 12px;
+      }
+      .legal-link {
+        text-decoration: none;
+        font-weight: 600;
+        color: var(--primary);
+      }
+      .legal-link:hover {
+        color: var(--primary-dark);
+      }
+    </style>
+  </head>
+  <body>
+    <header class="legal-header">
+      <div class="container">
+        <a href="/" class="logo">
+          <div class="logo-mark">R</div>
+          <span class="logo-text">RelanceWork</span>
+        </a>
+        <a class="btn btn-outline" href="/">Retour a l'accueil</a>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="legal-hero">
+        <h1 class="legal-title">Conditions d'utilisation</h1>
+        <p class="legal-subtitle">
+          En utilisant RelanceWork, vous acceptez les presentes conditions d'utilisation.
+          Si vous n'acceptez pas ces conditions, veuillez ne pas utiliser le service.
+        </p>
+        <div class="legal-meta">Derniere mise a jour : 18 fevrier 2026</div>
+      </section>
+
+      <section class="legal-card">
+        <div class="legal-section">
+          <h2>1. Description du service</h2>
+          <p>
+            RelanceWork est une application qui aide a suivre les candidatures,
+            automatiser les relances et connecter un compte Gmail pour detecter
+            des candidatures.
+          </p>
+        </div>
+
+        <div class="legal-section">
+          <h2>2. Compte utilisateur</h2>
+          <ul class="legal-list">
+            <li>Vous etes responsable de la confidentialite de votre compte.</li>
+            <li>Vous devez fournir des informations exactes et a jour.</li>
+            <li>Vous pouvez supprimer votre compte a tout moment.</li>
+          </ul>
+        </div>
+
+        <div class="legal-section">
+          <h2>3. Utilisation acceptable</h2>
+          <ul class="legal-list">
+            <li>Ne pas utiliser le service a des fins illegales.</li>
+            <li>Ne pas tenter d'acceder a des donnees d'autres utilisateurs.</li>
+            <li>Respecter les politiques Google et les lois applicables.</li>
+          </ul>
+        </div>
+
+        <div class="legal-section">
+          <h2>4. Abonnements et paiements</h2>
+          <p>
+            Les paiements sont geres via Stripe. Les tarifs sont affiches sur la
+            page Tarifs. Vous pouvez annuler a tout moment et votre plan restera
+            actif jusqu'a la fin de la periode en cours.
+          </p>
+        </div>
+
+        <div class="legal-section">
+          <h2>5. Disponibilite et maintenance</h2>
+          <p>
+            Nous faisons notre possible pour assurer la disponibilite du service,
+            mais nous ne garantissons pas un acces ininterrompu.
+          </p>
+        </div>
+
+        <div class="legal-section">
+          <h2>6. Limitation de responsabilite</h2>
+          <p>
+            RelanceWork est fourni "tel quel". Dans les limites autorisees par la loi,
+            nous ne saurions etre tenus responsables des dommages indirects.
+          </p>
+        </div>
+
+        <div class="legal-section">
+          <h2>7. Modifications</h2>
+          <p>
+            Nous pouvons mettre a jour ces conditions. En continuant a utiliser le
+            service, vous acceptez les nouvelles versions.
+          </p>
+        </div>
+
+        <div class="legal-section">
+          <h2>8. Contact</h2>
+          <p>
+            Pour toute question : <a class="legal-link" href="mailto:support@relancework.app">support@relancework.app</a>.
+          </p>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
