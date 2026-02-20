@@ -163,8 +163,6 @@ export class EmailEnrichmentService {
     // Traiter par batch pour respecter les limites de l'API
     for (let i = 0; i < companies.length; i += maxConcurrent) {
       const batch = companies.slice(i, i + maxConcurrent);
-        `🔄 Batch ${Math.floor(i / maxConcurrent) + 1}/${Math.ceil(companies.length / maxConcurrent)}`
-      );
 
       const batchResults = await Promise.all(
         batch.map((company) =>
@@ -181,8 +179,6 @@ export class EmailEnrichmentService {
     }
 
     const totalEmails = results.reduce((sum, r) => sum + r.emails.length, 0);
-      `✅ Total: ${totalEmails} email(s) trouvé(s) pour ${companies.length} entreprises`
-    );
 
     return results;
   }
