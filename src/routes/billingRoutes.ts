@@ -87,8 +87,11 @@ router.post("/webhook", async (req: Request, res: Response) => {
         webhookSecret
       );
     } else {
-      // Mode test sans webhook secret - accepter directement
-      event = req.body as Stripe.Event;
+      // Mode test sans webhook secret — parse le Buffer brut en JSON
+      const bodyStr = Buffer.isBuffer(req.body)
+        ? req.body.toString("utf8")
+        : JSON.stringify(req.body);
+      event = JSON.parse(bodyStr) as Stripe.Event;
     }
 
     await subscriptionService.handleWebhook(event);

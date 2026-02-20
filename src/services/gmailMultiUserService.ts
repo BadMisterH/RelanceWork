@@ -350,19 +350,43 @@ export class GmailMultiUserService {
 
       // Construire le filtre Gmail API
       // Si tracking activé, ne prendre que les emails APRÈS le timestamp
-      const listParams: any = {
+      const epochSeconds = trackingStartedAt
+        ? Math.floor(new Date(trackingStartedAt).getTime() / 1000)
+        : null;
+      const afterQuery = epochSeconds ? `after:${epochSeconds}` : '';
+
+      // 1) Emails envoyés (format manuel "Candidature ...")
+      const sentParams: any = {
         userId: 'me',
         labelIds: ['SENT'],
         maxResults: 10
       };
-
-      if (trackingStartedAt) {
-        const epochSeconds = Math.floor(new Date(trackingStartedAt).getTime() / 1000);
-        listParams.q = `after:${epochSeconds}`;
+      if (afterQuery) {
+        sentParams.q = afterQuery;
       }
 
-      const response = await gmail.users.messages.list(listParams);
-      const messages = response.data.messages || [];
+      // 2) Emails entrants Indeed (confirmation de candidature)
+      const indeedParams: any = {
+        userId: 'me',
+        labelIds: ['INBOX'],
+        maxResults: 10,
+        q: `from:indeed ${afterQuery}`.trim()
+      };
+
+      const [sentResponse, indeedResponse] = await Promise.all([
+        gmail.users.messages.list(sentParams),
+        gmail.users.messages.list(indeedParams)
+      ]);
+
+      const messageMap = new Map<string, any>();
+      (sentResponse.data.messages || []).forEach(msg => {
+        if (msg?.id) messageMap.set(msg.id, msg);
+      });
+      (indeedResponse.data.messages || []).forEach(msg => {
+        if (msg?.id) messageMap.set(msg.id, msg);
+      });
+
+      const messages = Array.from(messageMap.values());
 
 
       // Récupérer les candidatures existantes pour déduplication
@@ -403,10 +427,12 @@ export class GmailMultiUserService {
 
 
           // Ajouter à la base de données avec le user_id
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { company_website: _cw, ...insertData } = emailData;
           await supabase
             .from('applications')
             .insert({
-              ...emailData,
+              ...insertData,
               user_id: userId
             });
 
@@ -429,24 +455,38 @@ export class GmailMultiUserService {
    */
   private parseJobApplicationEmail(message: any): any | null {
     try {
-      const headers = message.payload.headers;
-      const subject = headers.find((h: any) => h.name === 'Subject')?.value || '';
-      const to = headers.find((h: any) => h.name === 'To')?.value || '';
-      const date = headers.find((h: any) => h.name === 'Date')?.value || '';
+      const headers = message.payload?.headers || [];
+      const subject = this.getHeaderValue(headers, 'Subject');
+      const to = this.getHeaderValue(headers, 'To');
+      const from = this.getHeaderValue(headers, 'From');
+      const dateHeader = this.getHeaderValue(headers, 'Date');
+      const bodyText = this.extractBodyText(message.payload);
+      const messageDate = this.formatMessageDate(dateHeader);
+
+      // ✅ Indeed: détecter les confirmations de candidature entrantes
+      const indeedData = this.parseIndeedApplication({
+        subject,
+        from,
+        bodyText,
+        date: messageDate
+      });
+      if (indeedData) {
+        return indeedData;
+      }
 
       // ✅ Pattern 1: "Candidature [Poste] - [Entreprise]"
       const candidaturePattern = /^Candidature\s+(.+?)\s*-\s*(.+)$/i;
       const candidatureMatch = subject.match(candidaturePattern);
 
       if (candidatureMatch) {
-        const poste = candidatureMatch[1].trim();
-        const company = candidatureMatch[2].trim();
+        const poste = (candidatureMatch[1] ?? '').trim();
+        const company = (candidatureMatch[2] ?? '').trim();
 
         return {
           company,
           poste,
           status: 'Candidature envoyée',
-          date: new Date(date).toISOString().split('T')[0],
+          date: messageDate,
           relanced: false,
           email: to,
           user_email: null,
@@ -459,17 +499,18 @@ export class GmailMultiUserService {
       const relanceMatch = subject.match(relancePattern);
 
       if (relanceMatch) {
-        const poste = relanceMatch[1].trim();
+        const poste = (relanceMatch[1] ?? '').trim();
 
         // Extraire l'entreprise depuis le destinataire
         const emailMatch = to.match(/([^@]+)@([^.]+)/);
-        const company = emailMatch ? emailMatch[2].charAt(0).toUpperCase() + emailMatch[2].slice(1) : 'Entreprise';
+        const domainPart = emailMatch?.[2] ?? '';
+        const company = domainPart ? domainPart.charAt(0).toUpperCase() + domainPart.slice(1) : 'Entreprise';
 
         return {
           company,
           poste,
           status: 'Relance envoyée',
-          date: new Date(date).toISOString().split('T')[0],
+          date: messageDate,
           relanced: true,
           email: to,
           user_email: null,
@@ -483,6 +524,173 @@ export class GmailMultiUserService {
       console.error('Error parsing email:', error);
       return null;
     }
+  }
+
+  private getHeaderValue(headers: any[], name: string): string {
+    const header = headers.find((h: any) => h.name?.toLowerCase() === name.toLowerCase());
+    return header?.value || '';
+  }
+
+  private formatMessageDate(dateHeader: string): string {
+    const parsed = dateHeader ? new Date(dateHeader) : new Date();
+    if (Number.isNaN(parsed.getTime())) {
+      return new Date().toISOString().split('T')[0] ?? '';
+    }
+    return parsed.toISOString().split('T')[0] ?? '';
+  }
+
+  private decodeBase64Url(data?: string): string {
+    if (!data) return '';
+    const normalized = data.replace(/-/g, '+').replace(/_/g, '/');
+    const padding = '='.repeat((4 - (normalized.length % 4)) % 4);
+    return Buffer.from(normalized + padding, 'base64').toString('utf8');
+  }
+
+  private stripHtml(html: string): string {
+    return html
+      .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<br\s*\/?>/gi, '\n')
+      .replace(/<\/p>/gi, '\n')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/&nbsp;/gi, ' ')
+      .replace(/&amp;/gi, '&')
+      .replace(/&lt;/gi, '<')
+      .replace(/&gt;/gi, '>')
+      .replace(/&#39;/gi, "'")
+      .replace(/&quot;/gi, '"')
+      .replace(/\r/g, '')
+      .replace(/[ \t]+/g, ' ')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
+  }
+
+  private extractBodyText(payload: any): string {
+    if (!payload) return '';
+
+    const getPartText = (part: any, mime: string): string | null => {
+      if (!part) return null;
+      if (part.mimeType === mime && part.body?.data) {
+        return this.decodeBase64Url(part.body.data);
+      }
+      if (part.parts && Array.isArray(part.parts)) {
+        for (const child of part.parts) {
+          const found = getPartText(child, mime);
+          if (found) return found;
+        }
+      }
+      return null;
+    };
+
+    const plain = getPartText(payload, 'text/plain');
+    if (plain) return plain;
+
+    const html = getPartText(payload, 'text/html');
+    if (html) return this.stripHtml(html);
+
+    if (payload.body?.data) {
+      return this.decodeBase64Url(payload.body.data);
+    }
+
+    return '';
+  }
+
+  private extractUrls(text: string): string[] {
+    if (!text) return [];
+    const matches = text.match(/https?:\/\/[^\s<>"')]+/gi) || [];
+    return matches.map(url => url.replace(/[),.]+$/g, '')).filter(Boolean);
+  }
+
+  private parseIndeedApplication(input: {
+    subject: string;
+    from: string;
+    bodyText: string;
+    date: string;
+  }): any | null {
+    const { subject, from, bodyText, date } = input;
+    const fromLower = (from || '').toLowerCase();
+    const subjectClean = (subject || '')
+      .replace(/^\s*indeed(?:\.com)?\s*[:-]\s*/i, '')
+      .replace(/\s*[-–|]\s*indeed.*$/i, '')
+      .trim();
+
+    const isIndeed = fromLower.includes('indeed') || subjectClean.toLowerCase().includes('indeed');
+    if (!isIndeed) return null;
+
+    const combinedText = `${subjectClean}\n${bodyText || ''}`;
+    const hasApplicationKeyword = /(candidature|application|postul|applied|apply|appliqué|applique)/i.test(combinedText);
+    if (!hasApplicationKeyword) return null;
+
+    let poste = '';
+    let company = '';
+
+    const subjectPatterns: Array<{ regex: RegExp; swap?: boolean }> = [
+      { regex: /(candidature|application)\s*(?:pour|to|for)\s*(?:le\s*poste\s*de\s*)?(.+?)\s*(?:chez|at)\s*(.+)/i },
+      { regex: /(applied|postulé|postule)\s*(?:to|pour|for)\s*(?:the\s*role\s*of\s*)?(.+?)\s*(?:chez|at)\s*(.+)/i },
+      { regex: /(?:chez|at)\s*(.+?)\s*(?:pour|for)\s*(?:le\s*poste\s*de\s*)?(.+)/i, swap: true }
+    ];
+
+    for (const pattern of subjectPatterns) {
+      const match = subjectClean.match(pattern.regex);
+      if (match) {
+        if (pattern.swap) {
+          company = (match[1] || '').trim();
+          poste = (match[2] || '').trim();
+        } else {
+          poste = (match[2] || '').trim();
+          company = (match[3] || '').trim();
+        }
+        break;
+      }
+    }
+
+    if (!poste || !company) {
+      const text = bodyText || '';
+      const posteMatch = text.match(/(?:poste|intitul[ée]\s*du\s*poste|job\s*title|position)\s*[:\-]\s*(.+)/i);
+      const companyMatch = text.match(/(?:entreprise|soci[ée]t[ée]|company)\s*[:\-]\s*(.+)/i);
+      if (!poste && posteMatch) poste = (posteMatch[1] ?? '').trim();
+      if (!company && companyMatch) company = (companyMatch[1] ?? '').trim();
+    }
+
+    if (!poste || !company) {
+      const fallback = combinedText.match(/(?:pour|to|for)\s+(.+?)\s+(?:chez|at)\s+([^\n\r]+)/i);
+      if (fallback) {
+        poste = poste || (fallback[1] ?? '').trim();
+        company = company || (fallback[2] ?? '').trim();
+      }
+    }
+
+    if (!poste || !company) {
+      return null;
+    }
+
+    const website = this.pickWebsite(bodyText);
+
+    return {
+      company,
+      poste,
+      status: 'Candidature envoyée',
+      date,
+      relanced: false,
+      email: null,
+      user_email: null,
+      relance_count: 0,
+      company_website: website
+    };
+  }
+
+  private pickWebsite(text: string): string | null {
+    if (!text) return null;
+    const labeled = text.match(/(?:site\s*web|website)\s*[:\-]\s*(https?:\/\/[^\s<>"')]+)/i);
+    if (labeled && labeled[1]) {
+      return labeled[1].trim();
+    }
+
+    const urls = this.extractUrls(text);
+    if (urls.length === 0) return null;
+
+    const nonIndeed = urls.find(url => !/indeed\./i.test(url));
+    return (nonIndeed || urls[0] || '').trim() || null;
   }
 
   /**
