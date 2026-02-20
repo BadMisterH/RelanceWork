@@ -82,7 +82,7 @@ router.post("/webhook", async (req: Request, res: Response) => {
     if (webhookSecret && sig) {
       // Vérification de la signature en production
       event = stripe.webhooks.constructEvent(
-        (req as any).rawBody || req.body,
+        req.body,
         sig,
         webhookSecret
       );

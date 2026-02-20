@@ -69,6 +69,8 @@ app.use(cors(corsOptions));
 // ============================================
 // MIDDLEWARE
 // ============================================
+// Raw body for Stripe webhook signature verification (must be BEFORE express.json)
+app.use("/api/billing/webhook", express.raw({ type: "application/json" }));
 app.use(express.json({ limit: "10mb" }));
 
 // Health check
