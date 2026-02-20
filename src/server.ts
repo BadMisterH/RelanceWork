@@ -11,4 +11,5 @@ console.log("GMAIL_REDIRECT_URI =", process.env.GMAIL_REDIRECT_URI ?? "(not set)
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running on ${PORT}`);
+  startAutoRelanceService();
 });

@@ -41,11 +41,12 @@ export async function checkAndUpdateRelances(): Promise<number> {
     const today = new Date();
     today.setHours(0, 0, 0, 0); // Normaliser à minuit
 
-    // Récupérer toutes les candidatures non relancées
+    // Récupérer les candidatures non relancées et encore en attente de réponse
     const { data: applications, error } = await supabase
       .from('applications')
       .select('id, date, company, poste, user_email')
-      .eq('relanced', false);
+      .eq('relanced', false)
+      .in('status', ['en attente', 'pas de réponse']);
 
     if (error) {
       console.error("❌ Erreur récupération applications:", error);
