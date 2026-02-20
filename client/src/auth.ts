@@ -349,7 +349,6 @@ loginForm?.addEventListener("submit", async (e) => {
         return;
       }
 
-      console.log("✅ Connexion réussie:", user?.email);
       window.location.href = "/app";
     }
   } catch (error) {
@@ -471,7 +470,6 @@ signupForm?.addEventListener("submit", async (e) => {
     }
 
     const data = await response.json();
-    console.log("✅ Inscription réussie:", data.user?.email);
 
     // Vérifier si vérification email requise
     if (data.emailVerificationRequired) {

@@ -36,7 +36,6 @@ const AUTH_REDIRECT_URL = buildFrontendUrl(
   FRONTEND_URL_SAFE
 );
 if (process.env.NODE_ENV !== "test") {
-  console.log(`[auth] Redirect URL: ${AUTH_REDIRECT_URL}`);
 }
 
 // Force le redirect_to dans le lien Supabase pour pointer vers notre page auth
@@ -136,7 +135,6 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
 
     // Envoyer l'email de vérification via Brevo
     const verificationLink = fixRedirectUrl(linkData.properties.action_link);
-    console.log(`🔗 Lien de vérification généré pour ${email}:`, verificationLink);
     const emailSent = await sendVerificationEmail(
       email.toLowerCase(),
       verificationLink,
@@ -253,7 +251,6 @@ export const forgotPassword = async (
 
     if (linkData?.properties?.action_link) {
       const resetLink = fixRedirectUrl(linkData.properties.action_link);
-      console.log(`🔗 Lien de reset généré pour ${email}:`, resetLink);
       const emailSent = await sendPasswordResetEmail(
         email.toLowerCase(),
         resetLink
@@ -307,7 +304,6 @@ export const resendVerification = async (
     }
 
     const magicLink = fixRedirectUrl(linkData.properties.action_link);
-    console.log(`🔗 Lien magiclink généré pour ${email}:`, magicLink);
     const emailSent = await sendVerificationEmail(
       email.toLowerCase(),
       magicLink,

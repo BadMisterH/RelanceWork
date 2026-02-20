@@ -20,7 +20,6 @@ router.post("/enrich", authenticateToken, async (req: Request, res: Response) =>
       return res.status(400).json({ error: "L'URL du site web est requise" });
     }
 
-    console.log(`🔍 Enrichissement entreprise: ${url}`);
 
     const result = await enrichCompany(url);
 

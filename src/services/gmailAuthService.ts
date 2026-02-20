@@ -27,7 +27,6 @@ function assertRedirectUriAllowed(redirectUri: string): void {
 
 function logRedirectUri(source: string, redirectUri: string): void {
   if (process.env.NODE_ENV === 'test') return;
-  console.log(`[gmail] Redirect URI (${source}): ${redirectUri}`);
 }
 
 export interface GmailCredentials {
@@ -70,7 +69,6 @@ export class GmailAuthService {
           client_secret: envClientSecret,
           redirect_uri: envRedirectUri
         };
-        console.log('✅ Gmail credentials loaded from environment');
         logRedirectUri('env', envRedirectUri);
         return;
       }
@@ -100,9 +98,7 @@ export class GmailAuthService {
           assertRedirectUriAllowed(this.credentials.redirect_uri);
           logRedirectUri('file', this.credentials.redirect_uri);
         }
-        console.log('✅ Gmail credentials loaded successfully');
       } else {
-        console.log('⚠️  Gmail credentials file not found. Please run the setup first.');
       }
     } catch (error) {
       console.error('❌ Error loading Gmail credentials:', error);
@@ -117,7 +113,6 @@ export class GmailAuthService {
       if (fs.existsSync(TOKEN_PATH)) {
         const token = fs.readFileSync(TOKEN_PATH, 'utf-8');
         this.oauth2Client.setCredentials(JSON.parse(token));
-        console.log('✅ Gmail token loaded successfully');
       }
     } catch (error) {
       console.error('❌ Error loading Gmail token:', error);
@@ -134,7 +129,6 @@ export class GmailAuthService {
         fs.mkdirSync(dataDir, { recursive: true });
       }
       fs.writeFileSync(TOKEN_PATH, JSON.stringify(token, null, 2));
-      console.log('✅ Gmail token saved successfully');
     } catch (error) {
       console.error('❌ Error saving Gmail token:', error);
     }
@@ -152,7 +146,6 @@ export class GmailAuthService {
         return null;
       }
 
-      console.log('✅ Gmail token loaded from Supabase');
       return data.token_json;
     } catch (error) {
       console.error('❌ Error loading Gmail token from Supabase:', error);
@@ -177,7 +170,6 @@ export class GmailAuthService {
         throw error;
       }
 
-      console.log('✅ Gmail token saved to Supabase');
     } catch (error) {
       console.error('❌ Error saving Gmail token to Supabase:', error);
     }
@@ -221,7 +213,6 @@ export class GmailAuthService {
       fs.mkdirSync(dataDir, { recursive: true });
     }
     fs.writeFileSync(CREDENTIALS_PATH, JSON.stringify(credentials, null, 2));
-    console.log('✅ Gmail credentials configured');
   }
 
   /**
@@ -275,11 +266,9 @@ export class GmailAuthService {
     try {
       const credentials = this.oauth2Client.credentials;
       if (credentials.expiry_date && credentials.expiry_date < Date.now()) {
-        console.log('🔄 Refreshing expired token...');
         const { credentials: newCredentials } = await this.oauth2Client.refreshAccessToken();
         this.oauth2Client.setCredentials(newCredentials);
         await this.saveToken(newCredentials);
-        console.log('✅ Token refreshed successfully');
       }
     } catch (error) {
       console.error('❌ Error refreshing token:', error);

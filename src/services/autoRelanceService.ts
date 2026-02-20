@@ -90,16 +90,12 @@ export async function checkAndUpdateRelances(): Promise<number> {
         });
 
         totalRelanced++;
-        console.log(
-          `📧 Auto-relance: ${app.company} - ${app.poste} (${daysPassed} jours écoulés) -> ${userEmail}`
-        );
       }
     }
 
     // Envoyer un email à chaque utilisateur avec ses candidatures à relancer
     for (const [userEmail, apps] of applicationsByUser) {
       if (apps.length > 0 && userEmail !== "default") {
-        console.log(`✅ ${apps.length} candidature(s) à relancer pour ${userEmail}`);
         await sendRelanceReminder(apps, userEmail);
       }
     }
@@ -115,15 +111,12 @@ export async function checkAndUpdateRelances(): Promise<number> {
  * Démarre le service de vérification automatique
  */
 export function startAutoRelanceService(): void {
-  console.log("🔄 Service auto-relance démarré (vérification toutes les heures)");
-  console.log(`⏰ Délai de relance configuré: ${DAYS_BEFORE_RELANCE} jours`);
 
   // Vérification immédiate au démarrage
   checkAndUpdateRelances().catch(console.error);
 
   // Puis vérification périodique
   setInterval(() => {
-    console.log("🔄 Vérification automatique des relances...");
     checkAndUpdateRelances().catch(console.error);
   }, CHECK_INTERVAL);
 }

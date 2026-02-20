@@ -62,7 +62,6 @@ export class MapsSearch {
       const response = await api.get('/favorites');
       const favoritePlaceIds = response.data.map((fav: any) => fav.placeId);
       this.favorites = new Set(favoritePlaceIds);
-      console.log(`✅ ${this.favorites.size} favoris chargés depuis le backend`);
 
       // Sauvegarder dans localStorage pour synchro locale
       this.saveFavorites();
@@ -74,7 +73,6 @@ export class MapsSearch {
         const saved = localStorage.getItem(this.STORAGE_KEY);
         if (saved) {
           this.favorites = new Set(JSON.parse(saved));
-          console.log(`✅ ${this.favorites.size} favoris chargés depuis localStorage (fallback)`);
         }
       } catch (e) {
         console.error('Erreur lors du chargement des favoris depuis localStorage:', e);
@@ -89,7 +87,6 @@ export class MapsSearch {
   private saveFavorites() {
     try {
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify([...this.favorites]));
-      console.log(`💾 ${this.favorites.size} favoris sauvegardés`);
     } catch (error) {
       console.error('Erreur lors de la sauvegarde des favoris:', error);
     }
@@ -100,24 +97,20 @@ export class MapsSearch {
    */
   private cacheBusinessData() {
     try {
-      console.log(`💾 Mise en cache de ${this.currentResults.length} résultats actuels`);
 
       // Charger le cache existant
       const existingCache = localStorage.getItem(this.CACHE_KEY);
       let cachedBusinesses: BusinessPlace[] = existingCache ? JSON.parse(existingCache) : [];
 
-      console.log(`💾 Cache existant: ${cachedBusinesses.length} entreprises`);
 
       // Fusionner les nouvelles données avec le cache existant
       this.currentResults.forEach(business => {
         const existingIndex = cachedBusinesses.findIndex(b => b.placeId === business.placeId);
         if (existingIndex >= 0) {
           // Mettre à jour l'entrée existante
-          console.log(`♻️ Mise à jour du cache pour: ${business.name} (${business.placeId})`);
           cachedBusinesses[existingIndex] = business;
         } else {
           // Ajouter nouvelle entrée
-          console.log(`➕ Ajout au cache: ${business.name} (${business.placeId})`);
           cachedBusinesses.push(business);
         }
       });
@@ -128,7 +121,6 @@ export class MapsSearch {
       }
 
       localStorage.setItem(this.CACHE_KEY, JSON.stringify(cachedBusinesses));
-      console.log(`✅ ${cachedBusinesses.length} entreprises en cache total`);
     } catch (error) {
       console.error('Erreur lors de la mise en cache des entreprises:', error);
     }
@@ -152,7 +144,6 @@ export class MapsSearch {
         await api.delete(`/favorites/${placeId}`);
         this.favorites.delete(placeId);
         business.isFavorite = false;
-        console.log(`💔 Retiré des favoris (backend): ${placeId}`);
       } else {
         // Ajouter au backend
         await api.post('/favorites', {
@@ -161,7 +152,6 @@ export class MapsSearch {
         });
         this.favorites.add(placeId);
         business.isFavorite = true;
-        console.log(`❤️ Ajouté aux favoris (backend): ${placeId}`);
       }
 
       // Mettre à jour localStorage pour synchro locale
@@ -169,7 +159,6 @@ export class MapsSearch {
 
       // Forcer la mise en cache immédiate quand un favori est ajouté
       if (wasAdded && this.currentResults.length > 0) {
-        console.log('💾 Mise en cache forcée après ajout favori');
         this.cacheBusinessData();
       }
 
@@ -194,7 +183,6 @@ export class MapsSearch {
     this.mapsErrorMessage = null;
     this.updateMapsAvailabilityUI();
     this.initMap();
-    console.log('Google Maps initialisé et prêt');
     // La recherche automatique sera lancée quand le modal s'ouvre
   }
 
@@ -314,7 +302,6 @@ export class MapsSearch {
   }
 
   private initMap() {
-    console.log('Initialisation de la carte Google Maps...');
     const mapElement = document.getElementById("map");
     if (!mapElement) {
       console.error('❌ Element "map" non trouvé dans le DOM');
@@ -335,12 +322,10 @@ export class MapsSearch {
     this.service = new google.maps.places.PlacesService(this.map);
     this.infoWindow = new google.maps.InfoWindow();
 
-    console.log('✅ Carte, service Places et InfoWindow initialisés');
   }
 
   // Détecter la localisation de l'utilisateur et lancer la recherche automatique
   private async startAutoSearch() {
-    console.log("🚀 Démarrage de la recherche automatique...");
 
     // Vérifier la limite de recherche
     const allowed = await this.checkSearchLimit();
@@ -348,7 +333,6 @@ export class MapsSearch {
 
     // Demander la géolocalisation
     if (navigator.geolocation) {
-      console.log('Demande de géolocalisation...');
       navigator.geolocation.getCurrentPosition(
         (position) => {
           this.userLocation = {
@@ -356,13 +340,11 @@ export class MapsSearch {
             lng: position.coords.longitude,
           };
 
-          console.log('✅ Position obtenue:', this.userLocation);
 
           // Centrer la carte sur la position de l'utilisateur
           if (this.map) {
             this.map.setCenter(this.userLocation);
             this.map.setZoom(14);
-            console.log('Carte centrée sur la position utilisateur');
           }
 
           // Lancer la recherche automatique
@@ -370,7 +352,6 @@ export class MapsSearch {
         },
         (error) => {
           console.warn("⚠️ Géolocalisation refusée:", error.message);
-          console.log("Utilisation de la position par défaut (Paris)");
           // Utiliser Paris par défaut
           this.userLocation = { lat: 48.8566, lng: 2.3522 };
           if (this.map) {
@@ -393,7 +374,6 @@ export class MapsSearch {
 
   // Effectuer la recherche automatique avec textSearch ciblé tech/web
   private async performAutoSearch() {
-    console.log('performAutoSearch appelé', {
       googleMapsLoaded: this.googleMapsLoaded,
       service: !!this.service,
       map: !!this.map,
@@ -417,7 +397,6 @@ export class MapsSearch {
       `;
     }
 
-    console.log(`🎯 Recherche ciblée sur ${this.techSearchQueries.length} catégories tech/web`);
 
     try {
       const allResults: google.maps.places.PlaceResult[] = [];
@@ -427,7 +406,6 @@ export class MapsSearch {
 
       for (let i = 0; i < queriesToSearch.length; i++) {
         const query = queriesToSearch[i]!;
-        console.log(`🔍 Recherche ${i + 1}/${queriesToSearch.length}: "${query}"`);
 
         if (resultsContainer) {
           resultsContainer.innerHTML = `
@@ -441,7 +419,6 @@ export class MapsSearch {
         }
 
         const queryResults = await this.textSearchWithLocation(query);
-        console.log(`  ✅ ${queryResults.length} résultats pour "${query}"`);
 
         // Ajouter les résultats en évitant les doublons (par place_id)
         const existingIds = new Set(allResults.map(r => r.place_id));
@@ -454,7 +431,6 @@ export class MapsSearch {
         }
       }
 
-      console.log(`✅ Total: ${allResults.length} entreprises tech/web trouvées`);
 
       // Incrémenter le compteur de recherche
       await this.trackSearch();
@@ -530,7 +506,6 @@ export class MapsSearch {
 
     if (quickSearchBtn && modal) {
       quickSearchBtn.addEventListener("click", () => {
-        console.log('Ouverture du modal de recherche');
         modal.classList.add("active");
 
         if (this.mapsErrorMessage) {
@@ -544,10 +519,8 @@ export class MapsSearch {
 
         // Déclencher la recherche automatique quand le modal s'ouvre
         if (this.googleMapsLoaded && !this.userLocation) {
-          console.log('Lancement de la recherche automatique...');
           this.startAutoSearch();
         } else if (this.userLocation && this.currentResults.length === 0) {
-          console.log('Position déjà connue, relancement de la recherche...');
           this.startAutoSearch();
         }
       });
@@ -641,7 +614,6 @@ export class MapsSearch {
   }
 
   private async searchPlaces(query: string) {
-    console.log('🔍 Recherche manuelle:', query);
 
     // Vérifier la limite de recherche
     const allowed = await this.checkSearchLimit();
@@ -681,13 +653,10 @@ export class MapsSearch {
       // Optionnel: ajouter une localisation
     };
 
-    console.log('Lancement textSearch avec:', request);
 
     this.service.textSearch(request, (results, status) => {
-      console.log('textSearch réponse:', { status, resultCount: results?.length });
 
       if (status === google.maps.places.PlacesServiceStatus.OK && results) {
-        console.log(`✅ ${results.length} résultats trouvés pour "${query}"`);
         this.trackSearch();
         this.handleSearchResults(results);
       } else {
@@ -710,7 +679,6 @@ export class MapsSearch {
   }
 
   private async handleSearchResults(results: google.maps.places.PlaceResult[]) {
-    console.log(`📋 Traitement de ${results.length} résultats...`);
 
     // Nettoyer les marqueurs précédents
     this.clearMarkers();
@@ -719,17 +687,14 @@ export class MapsSearch {
     this.currentResults = [];
 
     // Traiter chaque résultat pour obtenir les détails
-    console.log('Récupération des détails pour chaque entreprise...');
     const detailPromises = results.map((result) => this.getPlaceDetails(result.place_id!));
     const detailedResults = await Promise.all(detailPromises);
 
     // Filtrer les résultats null
     this.currentResults = detailedResults.filter((r) => r !== null) as BusinessPlace[];
-    console.log(`✅ ${this.currentResults.length} entreprises avec détails récupérés`);
 
     // Log du nombre d'entreprises sans site web
     const noWebsiteCount = this.currentResults.filter(r => !r.website).length;
-    console.log(`📊 Entreprises sans site web: ${noWebsiteCount}/${this.currentResults.length}`);
 
     // Appliquer les filtres
     this.applyFilters();
@@ -741,7 +706,6 @@ export class MapsSearch {
         bounds.extend(new google.maps.LatLng(result.location.lat, result.location.lng));
       });
       this.map?.fitBounds(bounds);
-      console.log('Carte ajustée pour afficher tous les résultats');
     }
   }
 
@@ -797,7 +761,6 @@ export class MapsSearch {
     const filterWithEmail = document.getElementById("filterWithEmail") as HTMLInputElement;
     const filterFavorites = document.getElementById("filterFavorites") as HTMLInputElement;
 
-    console.log('🔍 Application des filtres:', {
       filterNoWebsite: filterNoWebsite?.checked,
       filterNoEmail: filterNoEmail?.checked,
       filterWithEmail: filterWithEmail?.checked,
@@ -809,30 +772,24 @@ export class MapsSearch {
 
     if (filterNoWebsite?.checked) {
       filteredResults = filteredResults.filter((r) => !r.website);
-      console.log(`Filtre sans site web: ${filteredResults.length} résultats`);
     }
 
     if (filterNoEmail?.checked) {
       filteredResults = filteredResults.filter((r) => !r.email);
-      console.log(`Filtre sans email: ${filteredResults.length} résultats`);
     }
 
     if (filterWithEmail?.checked) {
       filteredResults = filteredResults.filter((r) => r.email);
-      console.log(`Filtre avec email: ${filteredResults.length} résultats`);
     }
 
     if (filterFavorites?.checked) {
       filteredResults = filteredResults.filter((r) => this.favorites.has(r.placeId));
-      console.log(`Filtre favoris: ${filteredResults.length} résultats`);
     }
 
-    console.log(`📊 Résultats après filtres: ${filteredResults.length}`);
     this.displayResults(filteredResults);
   }
 
   private displayResults(results: BusinessPlace[]) {
-    console.log(`🎨 Affichage de ${results.length} résultats`);
 
     // Mettre en cache les données pour la page favoris
     this.cacheBusinessData();
@@ -850,7 +807,6 @@ export class MapsSearch {
     }
 
     if (results.length === 0) {
-      console.log('Aucun résultat à afficher');
       resultsContainer.innerHTML = `
         <div class="panel-empty-state">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -864,7 +820,6 @@ export class MapsSearch {
       return;
     }
 
-    console.log('Génération du HTML pour les résultats...');
 
     // Nettoyer les marqueurs et en créer de nouveaux
     this.clearMarkers();
@@ -1050,7 +1005,6 @@ export class MapsSearch {
       return;
     }
 
-    console.log(`🤖 Enrichissement de ${businessesWithoutEmail.length} entreprises avec Hyperbrowser...`);
 
     // Mettre à jour le bouton pour afficher l'état de chargement
     const enrichBtn = document.getElementById("btnEnrichEmails");
@@ -1081,7 +1035,6 @@ export class MapsSearch {
       });
 
       const data = response.data;
-      console.log("📧 Résultats Hyperbrowser:", data);
 
       // Mettre à jour les résultats avec les emails trouvés
       let emailsFound = 0;
@@ -1094,7 +1047,6 @@ export class MapsSearch {
         }
       });
 
-      console.log(`✅ ${emailsFound} email(s) trouvé(s) sur ${businessesWithoutEmail.length} entreprises`);
 
       // Mettre à jour le cache avec les nouveaux emails
       this.cacheBusinessData();

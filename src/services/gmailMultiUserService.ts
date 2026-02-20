@@ -45,7 +45,6 @@ export class GmailMultiUserService {
     if (process.env.NODE_ENV === 'test') return;
     const redirectUri = process.env.GMAIL_REDIRECT_URI;
     if (redirectUri) {
-      console.log(`[gmail] Redirect URI (env): ${redirectUri}`);
     } else {
       console.warn('[gmail] GMAIL_REDIRECT_URI is not set');
     }
@@ -61,7 +60,6 @@ export class GmailMultiUserService {
     }
     assertRedirectUriAllowed(redirectUri);
     if (!this.hasLoggedRedirectUri && process.env.NODE_ENV !== 'test') {
-      console.log(`[gmail] Redirect URI: ${redirectUri}`);
       this.hasLoggedRedirectUri = true;
     }
     return redirectUri;
@@ -146,7 +144,6 @@ export class GmailMultiUserService {
       throw new Error(`Failed to store Gmail tokens: ${error.message}`);
     }
 
-    console.log(`✅ Gmail connected for user ${userId}: ${gmailEmail}`);
   }
 
   /**
@@ -199,7 +196,6 @@ export class GmailMultiUserService {
           })
           .eq('user_id', userId);
 
-        console.log(`🔄 Refreshed Gmail token for user ${userId}`);
       }
     });
 
@@ -229,7 +225,6 @@ export class GmailMultiUserService {
     // Lancer le polling automatique
     this.startPollingForUser(userId);
 
-    console.log(`▶️ Tracking started for user ${userId} at ${startedAt}`);
     return startedAt;
   }
 
@@ -251,7 +246,6 @@ export class GmailMultiUserService {
 
     // Supprimer du cache
     this.oauth2Clients.delete(userId);
-    console.log(`⏹️ Tracking stopped for user ${userId}`);
   }
 
   /**
@@ -268,7 +262,6 @@ export class GmailMultiUserService {
       this.processedMessageIds.set(userId, new Set());
     }
 
-    console.log(`🔄 Starting auto-polling for user ${userId} (every ${POLLING_INTERVAL / 1000}s)`);
 
     const interval = setInterval(async () => {
       try {
@@ -277,7 +270,6 @@ export class GmailMultiUserService {
         console.error(`❌ Polling error for user ${userId}:`, error.message);
         // Arrêter si erreur d'auth
         if (error.message.includes('invalid_grant') || error.message.includes('Token')) {
-          console.log(`🔐 Auth error - stopping polling for user ${userId}`);
           this.stopPollingForUser(userId);
         }
       }
@@ -295,7 +287,6 @@ export class GmailMultiUserService {
       clearInterval(interval);
       this.pollingIntervals.delete(userId);
       this.processedMessageIds.delete(userId);
-      console.log(`⏹️ Polling stopped for user ${userId}`);
     }
   }
 
@@ -311,16 +302,13 @@ export class GmailMultiUserService {
         .not('tracking_started_at', 'is', null);
 
       if (!activeUsers || activeUsers.length === 0) {
-        console.log('📭 No active tracking to resume');
         return;
       }
 
       for (const row of activeUsers) {
-        console.log(`🔄 Resuming tracking for user ${row.user_id}`);
         this.startPollingForUser(row.user_id);
       }
 
-      console.log(`✅ Resumed polling for ${activeUsers.length} user(s)`);
     } catch (error: any) {
       console.error('❌ Error resuming active tracking:', error.message);
     }
@@ -371,13 +359,11 @@ export class GmailMultiUserService {
       if (trackingStartedAt) {
         const epochSeconds = Math.floor(new Date(trackingStartedAt).getTime() / 1000);
         listParams.q = `after:${epochSeconds}`;
-        console.log(`🔍 Filtering emails after ${trackingStartedAt} (epoch: ${epochSeconds})`);
       }
 
       const response = await gmail.users.messages.list(listParams);
       const messages = response.data.messages || [];
 
-      console.log(`📬 Found ${messages.length} sent emails for user ${userId}${trackingStartedAt ? ' (filtered)' : ''}`);
 
       // Récupérer les candidatures existantes pour déduplication
       const { data: existingApps } = await supabase
@@ -412,11 +398,9 @@ export class GmailMultiUserService {
           const key = `${(emailData.email || '').toLowerCase()}|${(emailData.poste || '').toLowerCase()}|${(emailData.company || '').toLowerCase()}`;
 
           if (existingKeys.has(key)) {
-            console.log(`⏭️ Duplicate skipped: ${emailData.company} - ${emailData.poste}`);
             continue;
           }
 
-          console.log(`✨ Job application detected for user ${userId}:`, emailData.company);
 
           // Ajouter à la base de données avec le user_id
           await supabase
@@ -428,11 +412,9 @@ export class GmailMultiUserService {
 
           existingKeys.add(key);
           addedCount++;
-          console.log(`✅ Application added for user ${userId}`);
         }
       }
 
-      console.log(`📊 Scan complete: ${addedCount} new application(s) added for user ${userId}`);
     } catch (error: any) {
       console.error(`❌ Error checking emails for user ${userId}:`, error.message);
       throw error;
@@ -496,7 +478,6 @@ export class GmailMultiUserService {
       }
 
       // ❌ Format non reconnu
-      console.log(`Format d'objet non reconnu: "${subject}"`);
       return null;
     } catch (error) {
       console.error('Error parsing email:', error);
@@ -544,7 +525,6 @@ export class GmailMultiUserService {
       requestBody: { raw: encodedMessage },
     });
 
-    console.log(`📧 Email envoyé via Gmail pour user ${userId}: ${result.data.id}`);
     return { success: true, messageId: result.data.id! };
   }
 
@@ -568,7 +548,6 @@ export class GmailMultiUserService {
     // Supprimer du cache
     this.oauth2Clients.delete(userId);
 
-    console.log(`✅ Gmail disconnected for user ${userId}`);
   }
 
   /**

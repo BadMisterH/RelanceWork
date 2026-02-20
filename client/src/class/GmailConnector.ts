@@ -296,7 +296,6 @@ export class GmailConnector {
    */
   private startPolling() {
     this.stopPolling();
-    console.log('🔄 Polling Gmail démarré (toutes les 60s)');
     this.pollingInterval = setInterval(() => {
       this.checkEmails(true);
     }, GmailConnector.POLLING_DELAY);
@@ -309,7 +308,6 @@ export class GmailConnector {
     if (this.pollingInterval) {
       clearInterval(this.pollingInterval);
       this.pollingInterval = null;
-      console.log('⏹️ Polling Gmail arrêté');
     }
   }
 

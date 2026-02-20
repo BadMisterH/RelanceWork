@@ -18,7 +18,6 @@ router.post("/find-email", async (req: Request, res: Response) => {
       });
     }
 
-    console.log(`📥 Requête de recherche d'email pour: ${companyName}`);
 
     const enrichmentService = getEmailEnrichmentService();
     const result = await enrichmentService.findCompanyEmails(companyName, domain);
@@ -51,7 +50,6 @@ router.post("/find-emails-batch", async (req: Request, res: Response) => {
       });
     }
 
-    console.log(`📥 Requête de recherche batch pour ${companies.length} entreprises`);
 
     const enrichmentService = getEmailEnrichmentService();
     const results = await enrichmentService.findMultipleCompanyEmails(

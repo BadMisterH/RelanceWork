@@ -137,7 +137,6 @@ export class SubscriptionService {
           ).toISOString(),
         });
 
-        console.log(`💳 User ${userId} upgraded to Pro!`);
         break;
       }
 
@@ -188,7 +187,6 @@ export class SubscriptionService {
             .update({ plan: "free", status: "canceled" })
             .eq("user_id", data.user_id);
 
-          console.log(`📉 User ${data.user_id} downgraded to Free`);
         }
         break;
       }

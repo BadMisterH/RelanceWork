@@ -82,13 +82,11 @@ export class GmailWatchService {
    */
   private initializeGmail(): void {
     if (!gmailAuthService.isAuthenticated()) {
-      console.log('⚠️  Gmail not authenticated yet. Please authenticate first.');
       return;
     }
 
     const auth = gmailAuthService.getOAuth2Client();
     this.gmail = google.gmail({ version: 'v1', auth });
-    console.log('✅ Gmail API client initialized');
   }
 
   private async ensureGmailClient(): Promise<void> {
@@ -101,7 +99,6 @@ export class GmailWatchService {
 
     const auth = gmailAuthService.getOAuth2Client();
     this.gmail = google.gmail({ version: 'v1', auth });
-    console.log('✅ Gmail API client initialized');
   }
 
   /**
@@ -121,8 +118,6 @@ export class GmailWatchService {
         }
       });
 
-      console.log('✅ Gmail watch enabled:', response.data);
-      console.log(`📧 Watching for sent emails. Expires at: ${new Date(parseInt(response.data.expiration)).toLocaleString()}`);
 
       // Renouveler automatiquement avant expiration (tous les 6 jours, watch expire après 7 jours)
       this.scheduleWatchRenewal(topicName);
@@ -131,7 +126,6 @@ export class GmailWatchService {
     } catch (error: any) {
       console.error('❌ Error setting up Gmail watch:', error.message);
       if (error.message.includes('Precondition check failed')) {
-        console.log('💡 Tip: Make sure the Pub/Sub topic exists and Gmail has publish permissions.');
       }
       throw error;
     }
@@ -148,7 +142,6 @@ export class GmailWatchService {
     // Renouveler tous les 6 jours (watch expire après 7 jours)
     const sixDaysInMs = 6 * 24 * 60 * 60 * 1000;
     this.watchRenewalInterval = setInterval(() => {
-      console.log('🔄 Renewing Gmail watch...');
       this.setupWatch(topicName).catch(error => {
         console.error('❌ Failed to renew watch:', error);
       });
@@ -171,7 +164,6 @@ export class GmailWatchService {
         userId: 'me'
       });
 
-      console.log('✅ Gmail watch stopped');
     } catch (error) {
       console.error('❌ Error stopping Gmail watch:', error);
       throw error;
@@ -231,29 +223,22 @@ export class GmailWatchService {
    */
   public async processEmail(messageId: string): Promise<EmailData | null> {
     try {
-      console.log(`📧 Processing email ${messageId}...`);
 
       const message = await this.getMessage(messageId);
       const emailInfo = this.extractEmailInfo(message);
 
       if (!emailInfo) {
-        console.log('⚠️  Could not extract email info');
         return null;
       }
 
-      console.log('📝 Subject:', emailInfo.subject);
-      console.log('👤 From:', emailInfo.from);
-      console.log('📧 To:', emailInfo.to);
 
       // Parser le sujet
       const parsed = parseEmailSubject(emailInfo.subject);
 
       if (!parsed) {
-        console.log('ℹ️  Email ignored (format not recognized)');
         return null;
       }
 
-      console.log('✨ Application detected:', parsed);
 
       // Ajouter les emails
       const recipientEmail = this.extractEmailAddress(emailInfo.to);

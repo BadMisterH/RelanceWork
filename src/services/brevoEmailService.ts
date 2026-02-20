@@ -17,7 +17,6 @@ async function sendEmail({ to, subject, html }: SendEmailOptions): Promise<boole
     return false;
   }
 
-  console.log(`📧 Tentative d'envoi email Brevo à ${to} (sender: ${SENDER_EMAIL})`);
 
   try {
     const response = await axios.post(
@@ -35,7 +34,6 @@ async function sendEmail({ to, subject, html }: SendEmailOptions): Promise<boole
         },
       }
     );
-    console.log(`✅ Email envoyé avec succès à ${to} — messageId: ${response.data?.messageId || "N/A"}`);
     return true;
   } catch (error: any) {
     const errData = error.response?.data;

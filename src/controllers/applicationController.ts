@@ -38,7 +38,6 @@ export const getAllApplications = async (req: Request, res: Response): Promise<v
 // POST /application - Créer une nouvelle application
 export const createApplication = async (req: Request, res: Response): Promise<void> => {
   try {
-    console.log('📥 Requête POST reçue:', JSON.stringify(req.body, null, 2));
 
     const { company, poste, status, email, isRelance, userEmail, company_website } = req.body;
 
@@ -66,7 +65,6 @@ export const createApplication = async (req: Request, res: Response): Promise<vo
     const year = today.getFullYear();
     const date = `${day}/${month}/${year}`;
 
-    console.log('📝 Données à insérer:', { company, poste, status, date, email, isRelance, userEmail, userId });
 
     // Convertir isRelance en BOOLEAN (au lieu de INTEGER)
     const relancedValue = isRelance ? true : false;
@@ -94,7 +92,6 @@ export const createApplication = async (req: Request, res: Response): Promise<vo
       return;
     }
 
-    console.log(`✅ Application créée:`, newApplication);
 
     res.status(201).json({
       message: "Application créée avec succès",
@@ -205,7 +202,6 @@ export const sendRelance = async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
-    console.log(`📧 Relance envoyée pour candidature #${id} - Total relances: ${newCount}`);
 
     res.json({
       message: `Relance #${newCount} enregistrée`,
@@ -260,7 +256,6 @@ export const updateApplicationStatus = async (req: Request, res: Response): Prom
       return;
     }
 
-    console.log(`✅ Statut mis à jour pour candidature #${id}: ${status}`);
 
     res.json({
       message: "Statut mis à jour avec succès",
@@ -353,7 +348,6 @@ export const addApplication = async (data: {
     const year = today.getFullYear();
     const date = `${day}/${month}/${year}`;
 
-    console.log('📝 Adding application:', { company, poste, status, date, email, isRelance, userEmail, userId });
 
     // Convertir isRelance en BOOLEAN
     const relancedValue = isRelance ? true : false;
@@ -379,7 +373,6 @@ export const addApplication = async (data: {
       throw error;
     }
 
-    console.log(`✅ Application created:`, newApplication);
 
     return newApplication;
   } catch (error) {

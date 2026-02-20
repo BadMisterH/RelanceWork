@@ -49,7 +49,6 @@ Connectez-vous à RelanceWork pour envoyer vos relances.
 Bonne chance dans vos recherches !`,
     });
 
-    console.log(`📧 Email envoyé à ${recipientEmail}`);
     return true;
   } catch (error) {
     console.error("❌ Erreur envoi email:", error);

@@ -183,8 +183,6 @@ router.get('/auth/callback', async (req: Request, res: Response) => {
       </html>
     `);
 
-    console.log('✅ Gmail authentication successful!');
-    console.log('💡 Next step: Setup Gmail watch with: POST /api/gmail/watch/setup');
   } catch (error: any) {
     console.error('Error in OAuth callback:', error);
     res.status(500).send(`
@@ -348,24 +346,20 @@ router.post('/watch/stop', async (req: Request, res: Response) => {
  */
 router.post('/webhook', async (req: Request, res: Response) => {
   try {
-    console.log('📬 Received Gmail notification');
 
     // Vérifier si c'est un message Pub/Sub valide
     const message = req.body.message;
     if (!message || !message.data) {
-      console.log('⚠️  Invalid Pub/Sub message format');
       return res.status(400).json({ error: 'Invalid message format' });
     }
 
     // Décoder les données Pub/Sub
     const data = JSON.parse(Buffer.from(message.data, 'base64').toString());
-    console.log('📧 Notification data:', data);
 
     // Gmail envoie l'historyId et l'emailAddress
     const { historyId, emailAddress } = data;
 
     if (historyId) {
-      console.log(`🔍 Processing history from ID: ${historyId}`);
 
       // Récupérer les messages récents dans le dossier SENT
       const recentEmails = await gmailWatchService.listRecentSentEmails(5);
@@ -376,9 +370,7 @@ router.post('/webhook', async (req: Request, res: Response) => {
 
         if (emailData) {
           // Ajouter à la base de données
-          console.log('💾 Adding application to database:', emailData);
           await addApplication(emailData);
-          console.log('✅ Application added successfully');
         }
       }
     }

@@ -252,7 +252,6 @@ router.get('/callback', async (req: Request, res: Response) => {
       })
     );
 
-    console.log(`✅ Gmail connected successfully for user ${userId}`);
   } catch (error: any) {
     console.error('Error in OAuth callback:', error);
     res.status(500).send(

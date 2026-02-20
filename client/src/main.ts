@@ -142,7 +142,6 @@ async function checkAuth() {
       return false;
     }
 
-    console.log("✅ Utilisateur authentifié:", session.user.email);
 
     // Afficher les infos utilisateur dans le header
     updateUserProfile(session.user);
@@ -209,7 +208,6 @@ async function checkBillingStatus() {
       applications: result.data.limits.applications,
       searches: result.data.limits.searches,
     };
-    console.log(`💳 Plan: ${userPlan}`, planLimits);
     renderPlanBadge();
     renderUpgradeBanner();
   } catch (error) {
@@ -289,11 +287,9 @@ async function handleUpgrade() {
 
 async function GetAllDataPost() {
   try {
-    console.log("📡 Chargement des candidatures...");
 
     const result = await api.get<Application[]>('/applications');
 
-    console.log("✅ Candidatures reçues:", result.data.length, "items");
 
     currentApplications = result.data;
 
@@ -484,14 +480,12 @@ window.mapsSearchInstance = mapsSearch;
 
 // Fonction d'initialisation Google Maps
 window.initMap = function() {
-  console.log('✅ Google Maps script chargé, initialisation...');
   mapsSearch.onGoogleMapsLoaded();
 };
 
 // Charger le script Google Maps dynamiquement avec la clé API depuis .env
 function loadGoogleMapsScript() {
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-  console.log("MAPS KEY =", apiKey);
 
   if (!apiKey) {
     console.error('❌ VITE_GOOGLE_MAPS_API_KEY non trouvée dans le fichier .env');
@@ -503,7 +497,6 @@ function loadGoogleMapsScript() {
     return;
   }
 
-  console.log('🔑 Chargement de Google Maps avec la clé API depuis .env...');
 
   const script = document.createElement('script');
   script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=initMap`;
@@ -561,7 +554,6 @@ function initThemeToggle() {
 
   // Appliquer le thème
   html.setAttribute('data-theme', defaultTheme);
-  console.log(`🌙 Thème initial : ${defaultTheme}`);
 
   // Toggle au clic
   themeToggle?.addEventListener('click', () => {
@@ -571,7 +563,6 @@ function initThemeToggle() {
     html.setAttribute('data-theme', newTheme);
     localStorage.setItem('theme', newTheme);
 
-    console.log(`🌙 Thème changé : ${newTheme}`);
   });
 
   // Écouter les changements de préférence système
@@ -579,7 +570,6 @@ function initThemeToggle() {
     if (!localStorage.getItem('theme')) {
       const newTheme = e.matches ? 'dark' : 'light';
       html.setAttribute('data-theme', newTheme);
-      console.log(`🌙 Thème système changé : ${newTheme}`);
     }
   });
 }

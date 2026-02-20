@@ -89,7 +89,6 @@ export const addFavorite = async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
-    console.log(`✅ Favori ajouté: ${placeId}`);
 
     res.status(201).json({
       message: "Favori ajouté avec succès",
@@ -147,7 +146,6 @@ export const deleteFavorite = async (req: Request, res: Response): Promise<void>
       return;
     }
 
-    console.log(`✅ Favori supprimé: ${placeId}`);
 
     res.json({ message: "Favori supprimé avec succès" });
   } catch (error) {

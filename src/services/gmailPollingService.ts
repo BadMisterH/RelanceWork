@@ -15,18 +15,13 @@ export class GmailPollingService {
    */
   public start(): void {
     if (this.isRunning) {
-      console.log('⚠️  Gmail polling already running');
       return;
     }
 
     if (!gmailAuthService.isAuthenticated()) {
-      console.log('⚠️  Cannot start Gmail polling: Not authenticated');
-      console.log('💡 Please authenticate first using: GET /api/gmail/auth/url');
       return;
     }
 
-    console.log('🚀 Starting Gmail automatic polling...');
-    console.log(`⏱️  Checking for new sent emails every ${POLLING_INTERVAL / 1000} seconds`);
 
     this.isRunning = true;
 
@@ -44,7 +39,6 @@ export class GmailPollingService {
    */
   public stop(): void {
     if (!this.isRunning) {
-      console.log('⚠️  Gmail polling is not running');
       return;
     }
 
@@ -54,7 +48,6 @@ export class GmailPollingService {
     }
 
     this.isRunning = false;
-    console.log('⏹️  Gmail polling stopped');
   }
 
   /**
@@ -72,7 +65,6 @@ export class GmailPollingService {
       // Si c'est la première vérification, on marque le dernier email comme référence
       if (!this.lastCheckedMessageId) {
         this.lastCheckedMessageId = recentEmails[0].id;
-        console.log(`📌 Initial check: Marked message ${this.lastCheckedMessageId} as reference`);
         return;
       }
 
@@ -91,7 +83,6 @@ export class GmailPollingService {
         return;
       }
 
-      console.log(`📬 Found ${newEmails.length} new email(s)`);
 
       // Traiter chaque nouveau email
       for (const email of newEmails) {
@@ -107,7 +98,6 @@ export class GmailPollingService {
 
       // Si l'erreur est liée à l'authentification, arrêter le polling
       if (error.message.includes('invalid_grant') || error.message.includes('Token')) {
-        console.log('🔐 Authentication error - stopping polling');
         this.stop();
       }
     }
@@ -121,27 +111,19 @@ export class GmailPollingService {
       // Marquer comme traité immédiatement pour éviter les doublons
       this.processedMessageIds.add(messageId);
 
-      console.log(`📧 Processing new email: ${messageId}`);
 
       // Analyser l'email
       const emailData = await gmailWatchService.processEmail(messageId);
 
       if (!emailData) {
-        console.log(`ℹ️  Email ${messageId} is not a job application (format not recognized)`);
         return;
       }
 
       // Vérifier si c'est une candidature valide
       if (!emailData.poste || !emailData.status) {
-        console.log(`⚠️  Email ${messageId} missing required fields`);
         return;
       }
 
-      console.log('✨ Job application detected:');
-      console.log(`   Company: ${emailData.company || 'N/A'}`);
-      console.log(`   Position: ${emailData.poste}`);
-      console.log(`   Status: ${emailData.status}`);
-      console.log(`   Email: ${emailData.email || 'N/A'}`);
 
       // TODO: Refactor Gmail polling pour multi-user support
       // Le service Gmail doit être lié à un utilisateur spécifique
@@ -151,7 +133,6 @@ export class GmailPollingService {
 
       // await addApplication(emailData); // Désactivé temporairement
 
-      console.log(`ℹ️  Email ${messageId} détecté mais non ajouté (multi-user not implemented)`);
     } catch (error: any) {
       console.error(`❌ Error processing email ${messageId}:`, error.message);
 

@@ -19,7 +19,6 @@ export class FavoritesList {
   public async render() {
     if (!this.container) return;
 
-    console.log('📋 Chargement de la liste des favoris depuis le backend...');
 
     try {
       // Charger les favoris depuis le backend
@@ -72,11 +71,9 @@ export class FavoritesList {
   private async loadFavoritesFromBackend() {
     try {
       const response = await api.get('/favorites');
-      console.log('✅ Favoris reçus du backend:', response.data);
 
       // Transformer les données du backend en BusinessPlace[]
       this.favorites = response.data.map((fav: any) => fav.businessData);
-      console.log(`✅ ${this.favorites.length} favoris chargés`);
     } catch (error: any) {
       console.error('❌ Erreur lors de la récupération des favoris:', error);
       if (error.response?.status === 401) {
@@ -92,9 +89,7 @@ export class FavoritesList {
    */
   private async removeFavorite(placeId: string) {
     try {
-      console.log(`🗑️ Suppression du favori: ${placeId}`);
       await api.delete(`/favorites/${placeId}`);
-      console.log(`💔 Favori retiré: ${placeId}`);
 
       // Émettre un événement pour notifier que les favoris ont été mis à jour
       window.dispatchEvent(new CustomEvent('favorites-updated'));
@@ -119,7 +114,6 @@ export class FavoritesList {
         );
 
         await Promise.all(deletePromises);
-        console.log('💔 Tous les favoris ont été supprimés');
 
         // Émettre un événement pour notifier que les favoris ont été mis à jour
         window.dispatchEvent(new CustomEvent('favorites-updated'));

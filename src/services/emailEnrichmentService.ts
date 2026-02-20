@@ -91,7 +91,6 @@ export class EmailEnrichmentService {
           .filter((email) => email.type === "personal" || email.type === "generic")
           .map((email) => email.value);
 
-        console.log(`✅ ${sortedEmails.length} email(s) trouvé(s) pour ${domain}`);
         return sortedEmails;
       }
 
@@ -119,7 +118,6 @@ export class EmailEnrichmentService {
     companyName: string,
     domain?: string
   ): Promise<EmailSearchResult> {
-    console.log(`🔍 Recherche d'emails pour: ${companyName}`);
 
     try {
       // Si pas de domaine fourni, essayer de le deviner
@@ -159,14 +157,12 @@ export class EmailEnrichmentService {
     companies: Array<{ name: string; domain?: string }>,
     maxConcurrent: number = 2
   ): Promise<EmailSearchResult[]> {
-    console.log(`📊 Recherche d'emails pour ${companies.length} entreprises`);
 
     const results: EmailSearchResult[] = [];
 
     // Traiter par batch pour respecter les limites de l'API
     for (let i = 0; i < companies.length; i += maxConcurrent) {
       const batch = companies.slice(i, i + maxConcurrent);
-      console.log(
         `🔄 Batch ${Math.floor(i / maxConcurrent) + 1}/${Math.ceil(companies.length / maxConcurrent)}`
       );
 
@@ -180,13 +176,11 @@ export class EmailEnrichmentService {
 
       // Pause entre les batches pour respecter les limites de l'API
       if (i + maxConcurrent < companies.length) {
-        console.log("⏸️ Pause 1 seconde avant le prochain batch...");
         await new Promise((resolve) => setTimeout(resolve, 1000));
       }
     }
 
     const totalEmails = results.reduce((sum, r) => sum + r.emails.length, 0);
-    console.log(
       `✅ Total: ${totalEmails} email(s) trouvé(s) pour ${companies.length} entreprises`
     );
 
