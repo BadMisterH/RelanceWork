@@ -108,55 +108,77 @@
                             relancework.app
                         </div>
                     </div>
-                    <div class="preview-content">
-                        <div class="preview-sidebar">
-                            <div class="preview-sidebar-item active"></div>
-                            <div class="preview-sidebar-item"></div>
-                            <div class="preview-sidebar-item"></div>
+                    <div class="preview-content preview-content--dashboard">
+                        <!-- Sidebar -->
+                        <div class="preview-sidebar preview-sidebar--dashboard">
+                            <div class="preview-sidebar-logo">
+                                <img src="/images/LogoRelanceWork.png" alt="RW" style="height:18px;width:auto;">
+                            </div>
+                            <div class="preview-nav-item preview-nav-item--active">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+                                Dashboard
+                            </div>
+                            <div class="preview-nav-item">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14 2z"/></svg>
+                                Candidatures
+                            </div>
+                            <div class="preview-nav-item">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                                Favoris
+                            </div>
                         </div>
-                        <div class="preview-main">
-                            <div class="preview-card">
-                                <div class="preview-card-header">
-                                    <div class="preview-company-icon">G</div>
-                                    <div>
-                                        <div class="preview-company">Google</div>
-                                        <div class="preview-role">Developpeur Full-Stack</div>
-                                    </div>
-                                    <div class="preview-status preview-status--waiting">En attente</div>
-                                </div>
-                                <div class="preview-card-footer">
-                                    <span class="preview-date">Il y a 5 jours</span>
-                                    <button class="preview-btn">Relancer</button>
-                                </div>
+                        <!-- Main content -->
+                        <div class="preview-main preview-main--dashboard">
+                            <div class="preview-dash-header">
+                                <span class="preview-dash-title">Mes Candidatures</span>
+                                <span class="preview-dash-count">4</span>
                             </div>
-                            <div class="preview-card">
-                                <div class="preview-card-header">
-                                    <div class="preview-company-icon preview-company-icon--blue">S</div>
-                                    <div>
-                                        <div class="preview-company">Stripe</div>
-                                        <div class="preview-role">Frontend Engineer</div>
-                                    </div>
-                                    <div class="preview-status preview-status--interview">Entretien</div>
-                                </div>
-                                <div class="preview-card-footer">
-                                    <span class="preview-date">Il y a 2 jours</span>
-                                    <button class="preview-btn preview-btn--done">Relance</button>
-                                </div>
+                            <div class="preview-filters">
+                                <span class="preview-filter preview-filter--active">Tout 4</span>
+                                <span class="preview-filter">Envoyée 3</span>
+                                <span class="preview-filter">En attente 1</span>
                             </div>
-                            <div class="preview-card">
-                                <div class="preview-card-header">
-                                    <div class="preview-company-icon preview-company-icon--purple">F</div>
-                                    <div>
-                                        <div class="preview-company">Figma</div>
-                                        <div class="preview-role">Product Designer</div>
-                                    </div>
-                                    <div class="preview-status preview-status--sent">Envoyee</div>
-                                </div>
-                                <div class="preview-card-footer">
-                                    <span class="preview-date">Aujourd'hui</span>
-                                    <button class="preview-btn">Relancer</button>
-                                </div>
-                            </div>
+                            <table class="preview-table">
+                                <thead>
+                                    <tr>
+                                        <th>ENTREPRISE</th>
+                                        <th>POSTE</th>
+                                        <th>STATUT</th>
+                                        <th>DATE</th>
+                                        <th>RELANCES</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><span class="preview-avatar preview-avatar--purple">M</span> Ministère des Armées</td>
+                                        <td>Technicien Informatique</td>
+                                        <td><span class="preview-badge preview-badge--sent">📤 Candidature envoyée</span></td>
+                                        <td>1sem</td>
+                                        <td><span class="preview-relance-count">🔔 3×</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="preview-avatar preview-avatar--green">R</span> Realyze</td>
+                                        <td>Dev Web Full Stack</td>
+                                        <td><span class="preview-badge preview-badge--waiting">⏳ En attente</span></td>
+                                        <td>3sem</td>
+                                        <td><span class="preview-relance-count">🔔 1×</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="preview-avatar preview-avatar--blue">D</span> Deltaprosolutions</td>
+                                        <td>Alternant Tech. Info.</td>
+                                        <td><span class="preview-badge preview-badge--relance">🚀 Relance envoyée</span></td>
+                                        <td>3sem</td>
+                                        <td><span class="preview-relance-count">🔔 1×</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="preview-avatar preview-avatar--orange">N</span> Notify AI</td>
+                                        <td>[Poste]</td>
+                                        <td><span class="preview-badge preview-badge--sent">📤 Candidature envoyée</span></td>
+                                        <td>Hier</td>
+                                        <td><span style="color:#4b5563">—</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
