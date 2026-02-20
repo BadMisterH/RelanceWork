@@ -365,12 +365,12 @@ export class GmailMultiUserService {
         sentParams.q = afterQuery;
       }
 
-      // 2) Emails entrants Indeed (confirmation de candidature)
+      // 2) Emails entrants Indeed (confirmation de candidature Indeed Apply)
       const indeedParams: any = {
         userId: 'me',
         labelIds: ['INBOX'],
         maxResults: 10,
-        q: `from:indeed ${afterQuery}`.trim()
+        q: `from:indeedapply@indeed.com subject:"Candidatures via Indeed" ${afterQuery}`.trim()
       };
 
       const [sentResponse, indeedResponse] = await Promise.all([
@@ -609,15 +609,62 @@ export class GmailMultiUserService {
   }): any | null {
     const { subject, from, bodyText, date } = input;
     const fromLower = (from || '').toLowerCase();
-    const subjectClean = (subject || '')
-      .replace(/^\s*indeed(?:\.com)?\s*[:-]\s*/i, '')
-      .replace(/\s*[-–|]\s*indeed.*$/i, '')
-      .trim();
 
-    const isIndeed = fromLower.includes('indeed') || subjectClean.toLowerCase().includes('indeed');
+    // Doit venir d'Indeed
+    const isIndeed = fromLower.includes('indeed');
     if (!isIndeed) return null;
 
-    const combinedText = `${subjectClean}\n${bodyText || ''}`;
+    const text = bodyText || '';
+
+    // ─────────────────────────────────────────────────────────────────
+    // Pattern principal : "Candidatures via Indeed : [poste]"
+    // Expéditeur       : indeedapply@indeed.com
+    // Company extraite : "envoyés à Veepee. Bonne chance !"
+    // ─────────────────────────────────────────────────────────────────
+    const indeedApplyPattern = /^Candidatures?\s+via\s+Indeed\s*:\s*(.+)$/i;
+    const indeedApplyMatch = subject.match(indeedApplyPattern);
+
+    if (indeedApplyMatch) {
+      const poste = (indeedApplyMatch[1] ?? '').trim();
+
+      // "Les éléments suivants ont été envoyés à Veepee. Bonne chance !"
+      const companyMatch = text.match(/envoy[ée]s?\s+[àa]\s+([^\.]+)\./i);
+      const company = companyMatch ? (companyMatch[1] ?? '').trim() : '';
+
+      if (poste && company) {
+        return {
+          company,
+          poste,
+          status: 'Candidature envoyée',
+          date,
+          relanced: false,
+          email: null,
+          user_email: null,
+          relance_count: 0,
+          company_website: this.pickWebsite(text)
+        };
+      }
+
+      // Fallback si la phrase n'est pas trouvée dans le body : on garde au moins le poste
+      if (poste) {
+        return {
+          company: 'Indeed',
+          poste,
+          status: 'Candidature envoyée',
+          date,
+          relanced: false,
+          email: null,
+          user_email: null,
+          relance_count: 0,
+          company_website: this.pickWebsite(text)
+        };
+      }
+    }
+
+    // ─────────────────────────────────────────────────────────────────
+    // Patterns génériques pour d'autres formats Indeed
+    // ─────────────────────────────────────────────────────────────────
+    const combinedText = `${subject}\n${text}`;
     const hasApplicationKeyword = /(candidature|application|postul|applied|apply|appliqué|applique)/i.test(combinedText);
     if (!hasApplicationKeyword) return null;
 
@@ -631,7 +678,7 @@ export class GmailMultiUserService {
     ];
 
     for (const pattern of subjectPatterns) {
-      const match = subjectClean.match(pattern.regex);
+      const match = subject.match(pattern.regex);
       if (match) {
         if (pattern.swap) {
           company = (match[1] || '').trim();
@@ -645,7 +692,6 @@ export class GmailMultiUserService {
     }
 
     if (!poste || !company) {
-      const text = bodyText || '';
       const posteMatch = text.match(/(?:poste|intitul[ée]\s*du\s*poste|job\s*title|position)\s*[:\-]\s*(.+)/i);
       const companyMatch = text.match(/(?:entreprise|soci[ée]t[ée]|company)\s*[:\-]\s*(.+)/i);
       if (!poste && posteMatch) poste = (posteMatch[1] ?? '').trim();
@@ -660,11 +706,7 @@ export class GmailMultiUserService {
       }
     }
 
-    if (!poste || !company) {
-      return null;
-    }
-
-    const website = this.pickWebsite(bodyText);
+    if (!poste || !company) return null;
 
     return {
       company,
@@ -675,7 +717,7 @@ export class GmailMultiUserService {
       email: null,
       user_email: null,
       relance_count: 0,
-      company_website: website
+      company_website: this.pickWebsite(text)
     };
   }
 
