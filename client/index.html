@@ -346,10 +346,15 @@
           </button>
         </div>
         <div class="profile-modal-body">
-          <p class="profile-modal-hint">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-            Variables disponibles dans vos templates : <code>{{nom}}</code> <code>{{titre}}</code> <code>{{telephone}}</code> <code>{{linkedin}}</code> <code>{{signature}}</code>
-          </p>
+          <div class="profile-modal-hint">
+            <span class="profile-hint-label">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+              Variables dans vos templates
+            </span>
+            <div class="profile-hint-chips">
+              <code>{{nom}}</code><code>{{titre}}</code><code>{{telephone}}</code><code>{{linkedin}}</code><code>{{signature}}</code>
+            </div>
+          </div>
           <div class="profile-field">
             <label for="profileInputName">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
