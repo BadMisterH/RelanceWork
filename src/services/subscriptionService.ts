@@ -118,38 +118,81 @@ export class SubscriptionService {
   async handleWebhook(event: Stripe.Event): Promise<void> {
     switch (event.type) {
       case "checkout.session.completed": {
-        const session = event.data.object as Stripe.Checkout.Session;
-        const userId = session.metadata?.user_id;
-        if (!userId) break;
+        try {
+          const session = event.data.object as Stripe.Checkout.Session;
+          const userId = session.metadata?.user_id;
+          if (!userId) {
+            console.error("❌ Webhook checkout.session.completed: user_id manquant dans metadata");
+            break;
+          }
 
-        // Récupérer les détails de la subscription
-        const subscription = await stripe.subscriptions.retrieve(
-          session.subscription as string
-        );
+          // Récupérer les détails de la subscription
+          const subscription = await stripe.subscriptions.retrieve(
+            session.subscription as string
+          );
 
-        await this.upsertSubscription(userId, {
-          stripe_customer_id: session.customer as string,
-          stripe_subscription_id: subscription.id,
-          plan: "pro",
-          status: "active",
-          current_period_end: new Date(
-            (subscription as any).current_period_end * 1000
-          ).toISOString(),
-        });
+          const periodEnd = (subscription as any).current_period_end as number | null | undefined;
+          const current_period_end = periodEnd != null
+            ? new Date(periodEnd * 1000).toISOString()
+            : null;
 
+          await this.upsertSubscription(userId, {
+            stripe_customer_id: session.customer as string,
+            stripe_subscription_id: subscription.id,
+            plan: "pro",
+            status: "active",
+            current_period_end,
+          });
+
+          console.log(`✅ Plan Pro activé pour user ${userId}`);
+        } catch (err: any) {
+          console.error("❌ Erreur checkout.session.completed:", err.message);
+          throw err;
+        }
         break;
       }
 
       case "invoice.paid": {
-        const invoice = event.data.object as Stripe.Invoice;
-        const subscriptionId = (invoice as any).subscription as string;
+        try {
+          const invoice = event.data.object as Stripe.Invoice;
+          const subscriptionId = (invoice as any).subscription as string;
 
-        if (subscriptionId) {
-          const subscription =
-            await stripe.subscriptions.retrieve(subscriptionId);
-          const customerId = invoice.customer as string;
+          if (subscriptionId) {
+            const subscription =
+              await stripe.subscriptions.retrieve(subscriptionId);
+            const customerId = invoice.customer as string;
 
-          // Trouver l'utilisateur par customer_id
+            // Trouver l'utilisateur par customer_id
+            const { data } = await supabase
+              .from("subscriptions")
+              .select("user_id")
+              .eq("stripe_customer_id", customerId)
+              .single();
+
+            if (data) {
+              const periodEnd = (subscription as any).current_period_end as number | null | undefined;
+              const current_period_end = periodEnd != null
+                ? new Date(periodEnd * 1000).toISOString()
+                : null;
+
+              await supabase
+                .from("subscriptions")
+                .update({ status: "active", current_period_end })
+                .eq("user_id", data.user_id);
+            }
+          }
+        } catch (err: any) {
+          console.error("❌ Erreur invoice.paid:", err.message);
+          throw err;
+        }
+        break;
+      }
+
+      case "customer.subscription.deleted": {
+        try {
+          const subscription = event.data.object as Stripe.Subscription;
+          const customerId = subscription.customer as string;
+
           const { data } = await supabase
             .from("subscriptions")
             .select("user_id")
@@ -159,46 +202,29 @@ export class SubscriptionService {
           if (data) {
             await supabase
               .from("subscriptions")
-              .update({
-                status: "active",
-                current_period_end: new Date(
-                  (subscription as any).current_period_end * 1000
-                ).toISOString(),
-              })
+              .update({ plan: "free", status: "canceled" })
               .eq("user_id", data.user_id);
           }
-        }
-        break;
-      }
-
-      case "customer.subscription.deleted": {
-        const subscription = event.data.object as Stripe.Subscription;
-        const customerId = subscription.customer as string;
-
-        const { data } = await supabase
-          .from("subscriptions")
-          .select("user_id")
-          .eq("stripe_customer_id", customerId)
-          .single();
-
-        if (data) {
-          await supabase
-            .from("subscriptions")
-            .update({ plan: "free", status: "canceled" })
-            .eq("user_id", data.user_id);
-
+        } catch (err: any) {
+          console.error("❌ Erreur customer.subscription.deleted:", err.message);
+          throw err;
         }
         break;
       }
 
       case "invoice.payment_failed": {
-        const invoice = event.data.object as Stripe.Invoice;
-        const customerId = invoice.customer as string;
+        try {
+          const invoice = event.data.object as Stripe.Invoice;
+          const customerId = invoice.customer as string;
 
-        await supabase
-          .from("subscriptions")
-          .update({ status: "past_due" })
-          .eq("stripe_customer_id", customerId);
+          await supabase
+            .from("subscriptions")
+            .update({ status: "past_due" })
+            .eq("stripe_customer_id", customerId);
+        } catch (err: any) {
+          console.error("❌ Erreur invoice.payment_failed:", err.message);
+          throw err;
+        }
         break;
       }
     }
