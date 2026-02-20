@@ -149,19 +149,10 @@ body {
   gap: 12px;
 }
 
-.logo-icon {
-  width: 48px;
-  height: 48px;
-  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
-  border-radius: var(--radius-md);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: 'Archivo', sans-serif;
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: white;
-  box-shadow: 0 4px 12px rgba(37,99,235,0.25);
+.logo-img {
+  height: 36px;
+  width: auto;
+  object-fit: contain;
 }
 
 .logo-text {

@@ -133,18 +133,10 @@ a { color: inherit; }
   color: var(--text);
 }
 
-.logo-mark {
-  width: 36px;
+.logo-img {
   height: 36px;
-  background: linear-gradient(135deg, var(--accent), var(--primary));
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: 'Archivo', sans-serif;
-  font-weight: 900;
-  font-size: 1.1rem;
-  color: white;
+  width: auto;
+  object-fit: contain;
 }
 
 .logo-text {
@@ -1135,8 +1127,8 @@ section {
   padding: 64px 0 32px;
 }
 
-.footer .logo-mark {
-  background: linear-gradient(135deg, var(--accent-light), var(--primary-light));
+.footer .logo-img {
+  height: 32px;
 }
 
 .footer .logo-text {
