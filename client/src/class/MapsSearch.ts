@@ -374,11 +374,6 @@ export class MapsSearch {
 
   // Effectuer la recherche automatique avec textSearch ciblé tech/web
   private async performAutoSearch() {
-      googleMapsLoaded: this.googleMapsLoaded,
-      service: !!this.service,
-      map: !!this.map,
-      userLocation: this.userLocation
-    });
 
     if (!this.googleMapsLoaded || !this.service || !this.map || !this.userLocation) {
       console.error('Conditions non remplies pour la recherche automatique');
@@ -693,9 +688,6 @@ export class MapsSearch {
     // Filtrer les résultats null
     this.currentResults = detailedResults.filter((r) => r !== null) as BusinessPlace[];
 
-    // Log du nombre d'entreprises sans site web
-    const noWebsiteCount = this.currentResults.filter(r => !r.website).length;
-
     // Appliquer les filtres
     this.applyFilters();
 
@@ -761,12 +753,6 @@ export class MapsSearch {
     const filterWithEmail = document.getElementById("filterWithEmail") as HTMLInputElement;
     const filterFavorites = document.getElementById("filterFavorites") as HTMLInputElement;
 
-      filterNoWebsite: filterNoWebsite?.checked,
-      filterNoEmail: filterNoEmail?.checked,
-      filterWithEmail: filterWithEmail?.checked,
-      filterFavorites: filterFavorites?.checked,
-      totalResults: this.currentResults.length
-    });
 
     let filteredResults = [...this.currentResults];
 
