@@ -1,5 +1,6 @@
 import express, { Request, Response, NextFunction } from "express";
 import path from "path";
+import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import applicationRoutes from "./routes/applicationRoutes";
@@ -54,43 +55,16 @@ app.use("/api/auth/signup", authLimiter);
 // ============================================
 // CORS
 // ============================================
-const rawAllowedOrigins = process.env.ALLOWED_ORIGINS;
-if (!rawAllowedOrigins) {
-  throw new Error("ALLOWED_ORIGINS is not set");
-}
-const ALLOWED_ORIGINS = rawAllowedOrigins
-  .split(",")
-  .map((o) => o.trim())
-  .filter(Boolean);
-if (ALLOWED_ORIGINS.length === 0) {
-  throw new Error("ALLOWED_ORIGINS is empty");
-}
+const corsOptions = {
+  origin: [
+    "https://www.relance-work.fr",
+    "https://www.relancework-production.up.railway.app",
+  ],
+  credentials: true,
+};
 
-app.use((req: Request, res: Response, next: NextFunction) => {
-  const origin = req.headers.origin;
-
-  if (origin && ALLOWED_ORIGINS.includes(origin)) {
-    res.header("Access-Control-Allow-Origin", origin);
-  } else if (!origin) {
-    // Requêtes sans origin (same-origin, curl, etc.) - autorisées
-    res.header("Access-Control-Allow-Origin", "*");
-  }
-
-  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  res.header("Access-Control-Allow-Credentials", "true");
-
-  // Permettre l'accès depuis des adresses privées (extensions locales)
-  if (req.headers["access-control-request-private-network"]) {
-    res.header("Access-Control-Allow-Private-Network", "true");
-  }
-
-  if (req.method === "OPTIONS") {
-    return res.status(200).end();
-  }
-
-  next();
-});
+app.options("*", cors(corsOptions));
+app.use(cors(corsOptions));
 
 // ============================================
 // MIDDLEWARE
