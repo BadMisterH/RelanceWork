@@ -461,6 +461,7 @@ export class GmailMultiUserService {
       const from = this.getHeaderValue(headers, 'From');
       const dateHeader = this.getHeaderValue(headers, 'Date');
       const bodyText = this.extractBodyText(message.payload);
+      const bodyHtml = this.extractRawBodyHtml(message.payload);
       const messageDate = this.formatMessageDate(dateHeader);
 
       // ✅ Indeed: détecter les confirmations de candidature entrantes
@@ -468,6 +469,7 @@ export class GmailMultiUserService {
         subject,
         from,
         bodyText,
+        bodyHtml,
         date: messageDate
       });
       if (indeedData) {
@@ -601,13 +603,31 @@ export class GmailMultiUserService {
     return matches.map(url => url.replace(/[),.]+$/g, '')).filter(Boolean);
   }
 
+  private extractRawBodyHtml(payload: any): string {
+    const getPartHtml = (part: any): string | null => {
+      if (!part) return null;
+      if (part.mimeType === 'text/html' && part.body?.data) {
+        return this.decodeBase64Url(part.body.data);
+      }
+      if (part.parts && Array.isArray(part.parts)) {
+        for (const child of part.parts) {
+          const found = getPartHtml(child);
+          if (found) return found;
+        }
+      }
+      return null;
+    };
+    return getPartHtml(payload) ?? '';
+  }
+
   private parseIndeedApplication(input: {
     subject: string;
     from: string;
     bodyText: string;
+    bodyHtml: string;
     date: string;
   }): any | null {
-    const { subject, from, bodyText, date } = input;
+    const { subject, from, bodyText, bodyHtml, date } = input;
     const fromLower = (from || '').toLowerCase();
 
     // Doit venir d'Indeed
@@ -626,39 +646,55 @@ export class GmailMultiUserService {
 
     if (indeedApplyMatch) {
       const poste = (indeedApplyMatch[1] ?? '').trim();
+      let company = '';
 
-      // "Les éléments suivants ont été envoyés à Veepee. Bonne chance !"
-      const companyMatch = text.match(/envoy[ée]s?\s+[àa]\s+([^\.]+)\./i);
-      const company = companyMatch ? (companyMatch[1] ?? '').trim() : '';
-
-      if (poste && company) {
-        return {
-          company,
-          poste,
-          status: 'Candidature envoyée',
-          date,
-          relanced: false,
-          email: null,
-          user_email: null,
-          relance_count: 0,
-          company_website: this.pickWebsite(text)
-        };
+      // Stratégie 1 (la plus fiable) : slug dans l'URL HTML
+      // <a href="https://fr.indeed.com/cmp/veepee?...">
+      const slugMatch = bodyHtml.match(/indeed\.com\/cmp\/([a-z0-9][a-z0-9\-]*)/i);
+      if (slugMatch?.[1]) {
+        company = slugMatch[1]
+          .split('-')
+          .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+          .join(' ');
       }
 
-      // Fallback si la phrase n'est pas trouvée dans le body : on garde au moins le poste
-      if (poste) {
-        return {
-          company: 'Indeed',
-          poste,
-          status: 'Candidature envoyée',
-          date,
-          relanced: false,
-          email: null,
-          user_email: null,
-          relance_count: 0,
-          company_website: this.pickWebsite(text)
-        };
+      // Stratégie 2 : "envoyés à Veepee. Bonne chance !"
+      if (!company) {
+        const s2 = text.match(/envoy[ée]s?\s+[àa]\s+([^\.!\n\r]+)/i);
+        if (s2?.[1]) company = s2[1].trim();
       }
+
+      // Stratégie 3 : ligne après le titre du poste dans le body texte
+      // Format: "Veepee - Saint-Denis"
+      if (!company && poste) {
+        const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 1);
+        const titleIdx = lines.findIndex(l => l.includes(poste.slice(0, 15)));
+        if (titleIdx >= 0) {
+          for (let i = titleIdx + 1; i < Math.min(titleIdx + 4, lines.length); i++) {
+            const candidate = (lines[i] ?? '').split(/\s*[-–—]\s*/)[0]?.trim() ?? '';
+            if (
+              candidate.length > 1 && candidate.length < 60 &&
+              !/^\d/.test(candidate) &&
+              !/avis|candidature|cv|bonjour|éléments|envoy/i.test(candidate)
+            ) {
+              company = candidate;
+              break;
+            }
+          }
+        }
+      }
+
+      return {
+        company: company || 'Indeed',
+        poste,
+        status: 'Candidature envoyée',
+        date,
+        relanced: false,
+        email: null,
+        user_email: null,
+        relance_count: 0,
+        company_website: this.pickWebsite(text)
+      };
     }
 
     // ─────────────────────────────────────────────────────────────────
