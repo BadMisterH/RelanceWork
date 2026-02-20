@@ -892,9 +892,12 @@ body {
   border-radius: 20px;
   width: 100%;
   max-width: 520px;
+  max-height: calc(100vh - 40px);
   border: 1px solid var(--color-border, #e2e8f0);
   box-shadow: 0 24px 80px rgba(0, 0, 0, 0.15);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
   animation: modalSlideUp 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
@@ -976,7 +979,9 @@ body {
   display: flex;
   flex-direction: column;
   gap: 18px;
-  max-height: 60vh;
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: var(--color-border) transparent;
@@ -1094,7 +1099,7 @@ body {
   line-height: 1.5;
 }
 
-/* Footer */¨
+/* Footer */
 .profile-modal-footer {
   padding: 18px 28px;
   border-top: 1px solid var(--color-border, #e2e8f0);
