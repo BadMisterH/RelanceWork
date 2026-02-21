@@ -7,7 +7,8 @@
     <link rel="icon" type="image/png" href="/images/LogoRelanceWork.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"></noscript>
     <link rel="stylesheet" href="/css/style.css" />
     <script>
       (function() {
@@ -84,7 +85,10 @@
     <header class="legal-header">
       <div class="container">
         <a href="/" class="logo">
-          <img class="logo-img" src="/images/LogoRelanceWork.png" alt="RelanceWork">
+          <picture>
+            <source srcset="/images/LogoRelanceWork.avif" type="image/avif">
+            <img class="logo-img" src="/images/LogoRelanceWork-sm.png" alt="RelanceWork" width="79" height="60" fetchpriority="high">
+          </picture>
           <span class="logo-text">RelanceWork</span>
         </a>
         <div class="nav-right">

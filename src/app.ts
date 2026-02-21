@@ -52,6 +52,17 @@ const authLimiter = rateLimit({
 app.use("/api/auth/login", authLimiter);
 app.use("/api/auth/signup", authLimiter);
 
+// Limite email : 3 envois par heure par IP (évite le spam d'emails)
+const emailLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 3,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Trop d'envois. Réessayez dans une heure." },
+});
+app.use("/api/auth/forgot-password", emailLimiter);
+app.use("/api/auth/resend-verification", emailLimiter);
+
 // ============================================
 // CORS
 // ============================================

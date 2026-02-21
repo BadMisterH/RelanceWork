@@ -3,15 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="RelanceWork - Automatisez le suivi de vos candidatures. Ne ratez plus jamais une relance.">
-    <meta name="keywords" content="candidature, emploi, relance, automatisation, suivi candidature, recherche emploi">
-    <title>RelanceWork - Automatisez le suivi de vos candidatures</title>
+    <meta name="description" content="RelanceWork suit vos candidatures depuis Gmail et vous dit quand relancer. Pour étudiants et profils tech. 80% des candidats ne relancent jamais — soyez dans les 20%. Gratuit.">
+    <meta name="keywords" content="suivi candidature, relance candidature, outil recherche emploi, tracking candidature Gmail, logiciel candidature, jeune diplômé, alternance, stage, entretien emploi, recherche emploi étudiant">
+    <title>RelanceWork - Suivi de candidatures automatique | Décrochez plus d'entretiens</title>
     <link rel="canonical" href="https://www.relance-work.fr/">
     <link rel="icon" type="image/png" href="/images/LogoRelanceWork.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Non-blocking Google Fonts -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"></noscript>
     <link rel="stylesheet" href="css/style.css">
+    <!-- Preload LCP image -->
+    <link rel="preload" as="image" href="/images/LogoRelanceWork.avif" type="image/avif" fetchpriority="high">
 
     <!-- Apply saved theme before paint -->
     <script>
@@ -29,7 +33,10 @@
         <div class="container">
             <nav class="nav">
                 <a href="/" class="logo">
-                    <img class="logo-img" src="/images/LogoRelanceWork.png" alt="RelanceWork">
+                    <picture>
+                        <source srcset="/images/LogoRelanceWork.avif" type="image/avif">
+                        <img class="logo-img" src="/images/LogoRelanceWork-sm.png" alt="RelanceWork" width="79" height="60" fetchpriority="high">
+                    </picture>
                     <span class="logo-text">RelanceWork</span>
                 </a>
                 <div class="nav-links" id="navLinks">
@@ -63,14 +70,14 @@
             <div class="hero-content">
                 <div class="hero-badge">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-                    Nouveau : Tracking Gmail automatique
+                    Pour étudiants &amp; profils tech en recherche active
                 </div>
                 <h1 class="hero-title">
-                    Ne ratez plus jamais<br>
-                    une <span class="gradient-text">relance</span>
+                    Transformez vos candidatures<br>
+                    en <span class="gradient-text">entretiens</span>
                 </h1>
                 <p class="hero-subtitle">
-                    RelanceWork detecte vos candidatures depuis Gmail et vous aide a relancer les entreprises au bon moment. Fini les tableaux Excel.
+                    Postuler, c'est facile. Obtenir une réponse, non. RelanceWork connecte votre Gmail, détecte chaque candidature et vous dit exactement quand relancer. 80&nbsp;% des candidats ne relancent jamais — soyez dans les 20&nbsp;%.
                 </p>
                 <div class="hero-cta">
                     <a href="/app/auth.html" class="btn btn-primary btn-lg">
@@ -84,17 +91,17 @@
                 <div class="hero-stats">
                     <div class="stat">
                         <span class="stat-number">2x</span>
-                        <span class="stat-label">Plus de reponses</span>
+                        <span class="stat-label">Plus d'entretiens obtenus</span>
                     </div>
                     <div class="stat-divider"></div>
                     <div class="stat">
-                        <span class="stat-number">0</span>
-                        <span class="stat-label">Oubli de relance</span>
+                        <span class="stat-number">80%</span>
+                        <span class="stat-label">Ne relancent jamais</span>
                     </div>
                     <div class="stat-divider"></div>
                     <div class="stat">
                         <span class="stat-number">30s</span>
-                        <span class="stat-label">Par candidature</span>
+                        <span class="stat-label">Pour gérer une candidature</span>
                     </div>
                 </div>
             </div>
@@ -115,7 +122,10 @@
                         <!-- Sidebar -->
                         <div class="preview-sidebar preview-sidebar--dashboard">
                             <div class="preview-sidebar-logo">
-                                <img src="/images/LogoRelanceWork.png" alt="RW" style="height:18px;width:auto;">
+                                <picture>
+                                    <source srcset="/images/LogoRelanceWork.avif" type="image/avif">
+                                    <img src="/images/LogoRelanceWork-sm.png" alt="RW" width="24" height="18" style="height:18px;width:auto;">
+                                </picture>
                             </div>
                             <div class="preview-nav-item preview-nav-item--active">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
@@ -193,30 +203,30 @@
     <section class="problems" id="problems">
         <div class="container">
             <div class="section-header">
-                <span class="section-tag">Le probleme</span>
-                <h2>Vous perdez des opportunites<br>a cause d'un mauvais suivi</h2>
+                <span class="section-tag">La réalité de la recherche d'emploi</span>
+                <h2>Après 2 semaines, 80&nbsp;% des candidats<br>ont déjà oublié de relancer</h2>
             </div>
             <div class="problems-grid">
                 <div class="problem-card" data-anim>
                     <div class="problem-icon-wrap">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="28" height="28"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                     </div>
-                    <h3>Oublis de relance</h3>
-                    <p>Vous oubliez de relancer apres 1-2 semaines et perdez des opportunites en or.</p>
+                    <h3>80&nbsp;% ne relancent jamais</h3>
+                    <p>La plupart des candidats envoient leur CV et attendent. Une relance au bon moment double les chances d'obtenir un entretien.</p>
                 </div>
                 <div class="problem-card" data-anim>
                     <div class="problem-icon-wrap">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="28" height="28"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
                     </div>
-                    <h3>Tracking manuel fastidieux</h3>
-                    <p>Gerer un fichier Excel avec 50+ candidatures est chronophage et source d'erreurs.</p>
+                    <h3>Excel ne suit pas le rythme</h3>
+                    <p>Gérer 30+ candidatures dans un tableau Excel, c'est du temps perdu que vous pourriez consacrer à trouver de meilleures opportunités.</p>
                 </div>
                 <div class="problem-card" data-anim>
                     <div class="problem-icon-wrap">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="28" height="28"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                     </div>
-                    <h3>Perte de temps</h3>
-                    <p>Vous passez plus de temps a gerer vos candidatures qu'a chercher de nouvelles opportunites.</p>
+                    <h3>La fenêtre idéale se referme vite</h3>
+                    <p>Sans suivi structuré, vous ratez le moment optimal pour relancer — entre 7 et 14 jours après envoi. Après, votre candidature est oubliée.</p>
                 </div>
             </div>
         </div>
@@ -226,53 +236,53 @@
     <section class="features" id="features">
         <div class="container">
             <div class="section-header">
-                <span class="section-tag">Fonctionnalites</span>
-                <h2>Tout ce dont vous avez besoin<br>pour decrocher le poste</h2>
-                <p class="section-desc">RelanceWork automatise votre processus de suivi de A a Z.</p>
+                <span class="section-tag">Fonctionnalités</span>
+                <h2>Tout ce qu'il faut pour<br>décrocher l'entretien</h2>
+                <p class="section-desc">RelanceWork automatise votre suivi de candidature de A à Z — de la détection Gmail jusqu'à la relance envoyée.</p>
             </div>
             <div class="features-grid">
                 <div class="feature-card" data-anim>
                     <div class="feature-icon">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="24" height="24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
                     </div>
-                    <h3>Tableau de bord executif</h3>
-                    <p>Vue d'ensemble de toutes vos candidatures avec statuts, dates et actions en un coup d'oeil.</p>
+                    <h3>Suivi de candidatures centralisé</h3>
+                    <p>Toutes vos candidatures en un tableau de bord : statut, date d'envoi, relances effectuées. Sachez en 2 secondes où en est chaque dossier.</p>
                 </div>
                 <div class="feature-card feature-card--highlight" data-anim>
                     <div class="feature-tag">Populaire</div>
                     <div class="feature-icon">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="24" height="24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
                     </div>
-                    <h3>Tracking Gmail</h3>
-                    <p>Detection automatique de vos emails de candidature. Plus besoin de saisie manuelle.</p>
+                    <h3>Détection Gmail automatique</h3>
+                    <p>Connectez votre Gmail une seule fois. RelanceWork détecte automatiquement chaque candidature envoyée — zéro saisie manuelle, zéro oubli.</p>
                 </div>
                 <div class="feature-card" data-anim>
                     <div class="feature-icon">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="24" height="24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                     </div>
-                    <h3>Templates de relance</h3>
-                    <p>Bibliotheque de templates professionnels avec variables dynamiques pour personnaliser vos relances.</p>
+                    <h3>Templates de relance prêts à l'emploi</h3>
+                    <p>Bibliothèque de modèles d'emails professionnels personnalisables avec variables dynamiques (entreprise, poste, recruteur). Relancez en 30 secondes.</p>
                 </div>
                 <div class="feature-card" data-anim>
                     <div class="feature-icon">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="24" height="24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
                     </div>
-                    <h3>Analytics de conversion</h3>
-                    <p>Mesurez l'efficacite de vos relances avec des metriques de conversion et des graphiques.</p>
+                    <h3>Analytics de votre recherche d'emploi</h3>
+                    <p>Suivez votre taux de réponse, vos relances envoyées et identifiez quelles entreprises convertissent le mieux. Optimisez votre stratégie.</p>
                 </div>
                 <div class="feature-card" data-anim>
                     <div class="feature-icon">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="24" height="24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
                     </div>
-                    <h3>Recherche d'entreprises</h3>
-                    <p>Trouvez des entreprises via Google Maps et ajoutez-les directement a vos candidatures.</p>
+                    <h3>Prospection d'entreprises ciblée</h3>
+                    <p>Trouvez des entreprises qui recrutent dans votre secteur via Google Maps et ajoutez-les directement à votre pipeline de candidatures spontanées.</p>
                 </div>
                 <div class="feature-card" data-anim>
                     <div class="feature-icon">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="24" height="24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                     </div>
-                    <h3>Securite & Confidentialite</h3>
-                    <p>Donnees chiffrees, authentification securisee via Supabase. Conforme RGPD.</p>
+                    <h3>Sécurité &amp; Conformité RGPD</h3>
+                    <p>Données chiffrées, authentification sécurisée. Nous n'accédons jamais au contenu de vos emails, uniquement aux métadonnées. Conforme RGPD.</p>
                 </div>
             </div>
         </div>
@@ -282,30 +292,30 @@
     <section class="how-it-works" id="how-it-works">
         <div class="container">
             <div class="section-header">
-                <span class="section-tag">Comment ca marche</span>
-                <h2>Pret en 3 etapes</h2>
+                <span class="section-tag">Comment ça marche</span>
+                <h2>Gmail → RelanceWork → Entretien.<br>En 3 étapes.</h2>
             </div>
             <div class="steps-grid">
                 <div class="step" data-anim>
                     <div class="step-number">01</div>
-                    <h3>Creez votre compte</h3>
-                    <p>Inscription gratuite en 30 secondes. Aucune carte bancaire requise.</p>
+                    <h3>Créez votre compte gratuit</h3>
+                    <p>Inscription en 30 secondes, sans carte de crédit. Idéal pour les étudiants, alternants et jeunes diplômés.</p>
                 </div>
                 <div class="step-arrow">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                 </div>
                 <div class="step" data-anim>
                     <div class="step-number">02</div>
-                    <h3>Connectez Gmail</h3>
-                    <p>Liez votre compte Gmail pour detecter automatiquement vos candidatures envoyees.</p>
+                    <h3>Connectez votre Gmail</h3>
+                    <p>RelanceWork analyse vos emails envoyés et détecte automatiquement chaque candidature. Zéro saisie manuelle, zéro oubli.</p>
                 </div>
                 <div class="step-arrow">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                 </div>
                 <div class="step" data-anim>
                     <div class="step-number">03</div>
-                    <h3>Relancez au bon moment</h3>
-                    <p>Recevez des rappels et utilisez nos templates pour relancer efficacement.</p>
+                    <h3>Relancez, décrochez l'entretien</h3>
+                    <p>Sachez exactement quand relancer chaque entreprise. Utilisez nos templates professionnels et maximisez vos chances d'obtenir une réponse.</p>
                 </div>
             </div>
         </div>
@@ -317,8 +327,8 @@
             <div class="pricing-cta-card">
                 <div class="pricing-cta-glow"></div>
                 <div class="pricing-cta-content">
-                    <h2>Pret a booster votre recherche d'emploi ?</h2>
-                    <p>Commencez gratuitement avec 10 candidatures. Passez a Pro quand vous etes pret.</p>
+                    <h2>Prêt à décrocher plus d'entretiens ?</h2>
+                    <p>Rejoignez les candidats qui relancent intelligemment. Commencez gratuitement, sans carte bancaire.</p>
                     <div class="pricing-cta-actions">
                         <a href="/app/auth.html" class="btn btn-white btn-lg">
                             Commencer gratuitement
@@ -350,51 +360,51 @@
         <div class="container">
             <div class="section-header">
                 <span class="section-tag">FAQ</span>
-                <h2>Questions frequentes</h2>
+                <h2>Questions fréquentes</h2>
             </div>
             <div class="faq-list">
                 <div class="faq-item" data-anim>
                     <button class="faq-question" aria-expanded="false" aria-controls="faq-answer-1">
-                        Comment fonctionne la detection automatique ?
+                        Comment RelanceWork détecte mes candidatures depuis Gmail ?
                         <span class="faq-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                         </span>
                     </button>
                     <div class="faq-answer" id="faq-answer-1">
-                        <p>RelanceWork se connecte a votre Gmail via OAuth (securise). Des que vous envoyez un email avec un objet de candidature, il est automatiquement detecte et ajoute a votre tableau de bord.</p>
+                        <p>RelanceWork se connecte à votre Gmail via OAuth sécurisé (la même technologie que "Se connecter avec Google"). Dès que vous envoyez un email identifié comme une candidature, il est automatiquement ajouté à votre tableau de bord avec la date et l'entreprise. Aucune saisie manuelle.</p>
                     </div>
                 </div>
                 <div class="faq-item" data-anim>
                     <button class="faq-question" aria-expanded="false" aria-controls="faq-answer-2">
-                        Mes donnees sont-elles securisees ?
+                        Je suis étudiant ou en recherche d'alternance, c'est fait pour moi ?
                         <span class="faq-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                         </span>
                     </button>
                     <div class="faq-answer" id="faq-answer-2">
-                        <p>Absolument. Vos donnees sont chiffrees et stockees de maniere securisee. Nous ne lisons jamais le contenu de vos emails, uniquement les metadonnees. Conforme RGPD.</p>
+                        <p>Absolument. RelanceWork est conçu pour tous ceux qui envoient plusieurs candidatures en parallèle — étudiants, jeunes diplômés, alternants, profils tech en reconversion. Plus vous postulez, plus l'outil vous fait gagner du temps et des entretiens.</p>
                     </div>
                 </div>
                 <div class="faq-item" data-anim>
                     <button class="faq-question" aria-expanded="false" aria-controls="faq-answer-3">
-                        Puis-je annuler mon abonnement ?
+                        Mes emails et données sont-ils en sécurité ?
                         <span class="faq-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                         </span>
                     </button>
                     <div class="faq-answer" id="faq-answer-3">
-                        <p>Oui, annulation en 1 clic depuis votre compte. Aucun engagement. Si vous annulez, vous repassez au plan gratuit sans perdre vos donnees.</p>
+                        <p>Oui. Nous n'accédons jamais au contenu de vos emails — uniquement aux métadonnées (objet, destinataire, date). Vos données sont chiffrées et stockées de façon sécurisée. RelanceWork est conforme au RGPD. Vous pouvez supprimer votre compte et toutes vos données à tout moment.</p>
                     </div>
                 </div>
                 <div class="faq-item" data-anim>
                     <button class="faq-question" aria-expanded="false" aria-controls="faq-answer-4">
-                        Le plan gratuit est-il vraiment gratuit ?
+                        Puis-je commencer gratuitement et annuler quand je veux ?
                         <span class="faq-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                         </span>
                     </button>
                     <div class="faq-answer" id="faq-answer-4">
-                        <p>Oui, le plan gratuit vous permet de gerer jusqu'a 10 candidatures sans aucun frais. Passez a Pro (9,99/mois) quand vous avez besoin de plus.</p>
+                        <p>Oui. Le plan gratuit permet de gérer jusqu'à 10 candidatures sans aucun frais et sans carte bancaire. Si vous passez à Pro (9,99&nbsp;€/mois), vous pouvez annuler en 1 clic à tout moment depuis votre compte. Aucun engagement, aucune pénalité.</p>
                     </div>
                 </div>
             </div>
@@ -408,10 +418,13 @@
             <div class="footer-content">
                 <div class="footer-brand">
                     <a href="/" class="logo">
-                        <img class="logo-img" src="/images/LogoRelanceWork.png" alt="RelanceWork">
+                        <picture>
+                            <source srcset="/images/LogoRelanceWork.avif" type="image/avif">
+                            <img class="logo-img" src="/images/LogoRelanceWork-sm.png" alt="RelanceWork" width="79" height="60">
+                        </picture>
                         <span class="logo-text">RelanceWork</span>
                     </a>
-                    <p>Automatisez le suivi de vos candidatures et ne ratez plus jamais une opportunite.</p>
+                    <p>L'outil de suivi de candidature pour étudiants et jeunes diplômés qui veulent décrocher plus d'entretiens — sans Excel, sans oublis.</p>
                 </div>
                 <div class="footer-links">
                     <div class="footer-col">
