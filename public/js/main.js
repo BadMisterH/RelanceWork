@@ -23,6 +23,10 @@ if (mobileMenuBtn && navLinks) {
     mobileMenuBtn.classList.toggle('active');
     navLinks.classList.toggle('active');
     document.body.style.overflow = navLinks.classList.contains('active') ? 'hidden' : '';
+    mobileMenuBtn.setAttribute(
+      'aria-expanded',
+      navLinks.classList.contains('active') ? 'true' : 'false'
+    );
   });
 
   // Close menu when clicking a link
@@ -31,6 +35,7 @@ if (mobileMenuBtn && navLinks) {
       mobileMenuBtn.classList.remove('active');
       navLinks.classList.remove('active');
       document.body.style.overflow = '';
+      mobileMenuBtn.setAttribute('aria-expanded', 'false');
     });
   });
 }
@@ -76,9 +81,14 @@ document.querySelectorAll('.faq-item').forEach(item => {
   question.addEventListener('click', () => {
     // Close others
     document.querySelectorAll('.faq-item').forEach(other => {
-      if (other !== item) other.classList.remove('active');
+      if (other !== item) {
+        other.classList.remove('active');
+        const otherQuestion = other.querySelector('.faq-question');
+        if (otherQuestion) otherQuestion.setAttribute('aria-expanded', 'false');
+      }
     });
-    item.classList.toggle('active');
+    const isActive = item.classList.toggle('active');
+    question.setAttribute('aria-expanded', isActive ? 'true' : 'false');
   });
 });
 

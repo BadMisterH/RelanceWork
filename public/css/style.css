@@ -15,7 +15,7 @@
 
   --text: #0f172a;
   --text-secondary: #475569;
-  --text-muted: #94a3b8;
+  --text-muted: #5b677a;
 
   --bg: #f8fafc;
   --bg-alt: #f1f5f9;
@@ -82,6 +82,24 @@ body {
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
+}
+
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 16px;
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--text);
+  color: var(--surface);
+  text-decoration: none;
+  font-weight: 600;
+  z-index: 1000;
+  transition: top 0.2s var(--ease);
+}
+
+.skip-link:focus {
+  top: 16px;
 }
 
 h1, h2, h3, h4 {
@@ -522,7 +540,7 @@ a { color: inherit; }
   gap: 6px;
   padding: 6px 8px;
   border-radius: 6px;
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   font-weight: 500;
   color: var(--text-muted);
   white-space: nowrap;
@@ -559,7 +577,7 @@ a { color: inherit; }
 .preview-dash-count {
   background: var(--accent);
   color: white;
-  font-size: 0.6rem;
+  font-size: 0.75rem;
   font-weight: 700;
   padding: 1px 6px;
   border-radius: var(--radius-full);
@@ -574,7 +592,7 @@ a { color: inherit; }
 .preview-filter {
   padding: 3px 8px;
   border-radius: var(--radius-full);
-  font-size: 0.6rem;
+  font-size: 0.75rem;
   font-weight: 500;
   background: var(--surface);
   border: 1px solid var(--border);
@@ -591,7 +609,7 @@ a { color: inherit; }
 .preview-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.6rem;
+  font-size: 0.75rem;
 }
 
 .preview-table thead tr {
@@ -601,7 +619,7 @@ a { color: inherit; }
 .preview-table th {
   padding: 4px 6px;
   text-align: left;
-  font-size: 0.55rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--text-muted);
   letter-spacing: 0.05em;
@@ -631,7 +649,7 @@ a { color: inherit; }
   border-radius: 6px;
   font-family: 'Archivo', sans-serif;
   font-weight: 800;
-  font-size: 0.6rem;
+  font-size: 0.75rem;
   margin-right: 5px;
   vertical-align: middle;
 }
@@ -645,7 +663,7 @@ a { color: inherit; }
   display: inline-block;
   padding: 2px 7px;
   border-radius: var(--radius-full);
-  font-size: 0.55rem;
+  font-size: 0.75rem;
   font-weight: 600;
   white-space: nowrap;
 }
@@ -655,7 +673,7 @@ a { color: inherit; }
 .preview-badge--relance { background: rgba(16,185,129,0.12); color: #34d399; }
 
 .preview-relance-count {
-  font-size: 0.6rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: #fbbf24;
 }
@@ -1263,6 +1281,7 @@ section {
   }
 
   .nav-links.active {
+    height: 40vh;
     opacity: 1;
     pointer-events: all;
   }

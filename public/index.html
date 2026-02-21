@@ -6,6 +6,7 @@
     <meta name="description" content="RelanceWork - Automatisez le suivi de vos candidatures. Ne ratez plus jamais une relance.">
     <meta name="keywords" content="candidature, emploi, relance, automatisation, suivi candidature, recherche emploi">
     <title>RelanceWork - Automatisez le suivi de vos candidatures</title>
+    <link rel="canonical" href="https://www.relance-work.fr/">
     <link rel="icon" type="image/png" href="/images/LogoRelanceWork.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -22,6 +23,7 @@
     </script>
 </head>
 <body>
+    <a class="skip-link" href="#main-content">Aller au contenu</a>
     <!-- Header -->
     <header class="header" id="header">
         <div class="container">
@@ -42,7 +44,7 @@
                         <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
                         <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
                     </button>
-                    <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Menu">
+                    <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Menu" aria-controls="navLinks" aria-expanded="false">
                         <span></span>
                         <span></span>
                         <span></span>
@@ -52,6 +54,7 @@
         </div>
     </header>
 
+    <main id="main-content">
     <!-- Hero Section -->
     <section class="hero">
         <div class="hero-glow"></div>
@@ -97,7 +100,7 @@
             </div>
 
             <!-- App Preview -->
-            <div class="hero-preview">
+            <div class="hero-preview" aria-hidden="true" role="presentation">
                 <div class="preview-browser">
                     <div class="preview-browser-bar">
                         <div class="preview-dots">
@@ -351,52 +354,53 @@
             </div>
             <div class="faq-list">
                 <div class="faq-item" data-anim>
-                    <button class="faq-question">
+                    <button class="faq-question" aria-expanded="false" aria-controls="faq-answer-1">
                         Comment fonctionne la detection automatique ?
                         <span class="faq-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                         </span>
                     </button>
-                    <div class="faq-answer">
+                    <div class="faq-answer" id="faq-answer-1">
                         <p>RelanceWork se connecte a votre Gmail via OAuth (securise). Des que vous envoyez un email avec un objet de candidature, il est automatiquement detecte et ajoute a votre tableau de bord.</p>
                     </div>
                 </div>
                 <div class="faq-item" data-anim>
-                    <button class="faq-question">
+                    <button class="faq-question" aria-expanded="false" aria-controls="faq-answer-2">
                         Mes donnees sont-elles securisees ?
                         <span class="faq-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                         </span>
                     </button>
-                    <div class="faq-answer">
+                    <div class="faq-answer" id="faq-answer-2">
                         <p>Absolument. Vos donnees sont chiffrees et stockees de maniere securisee. Nous ne lisons jamais le contenu de vos emails, uniquement les metadonnees. Conforme RGPD.</p>
                     </div>
                 </div>
                 <div class="faq-item" data-anim>
-                    <button class="faq-question">
+                    <button class="faq-question" aria-expanded="false" aria-controls="faq-answer-3">
                         Puis-je annuler mon abonnement ?
                         <span class="faq-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                         </span>
                     </button>
-                    <div class="faq-answer">
+                    <div class="faq-answer" id="faq-answer-3">
                         <p>Oui, annulation en 1 clic depuis votre compte. Aucun engagement. Si vous annulez, vous repassez au plan gratuit sans perdre vos donnees.</p>
                     </div>
                 </div>
                 <div class="faq-item" data-anim>
-                    <button class="faq-question">
+                    <button class="faq-question" aria-expanded="false" aria-controls="faq-answer-4">
                         Le plan gratuit est-il vraiment gratuit ?
                         <span class="faq-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                         </span>
                     </button>
-                    <div class="faq-answer">
+                    <div class="faq-answer" id="faq-answer-4">
                         <p>Oui, le plan gratuit vous permet de gerer jusqu'a 10 candidatures sans aucun frais. Passez a Pro (9,99/mois) quand vous avez besoin de plus.</p>
                     </div>
                 </div>
             </div>
         </div>
     </section>
+    </main>
 
     <!-- Footer -->
     <footer class="footer">
