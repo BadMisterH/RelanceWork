@@ -12,6 +12,7 @@ import billingRoutes from "./routes/billingRoutes";
 import searchRoutes from "./routes/searchRoutes";
 import authRoutes from "./routes/authRoutes";
 import favoritesRoutes from "./routes/favoritesRoutes";
+import relanceAdvisorRoutes from "./routes/relanceAdvisorRoutes";
 
 const app = express();
 
@@ -63,14 +64,30 @@ const emailLimiter = rateLimit({
 app.use("/api/auth/forgot-password", emailLimiter);
 app.use("/api/auth/resend-verification", emailLimiter);
 
+// Limite analyse IA : 10 analyses par heure par IP (protège les coûts API Claude)
+const advisorLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Limite d'analyses atteinte. Réessayez dans une heure." },
+});
+app.use("/api/relance-advisor", advisorLimiter);
+
 // ============================================
 // CORS
 // ============================================
+const allowedOrigins = [
+  "https://www.relance-work.fr",
+  "https://www.relancework-production.up.railway.app",
+];
+
+if (process.env.NODE_ENV !== "production") {
+  allowedOrigins.push("http://localhost:3000", "http://localhost:5173");
+}
+
 const corsOptions = {
-  origin: [
-    "https://www.relance-work.fr",
-    "https://www.relancework-production.up.railway.app",
-  ],
+  origin: allowedOrigins,
   credentials: true,
 };
 
@@ -85,7 +102,7 @@ app.use("/api/billing/webhook", express.raw({ type: "application/json" }));
 app.use(express.json({ limit: "10mb" }));
 
 // Health check
-app.get("/health", (req: Request, res: Response) => {
+app.get("/health", (_req: Request, res: Response) => {
   res.json({ status: "ok" });
 });
 
@@ -101,6 +118,7 @@ app.use("/api/email-enrichment", emailEnrichmentRoutes);
 app.use("/api/company-enrichment", companyEnrichmentRoutes);
 app.use("/api/billing", billingRoutes);
 app.use("/api/search", searchRoutes);
+app.use("/api/relance-advisor", relanceAdvisorRoutes);
 
 // ============================================
 // STATIC FILES

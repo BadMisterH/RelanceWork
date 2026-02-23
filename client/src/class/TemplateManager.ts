@@ -15,6 +15,12 @@ interface TemplateSettings {
   lastUsedTemplateId: string;
 }
 
+interface DiagnosticResult {
+  points_forts: string[];
+  points_adapter: string[];
+  conseils_relance: string[];
+}
+
 export class TemplateManager {
   private static readonly STORAGE_KEY = 'relancework-email-templates';
   private static readonly SETTINGS_KEY = 'relancework-template-settings';
@@ -26,6 +32,14 @@ export class TemplateManager {
   private currentApp: Application | null = null;
   private isEditing = false;
   private editingTemplateId: string | null = null;
+
+  // Advisor state
+  private advisorExpanded = false;
+  private advisorLoading = false;
+  private advisorResult: DiagnosticResult | null = null;
+  private advisorError: string | null = null;
+  private advisorCvFile: File | null = null;
+  private advisorJobUrl = '';
 
   constructor() {
     this.panelOverlay = document.getElementById('templatePanelOverlay');
@@ -43,6 +57,14 @@ export class TemplateManager {
     this.isEditing = false;
     this.editingTemplateId = null;
 
+    // Reset advisor state
+    this.advisorExpanded = false;
+    this.advisorLoading = false;
+    this.advisorResult = null;
+    this.advisorError = null;
+    this.advisorCvFile = null;
+    this.advisorJobUrl = app.company_website || '';
+
     // Pre-select last used template or first one
     const settings = this.loadSettings();
     if (settings.lastUsedTemplateId && this.templates.find(t => t.id === settings.lastUsedTemplateId)) {
@@ -59,6 +81,10 @@ export class TemplateManager {
     this.panelOverlay?.classList.remove('active');
     this.isEditing = false;
     this.editingTemplateId = null;
+    this.advisorExpanded = false;
+    this.advisorResult = null;
+    this.advisorError = null;
+    this.advisorCvFile = null;
   }
 
   // ============================================
@@ -302,6 +328,9 @@ export class TemplateManager {
         </div>
       </div>
 
+      <!-- Advisor (optionnel) -->
+      ${!this.isEditing ? this.renderAdvisorSection() : ''}
+
       <!-- Actions -->
       <div class="template-actions">
         ${this.isEditing ? `
@@ -489,6 +518,15 @@ export class TemplateManager {
       this.renderPanel();
     });
 
+    // Advisor toggle
+    document.getElementById('advisorToggleBtn')?.addEventListener('click', () => {
+      this.advisorExpanded = !this.advisorExpanded;
+      this.renderPanel();
+    });
+
+    // Advisor body events (if expanded)
+    if (this.advisorExpanded) this.attachAdvisorBodyEvents();
+
     // Send via Gmail button
     document.getElementById('sendGmailBtn')?.addEventListener('click', () => this.handleSendViaGmail());
 
@@ -660,6 +698,170 @@ export class TemplateManager {
 
     // Notify main.ts
     window.dispatchEvent(new CustomEvent('relance-sent', { detail: { id: this.currentApp.id } }));
+  }
+
+  // ============================================
+  // ADVISOR RENDERING
+  // ============================================
+
+  private renderAdvisorSection(): string {
+    return `
+      <div class="template-advisor" id="advisorSection">
+        <button class="template-advisor-toggle" id="advisorToggleBtn" aria-expanded="${this.advisorExpanded}">
+          <span class="advisor-toggle-label">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            Analyser avant d'envoyer
+            <span class="advisor-badge-optional">Optionnel</span>
+          </span>
+          <svg class="advisor-chevron${this.advisorExpanded ? ' advisor-chevron--open' : ''}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </button>
+        ${this.advisorExpanded ? `<div class="template-advisor-body">${
+          this.advisorLoading
+            ? this.renderAdvisorLoading()
+            : this.advisorResult
+              ? this.renderAdvisorResult()
+              : this.renderAdvisorForm()
+        }</div>` : ''}
+      </div>
+    `;
+  }
+
+  private renderAdvisorForm(): string {
+    const hasFile = !!this.advisorCvFile;
+    const hasUrl = !!this.advisorJobUrl.trim();
+    return `
+      <p class="advisor-form-intro">Analyse de compatibilité entre votre CV et la fiche de poste — pour personnaliser votre relance.</p>
+      <div class="template-advisor-form">
+        <div class="advisor-form-field">
+          <label>Votre CV (PDF)</label>
+          <label class="advisor-file-label" for="advisorCvInput">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14 2z"/>
+              <polyline points="14 2 14 8 20 8"/>
+            </svg>
+            <span id="advisorFileLabel">${hasFile ? this.escapeHtml(this.advisorCvFile!.name) : 'Choisir un PDF…'}</span>
+          </label>
+          <input type="file" id="advisorCvInput" accept=".pdf,application/pdf" class="advisor-file-input">
+        </div>
+        <div class="advisor-form-field">
+          <label>URL de la fiche de poste</label>
+          <input type="url" id="advisorJobUrlInput" value="${this.escapeAttr(this.advisorJobUrl)}"
+            placeholder="https://www.linkedin.com/jobs/…" class="advisor-url-input">
+        </div>
+      </div>
+      ${this.advisorError ? `<p class="advisor-error">${this.escapeHtml(this.advisorError)}</p>` : ''}
+      <button class="advisor-analyze-btn" id="advisorAnalyzeBtn" ${!hasFile || !hasUrl ? 'disabled' : ''}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        Analyser mon profil
+      </button>
+    `;
+  }
+
+  private renderAdvisorLoading(): string {
+    return `
+      <div class="advisor-loading">
+        <div class="advisor-spinner"></div>
+        <span>Analyse en cours…</span>
+      </div>
+    `;
+  }
+
+  private renderAdvisorResult(): string {
+    const r = this.advisorResult!;
+    const sections = [
+      { key: 'points_forts', label: 'Points forts à valoriser', icon: '✓', mod: 'green', items: r.points_forts },
+      { key: 'points_adapter', label: 'Points à adapter', icon: '⚠', mod: 'orange', items: r.points_adapter },
+      { key: 'conseils_relance', label: 'Conseils pour cette relance', icon: '💡', mod: 'blue', items: r.conseils_relance },
+    ];
+    return `
+      <div class="template-advisor-result">
+        ${sections.map(s => s.items.length ? `
+          <div class="advisor-result-section advisor-result-section--${s.mod}">
+            <div class="advisor-result-title">${s.icon} ${s.label}</div>
+            ${s.items.map(item => `<div class="advisor-result-item">${this.escapeHtml(item)}</div>`).join('')}
+          </div>
+        ` : '').join('')}
+        <button class="advisor-reset-btn" id="advisorResetBtn">← Nouvelle analyse</button>
+      </div>
+    `;
+  }
+
+  // ============================================
+  // ADVISOR LOGIC
+  // ============================================
+
+  private async handleAnalyze(): Promise<void> {
+    if (!this.advisorCvFile || !this.advisorJobUrl.trim() || !this.currentApp) return;
+
+    this.advisorLoading = true;
+    this.advisorError = null;
+    this.updateAdvisorBody();
+
+    try {
+      const formData = new FormData();
+      formData.append('cv', this.advisorCvFile);
+      formData.append('jobUrl', this.advisorJobUrl.trim());
+      formData.append('company', this.currentApp.company);
+      formData.append('poste', this.currentApp.poste);
+
+      const response = await api.post('/relance-advisor/analyze', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        timeout: 30000,
+      });
+
+      this.advisorResult = response.data as DiagnosticResult;
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { error?: string } } };
+      this.advisorError = err?.response?.data?.error || "Erreur lors de l'analyse. Réessayez.";
+    } finally {
+      this.advisorLoading = false;
+      this.updateAdvisorBody();
+    }
+  }
+
+  private updateAdvisorBody(): void {
+    const bodyEl = document.querySelector('#advisorSection .template-advisor-body');
+    if (!bodyEl) return;
+
+    bodyEl.innerHTML = this.advisorLoading
+      ? this.renderAdvisorLoading()
+      : this.advisorResult
+        ? this.renderAdvisorResult()
+        : this.renderAdvisorForm();
+
+    this.attachAdvisorBodyEvents();
+  }
+
+  private attachAdvisorBodyEvents(): void {
+    const fileInput = document.getElementById('advisorCvInput') as HTMLInputElement | null;
+    fileInput?.addEventListener('change', () => {
+      this.advisorCvFile = fileInput.files?.[0] ?? null;
+      const label = document.getElementById('advisorFileLabel');
+      if (label) label.textContent = this.advisorCvFile ? this.advisorCvFile.name : 'Choisir un PDF…';
+      const analyzeBtn = document.getElementById('advisorAnalyzeBtn') as HTMLButtonElement | null;
+      if (analyzeBtn) analyzeBtn.disabled = !this.advisorCvFile || !this.advisorJobUrl.trim();
+    });
+
+    const urlInput = document.getElementById('advisorJobUrlInput') as HTMLInputElement | null;
+    urlInput?.addEventListener('input', () => {
+      this.advisorJobUrl = urlInput.value;
+      const analyzeBtn = document.getElementById('advisorAnalyzeBtn') as HTMLButtonElement | null;
+      if (analyzeBtn) analyzeBtn.disabled = !this.advisorCvFile || !this.advisorJobUrl.trim();
+    });
+
+    document.getElementById('advisorAnalyzeBtn')?.addEventListener('click', () => this.handleAnalyze());
+    document.getElementById('advisorResetBtn')?.addEventListener('click', () => {
+      this.advisorResult = null;
+      this.advisorError = null;
+      this.advisorCvFile = null;
+      this.updateAdvisorBody();
+    });
   }
 
   // ============================================
