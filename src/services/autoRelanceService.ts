@@ -1,5 +1,5 @@
 import { supabase } from "../config/supabase";
-import { sendRelanceReminder } from "./emailServices";
+import { sendRelanceReminderEmail } from "./brevoEmailService";
 
 // Nombre de jours avant de marquer comme "à relancer"
 const DAYS_BEFORE_RELANCE = 3;
@@ -96,7 +96,7 @@ export async function checkAndUpdateRelances(): Promise<number> {
     // Envoyer un email à chaque utilisateur avec ses candidatures à relancer
     for (const [userEmail, apps] of applicationsByUser) {
       if (apps.length > 0 && userEmail !== "default") {
-        await sendRelanceReminder(apps, userEmail);
+        await sendRelanceReminderEmail(userEmail, apps);
       }
     }
 
