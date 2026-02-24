@@ -7,8 +7,32 @@ export default defineConfig(({ command, mode }) => {
   const rootEnv = loadEnv(mode, "..", "VITE_");
   const env = { ...rootEnv, ...clientEnv };
 
+  const appBaseRewritePlugin = {
+    name: "rewrite-app-base",
+    apply: "serve",
+    configureServer(server: any) {
+      server.middlewares.use((req: any, _res: any, next: any) => {
+        if (!req.url) return next();
+
+        // Allow /app/* paths in dev to mirror production routing.
+        if (req.url === "/app" || req.url.startsWith("/app/") || req.url.startsWith("/app?")) {
+          const parsed = new URL(req.url, "http://localhost");
+          if (parsed.pathname === "/app") {
+            parsed.pathname = "/";
+          } else if (parsed.pathname.startsWith("/app/")) {
+            parsed.pathname = parsed.pathname.replace(/^\/app/, "");
+          }
+          req.url = parsed.pathname + parsed.search;
+        }
+
+        next();
+      });
+    },
+  };
+
   return {
     base: command === "build" ? "/app/" : "/",
+    plugins: [appBaseRewritePlugin],
     define: {
       "import.meta.env.VITE_SUPABASE_URL": JSON.stringify(
         env.VITE_SUPABASE_URL || process.env.VITE_SUPABASE_URL

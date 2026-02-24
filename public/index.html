@@ -10,14 +10,10 @@
     <link rel="icon" type="image/png" href="/images/LogoRelanceWork.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <!-- Non-blocking Google Fonts -->
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"></noscript>
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet"></noscript>
     <link rel="stylesheet" href="css/style.css">
-    <!-- Preload LCP image -->
     <link rel="preload" as="image" href="/images/LogoRelanceWork.avif" type="image/avif" fetchpriority="high">
-
-    <!-- Apply saved theme before paint -->
     <script>
       (function() {
         const saved = localStorage.getItem('theme');
@@ -28,6 +24,7 @@
 </head>
 <body>
     <a class="skip-link" href="#main-content">Aller au contenu</a>
+
     <!-- Header -->
     <header class="header" id="header">
         <div class="container">
@@ -40,8 +37,8 @@
                     <span class="logo-text">RelanceWork</span>
                 </a>
                 <div class="nav-links" id="navLinks">
-                    <a href="#features">Fonctionnalites</a>
-                    <a href="#how-it-works">Comment ca marche</a>
+                    <a href="#features">Fonctionnalités</a>
+                    <a href="#how-it-works">Comment ça marche</a>
                     <a href="/pricing.html" class="nav-link-pricing">Tarifs</a>
                     <a href="/app/auth.html" class="btn btn-outline btn-sm" id="loginBtn">Se connecter</a>
                     <a href="/app/auth.html" class="btn btn-primary btn-sm" id="ctaBtn">Commencer gratuit</a>
@@ -62,36 +59,37 @@
     </header>
 
     <main id="main-content">
+
     <!-- Hero Section -->
     <section class="hero">
-        <div class="hero-glow"></div>
         <div class="hero-grid-bg"></div>
         <div class="container">
+
+            <!-- Left: Text content -->
             <div class="hero-content">
                 <div class="hero-badge">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
                     Pour étudiants &amp; profils tech en recherche active
                 </div>
                 <h1 class="hero-title">
-                    Transformez vos candidatures<br>
-                    en <span class="gradient-text">entretiens</span>
+                    Transformez vos<br>candidatures en<br><span class="accent-word">entretiens</span>
                 </h1>
                 <p class="hero-subtitle">
-                    Ne laissez plus vos candidatures sans réponse.RelanceWork suit vos candidatures Gmail et vous indique quand relancer.
+                    Ne laissez plus vos candidatures sans réponse. RelanceWork suit vos candidatures Gmail et vous indique exactement quand relancer.
                 </p>
                 <div class="hero-cta">
                     <a href="/app/auth.html" class="btn btn-primary btn-lg">
                         Commencer gratuitement
-                        <svg viewBox="0 0 20 20" fill="none" width="18" height="18"><path d="M7.5 15L12.5 10L7.5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        <svg viewBox="0 0 20 20" fill="none" width="17" height="17"><path d="M7.5 15L12.5 10L7.5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                     </a>
                     <a href="#features" class="btn btn-ghost btn-lg">
-                        Decouvrir
+                        Découvrir
                     </a>
                 </div>
                 <div class="hero-stats">
                     <div class="stat">
-                        <span class="stat-number">2x</span>
-                        <span class="stat-label">Plus d'entretiens obtenus</span>
+                        <span class="stat-number">2×</span>
+                        <span class="stat-label">Plus d'entretiens</span>
                     </div>
                     <div class="stat-divider"></div>
                     <div class="stat">
@@ -101,108 +99,152 @@
                     <div class="stat-divider"></div>
                     <div class="stat">
                         <span class="stat-number">30s</span>
-                        <span class="stat-label">Pour gérer une candidature</span>
+                        <span class="stat-label">Par candidature</span>
                     </div>
                 </div>
             </div>
 
-            <!-- App Preview -->
-            <div class="hero-preview" aria-hidden="true" role="presentation">
-                <div class="preview-browser">
-                    <div class="preview-browser-bar">
-                        <div class="preview-dots">
-                            <span></span><span></span><span></span>
+            <!-- Right: Floating UI cards -->
+            <div class="hero-cards" aria-hidden="true">
+
+                <!-- Card 1: Relance notification (top right) -->
+                <div class="h-card h-card-notification">
+                    <div class="h-card-notif-header">
+                        <div class="h-notif-avatar">MA</div>
+                        <div class="h-notif-meta">
+                            <span class="h-notif-name">Ministère des Armées</span>
+                            <span class="h-notif-role">Technicien Informatique</span>
                         </div>
-                        <div class="preview-url">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                            relancework.app
-                        </div>
+                        <span class="h-notif-time">11:24</span>
+                        <span class="h-notif-star">★</span>
                     </div>
-                    <div class="preview-content preview-content--dashboard">
-                        <!-- Sidebar -->
-                        <div class="preview-sidebar preview-sidebar--dashboard">
-                            <div class="preview-sidebar-logo">
-                                <picture>
-                                    <source srcset="/images/LogoRelanceWork.avif" type="image/avif">
-                                    <img src="/images/LogoRelanceWork-sm.png" alt="RW" width="24" height="18" style="height:18px;width:auto;">
-                                </picture>
-                            </div>
-                            <div class="preview-nav-item preview-nav-item--active">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-                                Dashboard
-                            </div>
-                            <div class="preview-nav-item">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14 2z"/></svg>
-                                Candidatures
-                            </div>
-                            <div class="preview-nav-item">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-                                Favoris
-                            </div>
-                        </div>
-                        <!-- Main content -->
-                        <div class="preview-main preview-main--dashboard">
-                            <div class="preview-dash-header">
-                                <span class="preview-dash-title">Mes Candidatures</span>
-                                <span class="preview-dash-count">4</span>
-                            </div>
-                            <div class="preview-filters">
-                                <span class="preview-filter preview-filter--active">Tout 4</span>
-                                <span class="preview-filter">Envoyée 3</span>
-                                <span class="preview-filter">En attente 1</span>
-                            </div>
-                            <table class="preview-table">
-                                <thead>
-                                    <tr>
-                                        <th>ENTREPRISE</th>
-                                        <th>POSTE</th>
-                                        <th>STATUT</th>
-                                        <th>DATE</th>
-                                        <th>RELANCES</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td><span class="preview-avatar preview-avatar--purple">M</span> Ministère des Armées</td>
-                                        <td>Technicien Informatique</td>
-                                        <td><span class="preview-badge preview-badge--sent">📤 Candidature envoyée</span></td>
-                                        <td>1sem</td>
-                                        <td><span class="preview-relance-count">🔔 3×</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td><span class="preview-avatar preview-avatar--green">R</span> Realyze</td>
-                                        <td>Dev Web Full Stack</td>
-                                        <td><span class="preview-badge preview-badge--waiting">⏳ En attente</span></td>
-                                        <td>3sem</td>
-                                        <td><span class="preview-relance-count">🔔 1×</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td><span class="preview-avatar preview-avatar--blue">D</span> Deltaprosolutions</td>
-                                        <td>Alternant Tech. Info.</td>
-                                        <td><span class="preview-badge preview-badge--relance">🚀 Relance envoyée</span></td>
-                                        <td>3sem</td>
-                                        <td><span class="preview-relance-count">🔔 1×</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td><span class="preview-avatar preview-avatar--orange">N</span> Notify AI</td>
-                                        <td>[Poste]</td>
-                                        <td><span class="preview-badge preview-badge--sent">📤 Candidature envoyée</span></td>
-                                        <td>Hier</td>
-                                        <td><span style="color:#4b5563">—</span></td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                    <p class="h-notif-body">Aucune réponse depuis 7 jours — c'est le moment idéal pour relancer et doubler vos chances !</p>
+                    <div class="h-notif-attachment">
+                        <div class="h-notif-attach-icon">✉</div>
+                        <div>
+                            <div class="h-notif-attach-name">Template de relance.txt</div>
+                            <div class="h-notif-attach-size">Prêt à envoyer · 2.1 ko</div>
                         </div>
                     </div>
                 </div>
-            </div>
+
+                <!-- Card 2: Priority table (middle right) -->
+                <div class="h-card h-card-table">
+                    <div class="h-table-header">
+                        <span class="h-table-title">Candidatures</span>
+                        <div class="h-table-filter">
+                            <span class="h-filter-pill pill-progress">Progrès ▼</span>
+                            <span class="h-filter-pill pill-priority">Priorité ▼</span>
+                        </div>
+                    </div>
+                    <table class="h-table">
+                        <thead>
+                            <tr>
+                                <th style="width:42%">Entreprise</th>
+                                <th style="width:38%">Progrès</th>
+                                <th style="width:20%">Priorité</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="h-table-row">
+                                <td><span class="h-row-name">Realyze</span></td>
+                                <td>
+                                    <div class="h-progress-bar">
+                                        <div class="h-progress-track"><div class="h-progress-fill" style="width:85%"></div></div>
+                                        <span class="h-progress-pct">85%</span>
+                                    </div>
+                                </td>
+                                <td><span class="h-priority-badge h-priority-high">Haute</span></td>
+                            </tr>
+                            <tr class="h-table-row">
+                                <td><span class="h-row-name">Deltapro.</span></td>
+                                <td>
+                                    <div class="h-progress-bar">
+                                        <div class="h-progress-track"><div class="h-progress-fill" style="width:61%"></div></div>
+                                        <span class="h-progress-pct">61%</span>
+                                    </div>
+                                </td>
+                                <td><span class="h-priority-badge h-priority-med">Moyen</span></td>
+                            </tr>
+                            <tr class="h-table-row">
+                                <td><span class="h-row-name">Notify AI</span></td>
+                                <td>
+                                    <div class="h-progress-bar">
+                                        <div class="h-progress-track"><div class="h-progress-fill" style="width:38%"></div></div>
+                                        <span class="h-progress-pct">38%</span>
+                                    </div>
+                                </td>
+                                <td><span class="h-priority-badge h-priority-low">Faible</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Card 3: Count (bottom left) -->
+                <div class="h-card h-card-count">
+                    <div class="h-count-number">24</div>
+                    <div class="h-count-label">Candidatures<br>actives</div>
+                    <div class="h-count-cursor">
+                        <svg viewBox="0 0 12 12" fill="currentColor" width="8" height="8"><path d="M2 2l8 3.5L6 7l-1.5 5L2 2z"/></svg>
+                        Camille B.
+                    </div>
+                </div>
+
+                <!-- Card 4: Task detail (bottom middle) -->
+                <div class="h-card h-card-task">
+                    <div class="h-task-tags">
+                        <span class="h-task-tag">Email RH</span>
+                        <span class="h-task-tag h-task-tag-active">En cours</span>
+                    </div>
+                    <div class="h-task-title">Candidature Spontanée</div>
+                    <p class="h-task-desc">Trouver l'email du recruteur et préparer un message de relance personnalisé.</p>
+                    <div class="h-task-progress-label">
+                        <span>Progrès</span><span>74%</span>
+                    </div>
+                    <div class="h-task-progress-track">
+                        <div class="h-task-progress-fill" style="width:74%"></div>
+                    </div>
+                    <div class="h-task-assign">
+                        Assigné à :
+                        <div class="h-avatars">
+                            <div class="h-avatar-sm ha-blue">C</div>
+                            <div class="h-avatar-sm ha-green">A</div>
+                            <div class="h-avatar-sm ha-amber">T</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 5: Response rate / velocity (bottom right) -->
+                <div class="h-card h-card-velocity">
+                    <div class="h-velocity-header">
+                        <span class="h-velocity-title">Taux de réponse</span>
+                        <span class="h-velocity-dots">···</span>
+                    </div>
+                    <div class="h-velocity-stat">
+                        <span class="h-velocity-number">34%</span>
+                        <span class="h-velocity-delta">+12% ce mois</span>
+                    </div>
+                    <svg class="h-sparkline" viewBox="0 0 200 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="sg" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stop-color="#3D7EFF" stop-opacity="0.28"/>
+                                <stop offset="100%" stop-color="#3D7EFF" stop-opacity="0"/>
+                            </linearGradient>
+                        </defs>
+                        <path d="M0 42 C15 40, 25 38, 40 36 S65 30, 85 26 S115 18, 135 14 S165 9, 200 6" stroke="#3D7EFF" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M0 42 C15 40, 25 38, 40 36 S65 30, 85 26 S115 18, 135 14 S165 9, 200 6 L200 48 L0 48 Z" fill="url(#sg)"/>
+                    </svg>
+                </div>
+
+            </div><!-- /hero-cards -->
+
         </div>
     </section>
 
     <!-- Problem Section -->
     <section class="problems" id="problems">
         <div class="container">
-            <div class="section-header">
+            <div class="section-header" data-outline="REALITE">
                 <span class="section-tag">La réalité de la recherche d'emploi</span>
                 <h2>Après 2 semaines, 80&nbsp;% des candidats<br>ont déjà oublié de relancer</h2>
             </div>
@@ -235,54 +277,73 @@
     <!-- Features Section -->
     <section class="features" id="features">
         <div class="container">
-            <div class="section-header">
+            <div class="section-header" data-outline="OUTILS">
                 <span class="section-tag">Fonctionnalités</span>
                 <h2>Tout ce qu'il faut pour<br>décrocher l'entretien</h2>
                 <p class="section-desc">RelanceWork automatise votre suivi de candidature de A à Z — de la détection Gmail jusqu'à la relance envoyée.</p>
             </div>
-            <div class="features-grid">
-                <div class="feature-card" data-anim>
-                    <div class="feature-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="24" height="24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
-                    </div>
-                    <h3>Suivi de candidatures centralisé</h3>
-                    <p>Toutes vos candidatures en un tableau de bord : statut, date d'envoi, relances effectuées. Sachez en 2 secondes où en est chaque dossier.</p>
-                </div>
-                <div class="feature-card feature-card--highlight" data-anim>
-                    <div class="feature-tag">Populaire</div>
-                    <div class="feature-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="24" height="24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            <div class="features-layout">
+                <div class="feature-hero" data-anim>
+                    <div class="feature-hero-header">
+                        <div class="feature-hero-tag">Populaire</div>
+                        <div class="feature-hero-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" width="24" height="24"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg>
+                        </div>
                     </div>
                     <h3>Détection Gmail automatique</h3>
                     <p>Connectez votre Gmail une seule fois. RelanceWork détecte automatiquement chaque candidature envoyée — zéro saisie manuelle, zéro oubli.</p>
-                </div>
-                <div class="feature-card" data-anim>
-                    <div class="feature-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="24" height="24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    <div class="feature-hero-pills">
+                        <span>OAuth sécurisé</span>
+                        <span>Auto‑détection</span>
+                        <span>Zéro saisie</span>
                     </div>
-                    <h3>Templates de relance prêts à l'emploi</h3>
-                    <p>Bibliothèque de modèles d'emails professionnels personnalisables avec variables dynamiques (entreprise, poste, recruteur). Relancez en 30 secondes.</p>
                 </div>
-                <div class="feature-card" data-anim>
-                    <div class="feature-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="24" height="24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                <div class="feature-list">
+                    <div class="feature-row" data-anim>
+                        <div class="feature-row-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="20" height="20"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+                        </div>
+                        <div class="feature-row-body">
+                            <h3>Suivi de candidatures centralisé</h3>
+                            <p>Toutes vos candidatures en un tableau de bord : statut, date d'envoi, relances effectuées. Sachez en 2 secondes où en est chaque dossier.</p>
+                        </div>
                     </div>
-                    <h3>Analytics de votre recherche d'emploi</h3>
-                    <p>Suivez votre taux de réponse, vos relances envoyées et identifiez quelles entreprises convertissent le mieux. Optimisez votre stratégie.</p>
-                </div>
-                <div class="feature-card" data-anim>
-                    <div class="feature-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="24" height="24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    <div class="feature-row" data-anim>
+                        <div class="feature-row-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="20" height="20"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                        </div>
+                        <div class="feature-row-body">
+                            <h3>Templates de relance prêts à l'emploi</h3>
+                            <p>Bibliothèque de modèles d'emails professionnels personnalisables avec variables dynamiques (entreprise, poste, recruteur). Relancez en 30 secondes.</p>
+                        </div>
                     </div>
-                    <h3>Prospection d'entreprises ciblée</h3>
-                    <p>Trouvez des entreprises qui recrutent dans votre secteur via Google Maps et ajoutez-les directement à votre pipeline de candidatures spontanées.</p>
-                </div>
-                <div class="feature-card" data-anim>
-                    <div class="feature-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="24" height="24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    <div class="feature-row" data-anim>
+                        <div class="feature-row-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="20" height="20"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                        </div>
+                        <div class="feature-row-body">
+                            <h3>Analytics de votre recherche d'emploi</h3>
+                            <p>Suivez votre taux de réponse, vos relances envoyées et identifiez quelles entreprises convertissent le mieux. Optimisez votre stratégie.</p>
+                        </div>
                     </div>
-                    <h3>Sécurité &amp; Conformité RGPD</h3>
-                    <p>Données chiffrées, authentification sécurisée. Nous n'accédons jamais au contenu de vos emails, uniquement aux métadonnées. Conforme RGPD.</p>
+                    <div class="feature-row" data-anim>
+                        <div class="feature-row-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="20" height="20"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        </div>
+                        <div class="feature-row-body">
+                            <h3>Prospection d'entreprises ciblée</h3>
+                            <p>Trouvez des entreprises qui recrutent dans votre secteur via Google Maps et ajoutez-les directement à votre pipeline de candidatures spontanées.</p>
+                        </div>
+                    </div>
+                    <div class="feature-row" data-anim>
+                        <div class="feature-row-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="20" height="20"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                        </div>
+                        <div class="feature-row-body">
+                            <h3>Sécurité &amp; Conformité RGPD</h3>
+                            <p>Données chiffrées, authentification sécurisée. Nous n'accédons jamais au contenu de vos emails, uniquement aux métadonnées. Conforme RGPD.</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -291,7 +352,7 @@
     <!-- How it works -->
     <section class="how-it-works" id="how-it-works">
         <div class="container">
-            <div class="section-header">
+            <div class="section-header" data-outline="ETAPES">
                 <span class="section-tag">Comment ça marche</span>
                 <h2>Gmail → RelanceWork → Entretien.<br>En 3 étapes.</h2>
             </div>
@@ -302,7 +363,7 @@
                     <p>Inscription en 30 secondes, sans carte de crédit. Idéal pour les étudiants, alternants et jeunes diplômés.</p>
                 </div>
                 <div class="step-arrow">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                 </div>
                 <div class="step" data-anim>
                     <div class="step-number">02</div>
@@ -310,7 +371,7 @@
                     <p>RelanceWork analyse vos emails envoyés et détecte automatiquement chaque candidature. Zéro saisie manuelle, zéro oubli.</p>
                 </div>
                 <div class="step-arrow">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                 </div>
                 <div class="step" data-anim>
                     <div class="step-number">03</div>
@@ -332,7 +393,7 @@
                     <div class="pricing-cta-actions">
                         <a href="/app/auth.html" class="btn btn-white btn-lg">
                             Commencer gratuitement
-                            <svg viewBox="0 0 20 20" fill="none" width="18" height="18"><path d="M7.5 15L12.5 10L7.5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            <svg viewBox="0 0 20 20" fill="none" width="17" height="17"><path d="M7.5 15L12.5 10L7.5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                         </a>
                         <a href="/pricing.html" class="btn btn-ghost-white btn-lg">Voir les tarifs</a>
                     </div>
@@ -358,7 +419,7 @@
     <!-- FAQ -->
     <section class="faq" id="faq">
         <div class="container">
-            <div class="section-header">
+            <div class="section-header" data-outline="FAQ">
                 <span class="section-tag">FAQ</span>
                 <h2>Questions fréquentes</h2>
             </div>
@@ -430,7 +491,7 @@
                     <div class="footer-col">
                         <h4>Produit</h4>
                         <ul>
-                            <li><a href="#features">Fonctionnalites</a></li>
+                            <li><a href="#features">Fonctionnalités</a></li>
                             <li><a href="/pricing.html">Tarifs</a></li>
                             <li><a href="#faq">FAQ</a></li>
                         </ul>
@@ -439,14 +500,14 @@
                         <h4>Compte</h4>
                         <ul>
                             <li><a href="/app/auth.html">Se connecter</a></li>
-                            <li><a href="/app/auth.html">Creer un compte</a></li>
+                            <li><a href="/app/auth.html">Créer un compte</a></li>
                             <li><a href="/app/">Dashboard</a></li>
                         </ul>
                     </div>
                     <div class="footer-col">
-                        <h4>Legal</h4>
+                        <h4>Légal</h4>
                         <ul>
-                            <li><a href="/politique-confidentialite.html">Politique de confidentialite</a></li>
+                            <li><a href="/politique-confidentialite.html">Politique de confidentialité</a></li>
                             <li><a href="/conditions-utilisation.html">Conditions d'utilisation</a></li>
                             <li><a href="#">Contact</a></li>
                         </ul>
@@ -454,7 +515,7 @@
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2026 RelanceWork. Tous droits reserves.</p>
+                <p>&copy; 2026 RelanceWork. Tous droits réservés.</p>
             </div>
         </div>
     </footer>
@@ -469,7 +530,7 @@
       const supabaseAnonKey = 'sb_publishable_rr2bz-6nDx-vilDTvskaGg_wx7UiMMa';
       const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-      const INACTIVITY_TIMEOUT = 30 * 60 * 1000; // 30 minutes
+      const INACTIVITY_TIMEOUT = 30 * 60 * 1000;
       let inactivityTimer = null;
 
       function resetInactivityTimer() {
@@ -486,9 +547,7 @@
         const ctaBtn = document.getElementById('ctaBtn');
 
         if (session?.user) {
-          // User is logged in - update nav buttons
           const email = session.user.email;
-          const initial = email.charAt(0).toUpperCase();
 
           if (loginBtn) {
             loginBtn.href = '/app';
@@ -496,7 +555,7 @@
           }
           if (ctaBtn) {
             ctaBtn.href = '#';
-            ctaBtn.innerHTML = 'Deconnexion';
+            ctaBtn.innerHTML = 'Déconnexion';
             ctaBtn.classList.remove('btn-primary');
             ctaBtn.classList.add('btn-outline');
             ctaBtn.addEventListener('click', async (e) => {
@@ -506,7 +565,6 @@
             });
           }
 
-          // Start inactivity timer
           resetInactivityTimer();
           ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'].forEach(evt => {
             document.addEventListener(evt, resetInactivityTimer, { passive: true });

@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { supabase } from './supabase';
+import { authUrl } from './paths';
 
 // Créer une instance axios avec la base URL de l'API
 // Utilise VITE_API_URL si défini, sinon la même origine (/api)
@@ -43,7 +44,7 @@ api.interceptors.response.use(
       // Déconnecter l'utilisateur de Supabase
       await supabase.auth.signOut();
       // Rediriger vers la page d'authentification
-      window.location.href = '/auth.html';
+      window.location.href = authUrl();
     }
     return Promise.reject(error);
   }

@@ -23,6 +23,7 @@ if (mobileMenuBtn && navLinks) {
     mobileMenuBtn.classList.toggle('active');
     navLinks.classList.toggle('active');
     document.body.style.overflow = navLinks.classList.contains('active') ? 'hidden' : '';
+    document.body.classList.toggle('nav-open', navLinks.classList.contains('active'));
     mobileMenuBtn.setAttribute(
       'aria-expanded',
       navLinks.classList.contains('active') ? 'true' : 'false'
@@ -35,6 +36,7 @@ if (mobileMenuBtn && navLinks) {
       mobileMenuBtn.classList.remove('active');
       navLinks.classList.remove('active');
       document.body.style.overflow = '';
+      document.body.classList.remove('nav-open');
       mobileMenuBtn.setAttribute('aria-expanded', 'false');
     });
   });

@@ -9,6 +9,7 @@ import "./style.css";
 import "./styles/favorites-page.css";
 import api from "./lib/api";
 import { supabase } from "./lib/supabase";
+import { authUrl } from "./lib/paths";
 
 // ============================================
 // LANDING PAGE LINK (dev/prod)
@@ -118,7 +119,7 @@ function resetInactivityTimer() {
   if (inactivityTimer) clearTimeout(inactivityTimer);
   inactivityTimer = setTimeout(async () => {
     await supabase.auth.signOut();
-    window.location.href = "/app/auth.html";
+    window.location.href = authUrl();
   }, INACTIVITY_TIMEOUT);
 }
 
@@ -137,8 +138,8 @@ async function checkAuth() {
     const { data: { session }, error } = await supabase.auth.getSession();
 
     if (error || !session) {
-      console.warn("⚠️ Utilisateur non authentifié - redirection vers /auth.html");
-      window.location.href = "/app/auth.html";
+      console.warn(`⚠️ Utilisateur non authentifié - redirection vers ${authUrl()}`);
+      window.location.href = authUrl();
       return false;
     }
 
@@ -152,7 +153,7 @@ async function checkAuth() {
     return true;
   } catch (error) {
     console.error("❌ Erreur auth guard:", error);
-    window.location.href = "/app/auth.html";
+    window.location.href = authUrl();
     return false;
   }
 }
@@ -620,7 +621,7 @@ checkAuth().then((isAuthenticated) => {
 const logoutBtn = document.getElementById('logoutBtn');
 logoutBtn?.addEventListener('click', async () => {
   await supabase.auth.signOut();
-  window.location.href = '/auth.html';
+  window.location.href = authUrl();
 });
 
 // ============================================

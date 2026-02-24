@@ -942,6 +942,10 @@
       const supabaseAnonKey = 'sb_publishable_rr2bz-6nDx-vilDTvskaGg_wx7UiMMa';
       const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+      const BASE_URL = (import.meta.env.BASE_URL || "/").replace(/\/$/, "");
+      const appRootUrl = BASE_URL ? `${BASE_URL}/` : "/";
+      const authUrl = `${BASE_URL}/auth.html`;
+
       const API_BASE = '/api';
 
       async function getToken() {
@@ -953,7 +957,7 @@
       const backBtn = document.getElementById('backBtn');
       getToken().then(token => {
         if (token) {
-          backBtn.href = '/';
+          backBtn.href = appRootUrl;
         }
       });
 
@@ -966,7 +970,7 @@
         const token = await getToken();
 
         if (!token) {
-          window.location.href = '/auth.html';
+          window.location.href = authUrl;
           return;
         }
 
