@@ -476,47 +476,18 @@ export class GmailMultiUserService {
         return indeedData;
       }
 
-      // ✅ Pattern 1: "Candidature [Poste] - [Entreprise]"
-      const candidaturePattern = /^Candidature\s+(.+?)\s*-\s*(.+)$/i;
-      const candidatureMatch = subject.match(candidaturePattern);
-
-      if (candidatureMatch) {
-        const poste = (candidatureMatch[1] ?? '').trim();
-        const company = (candidatureMatch[2] ?? '').trim();
-
+      // ✅ Patterns candidature (envoyée par l'utilisateur)
+      const posteCompanyResult = this.extractPosteAndCompany(subject, to);
+      if (posteCompanyResult) {
         return {
-          company,
-          poste,
-          status: 'Candidature envoyée',
+          company: posteCompanyResult.company,
+          poste: posteCompanyResult.poste,
+          status: posteCompanyResult.isRelance ? 'Relance envoyée' : 'Candidature envoyée',
           date: messageDate,
-          relanced: false,
+          relanced: posteCompanyResult.isRelance,
           email: to,
           user_email: null,
-          relance_count: 0
-        };
-      }
-
-      // ✅ Pattern 2: "Suite à ma candidature - [Poste]"
-      const relancePattern = /^Suite à ma candidature\s*-\s*(.+)$/i;
-      const relanceMatch = subject.match(relancePattern);
-
-      if (relanceMatch) {
-        const poste = (relanceMatch[1] ?? '').trim();
-
-        // Extraire l'entreprise depuis le destinataire
-        const emailMatch = to.match(/([^@]+)@([^.]+)/);
-        const domainPart = emailMatch?.[2] ?? '';
-        const company = domainPart ? domainPart.charAt(0).toUpperCase() + domainPart.slice(1) : 'Entreprise';
-
-        return {
-          company,
-          poste,
-          status: 'Relance envoyée',
-          date: messageDate,
-          relanced: true,
-          email: to,
-          user_email: null,
-          relance_count: 1
+          relance_count: posteCompanyResult.isRelance ? 1 : 0
         };
       }
 
@@ -526,6 +497,69 @@ export class GmailMultiUserService {
       console.error('Error parsing email:', error);
       return null;
     }
+  }
+
+  /**
+   * Extrait poste et entreprise depuis un objet email avec des patterns flexibles.
+   * Retourne null si l'email ne ressemble pas à une candidature.
+   */
+  private extractPosteAndCompany(
+    subject: string,
+    to: string
+  ): { poste: string; company: string; isRelance: boolean } | null {
+    const s = subject.trim();
+
+    // ── Mots-clés relance ──────────────────────────────────────────────
+    const RELANCE_KW = /\b(relance|follow[\s-]?up|suite\s+[àa]\s+(?:ma\s+)?candidature|rappel)\b/i;
+    const isRelance = RELANCE_KW.test(s);
+
+    // ── Mots-clés candidature ──────────────────────────────────────────
+    const CAND_KW = /\b(candidature|postulation|postuler|candidat|application|apply|applied|postulé|offre)\b/i;
+    if (!CAND_KW.test(s) && !isRelance) return null;
+
+    // Helper : extraire la company depuis l'adresse email destinataire
+    const companyFromEmail = (): string => {
+      const m = to.match(/@([^.>]+)/);
+      if (!m?.[1]) return 'Entreprise';
+      return m[1].charAt(0).toUpperCase() + m[1].slice(1);
+    };
+
+    // ── Séparateur central ─────────────────────────────────────────────
+    // On cherche le « - » ou « : » qui sépare poste et entreprise
+    // Patterns ordered from most specific to most generic
+
+    const patterns: Array<RegExp> = [
+      // "Candidature pour le poste de X chez Y"
+      /(?:candidature|postulation|application)\s+(?:pour\s+)?(?:le\s+poste\s+de\s+|au\s+poste\s+de\s+)?(.+?)\s+(?:chez|@|at)\s+(.+)/i,
+      // "Candidature X - Y" or "Candidature : X - Y"
+      /(?:candidature|postulation|application)\s*[:\-–—]?\s*(.+?)\s*[-–—]\s*(.+)/i,
+      // "X - Y - candidature" (poste en premier, company en deuxième)
+      /^(.+?)\s*[-–—]\s*(.+?)\s*[-–—]\s*(?:candidature|postulation)/i,
+      // Relance "Suite à ma candidature - Poste / Relance Poste - Company"
+      /(?:relance|suite\s+[àa]\s+(?:ma\s+)?candidature)\s*[-–—:]\s*(.+?)\s*(?:[-–—]\s*(.+))?$/i,
+      // Fallback: "Poste - Company" dans un email avec mot-clé candidature
+      /^(.+?)\s*[-–—]\s*(.+)$/i,
+    ];
+
+    for (const pattern of patterns) {
+      const m = s.match(pattern);
+      if (!m) continue;
+
+      let poste = (m[1] ?? '').trim();
+      let company = (m[2] ?? '').trim();
+
+      // Nettoyer les artefacts résiduels du mot-clé au début du poste
+      poste = poste.replace(/^(?:candidature|postulation|application|relance|pour|le\s+poste\s+de|au\s+poste\s+de)\s*/i, '').trim();
+      company = company.replace(/^(?:chez|at|@)\s*/i, '').trim();
+
+      // Si l'extraction donne un poste vide ou trop long, ignorer
+      if (!poste || poste.length > 100) continue;
+      if (!company) company = companyFromEmail();
+
+      return { poste, company, isRelance };
+    }
+
+    return null;
   }
 
   private getHeaderValue(headers: any[], name: string): string {
