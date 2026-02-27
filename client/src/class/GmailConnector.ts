@@ -3,6 +3,12 @@
  */
 
 import api from '../lib/api';
+import {
+  createIcons,
+  CheckCircle, Mail, Play, Square, RefreshCw, LogOut, Link, Info, XCircle,
+} from 'lucide';
+
+const GMAIL_ICONS = { CheckCircle, Mail, Play, Square, RefreshCw, LogOut, Link, Info, XCircle };
 
 export class GmailConnector {
   private container: HTMLElement | null;
@@ -78,38 +84,42 @@ export class GmailConnector {
     if (!this.container) return;
 
     if (this.isConnected) {
-      const trackingInfo = this.isTracking && this.trackingStartedAt
-        ? `<span class="tracking-since">depuis le ${this.formatTrackingDate(this.trackingStartedAt)}</span>
-           <span class="gmail-polling-indicator"><span class="gmail-polling-dot"></span>Auto-sync actif</span>`
+      const trackingMeta = this.isTracking && this.trackingStartedAt
+        ? `<div class="gmail-status-meta">
+             <span class="tracking-since">depuis le ${this.formatTrackingDate(this.trackingStartedAt)}</span>
+             <span class="gmail-polling-indicator"><span class="gmail-polling-dot"></span>Auto-sync actif</span>
+           </div>`
         : '';
 
       this.container.innerHTML = `
         <div class="gmail-status connected">
-          <div class="gmail-icon">✅</div>
-          <div class="gmail-info">
-            <strong>Gmail Connecté</strong>
-            <p>${this.gmailEmail}</p>
+          <div class="gmail-status-left">
+            <div class="gmail-status-icon connected">
+              <i data-lucide="check-circle"></i>
+            </div>
+            <div class="gmail-info">
+              <strong>Gmail Connecté</strong>
+              <span>${this.gmailEmail}</span>
+            </div>
           </div>
+          ${trackingMeta}
           <div class="gmail-actions">
             <button id="trackingToggleBtn" class="btn-tracking ${this.isTracking ? 'active' : ''}">
-              ${this.isTracking ? '⏹️ Arrêter le suivi' : '▶️ Démarrer le suivi'}
+              <i data-lucide="${this.isTracking ? 'square' : 'play'}"></i>
+              <span>${this.isTracking ? 'Arrêter le suivi' : 'Démarrer le suivi'}</span>
             </button>
-            ${trackingInfo}
             <button id="checkEmailsBtn" class="btn-check" ${!this.isTracking ? 'disabled title="Activez le suivi d\'abord"' : ''}>
-              🔍 Vérifier les emails
+              <i data-lucide="refresh-cw"></i>
+              <span>Vérifier</span>
             </button>
-            <button id="disconnectGmailBtn" class="btn-disconnect">
-              🔌 Déconnecter
+            <button id="disconnectGmailBtn" class="btn-disconnect" title="Déconnecter Gmail">
+              <i data-lucide="log-out"></i>
             </button>
           </div>
         </div>
         <div class="gmail-detection-hint">
           <div class="gmail-detection-hint-title">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-              <circle cx="12" cy="12" r="10"/>
-              <line x1="12" y1="16" x2="12" y2="12"/>
-              <line x1="12" y1="8" x2="12.01" y2="8"/>
-            </svg>
+            <i data-lucide="info"></i>
             Formats d'objet détectés automatiquement
           </div>
           <div class="gmail-detection-hint-examples">
@@ -120,27 +130,28 @@ export class GmailConnector {
           <p class="gmail-detection-hint-desc">Utilisez ces formats dans l'objet de vos emails pour que RelanceWork détecte et ajoute automatiquement vos candidatures.</p>
         </div>
       `;
-
+      createIcons({ icons: GMAIL_ICONS });
       this.attachConnectedListeners();
     } else {
       this.container.innerHTML = `
         <div class="gmail-status disconnected">
-          <div class="gmail-icon">📧</div>
-          <div class="gmail-info">
-            <strong>Détection Automatique des Candidatures</strong>
-            <p>Connectez votre Gmail pour auto-détecter vos candidatures</p>
+          <div class="gmail-status-left">
+            <div class="gmail-status-icon disconnected">
+              <i data-lucide="mail"></i>
+            </div>
+            <div class="gmail-info">
+              <strong>Détection Automatique des Candidatures</strong>
+              <span>Connectez votre Gmail pour auto-détecter vos candidatures</span>
+            </div>
           </div>
           <button id="connectGmailBtn" class="btn-connect">
-            🔗 Connecter mon Gmail
+            <i data-lucide="link"></i>
+            <span>Connecter mon Gmail</span>
           </button>
         </div>
         <div class="gmail-detection-hint">
           <div class="gmail-detection-hint-title">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-              <circle cx="12" cy="12" r="10"/>
-              <line x1="12" y1="16" x2="12" y2="12"/>
-              <line x1="12" y1="8" x2="12.01" y2="8"/>
-            </svg>
+            <i data-lucide="info"></i>
             Comment fonctionne la détection ?
           </div>
           <p class="gmail-detection-hint-desc">Une fois connecté, RelanceWork scanne vos emails envoyés et détecte automatiquement les candidatures. Pour que la détection fonctionne, l'objet de vos emails doit suivre un de ces formats :</p>
@@ -151,7 +162,7 @@ export class GmailConnector {
           </div>
         </div>
       `;
-
+      createIcons({ icons: GMAIL_ICONS });
       this.attachDisconnectedListeners();
     }
   }
@@ -259,7 +270,8 @@ export class GmailConnector {
       const checkBtn = document.getElementById('checkEmailsBtn') as HTMLButtonElement;
       if (checkBtn && !silent) {
         checkBtn.disabled = true;
-        checkBtn.textContent = '⏳ Vérification...';
+        const span = checkBtn.querySelector('span');
+        if (span) span.textContent = 'Vérification…';
       }
 
       const response = await api.post('/gmail-user/check-emails');
@@ -282,7 +294,8 @@ export class GmailConnector {
       const checkBtn = document.getElementById('checkEmailsBtn') as HTMLButtonElement;
       if (checkBtn) {
         checkBtn.disabled = !this.isTracking;
-        checkBtn.textContent = '🔍 Vérifier les emails';
+        const span = checkBtn.querySelector('span');
+        if (span) span.textContent = 'Vérifier';
       }
     }
   }
@@ -334,16 +347,17 @@ export class GmailConnector {
     const container = document.getElementById('toastContainer');
     if (!container) return;
 
-    const icons = { success: '✅', error: '❌', info: 'ℹ️' };
+    const iconNames = { success: 'check-circle', error: 'x-circle', info: 'info' };
 
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
     toast.innerHTML = `
-      <span class="toast-icon">${icons[type]}</span>
+      <span class="toast-icon"><i data-lucide="${iconNames[type]}"></i></span>
       <span class="toast-message">${message}</span>
     `;
 
     container.appendChild(toast);
+    createIcons({ icons: GMAIL_ICONS });
 
     setTimeout(() => {
       toast.classList.add('toast-exit');

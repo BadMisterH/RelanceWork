@@ -3,6 +3,7 @@
  */
 
 import type { Application } from '../main';
+import { createIcons, BarChart2, Bell } from 'lucide';
 import {
   Chart,
   CategoryScale,
@@ -33,7 +34,6 @@ interface StatusGroup {
   label: string;
   count: number;
   color: string;
-  emoji: string;
 }
 
 interface WeekData {
@@ -72,6 +72,7 @@ export class AnalyticsDashboard {
 
     // Créer les graphiques après le rendu HTML
     this.createCharts(applications);
+    createIcons({ icons: { BarChart2, Bell } });
   }
 
   private createCharts(apps: Application[]) {
@@ -125,17 +126,17 @@ export class AnalyticsDashboard {
     const statusCanvas = document.getElementById('statusChart') as HTMLCanvasElement;
     if (statusCanvas) {
       const groups: StatusGroup[] = [
-        { label: 'Envoyées', count: apps.filter(a => this.isSent(a)).length, color: '#3b82f6', emoji: '📤' },
-        { label: 'En attente', count: apps.filter(a => this.isPending(a)).length, color: '#f59e0b', emoji: '⏳' },
-        { label: 'Entretiens', count: apps.filter(a => this.isInterview(a)).length, color: '#8b5cf6', emoji: '💼' },
-        { label: 'Acceptées', count: apps.filter(a => this.isAccepted(a)).length, color: '#10b981', emoji: '✅' },
-        { label: 'Refusées', count: apps.filter(a => this.isRejected(a)).length, color: '#ef4444', emoji: '❌' },
+        { label: 'Envoyées', count: apps.filter(a => this.isSent(a)).length, color: '#3b82f6' },
+        { label: 'En attente', count: apps.filter(a => this.isPending(a)).length, color: '#f59e0b' },
+        { label: 'Entretiens', count: apps.filter(a => this.isInterview(a)).length, color: '#8b5cf6' },
+        { label: 'Acceptées', count: apps.filter(a => this.isAccepted(a)).length, color: '#10b981' },
+        { label: 'Refusées', count: apps.filter(a => this.isRejected(a)).length, color: '#ef4444' },
       ].filter(g => g.count > 0);
 
       this.charts['status'] = new Chart(statusCanvas, {
         type: 'doughnut',
         data: {
-          labels: groups.map(g => `${g.emoji} ${g.label}`),
+          labels: groups.map(g => g.label),
           datasets: [{
             data: groups.map(g => g.count),
             backgroundColor: groups.map(g => g.color),
@@ -244,7 +245,7 @@ export class AnalyticsDashboard {
     return `
       <div class="analytics-card analytics-funnel-card">
         <div class="analytics-card-header">
-          <h3>📊 Entonnoir de conversion</h3>
+          <h3><i data-lucide="bar-chart-2" class="analytics-header-icon"></i> Entonnoir de conversion</h3>
           <span class="analytics-card-subtitle">${conversionRate}% arrivent en entretien</span>
         </div>
         <div class="analytics-chart-container" style="height: 280px;">
@@ -281,7 +282,7 @@ export class AnalyticsDashboard {
     return `
       <div class="analytics-card analytics-relance-card">
         <div class="analytics-card-header">
-          <h3>🔔 Efficacité des relances</h3>
+          <h3><i data-lucide="bell" class="analytics-header-icon"></i> Efficacité des relances</h3>
           <span class="analytics-card-subtitle">${totalRelances} relances envoyées</span>
         </div>
         <div class="analytics-metrics-grid">

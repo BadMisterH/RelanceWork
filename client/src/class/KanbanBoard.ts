@@ -3,6 +3,16 @@
  */
 
 import type { Application } from '../main';
+import {
+  createIcons,
+  Clock, Briefcase, CheckCircle, XCircle, MinusCircle,
+  Bell, RefreshCw, Plus, ExternalLink, Search,
+} from 'lucide';
+
+const KANBAN_ICONS = {
+  Clock, Briefcase, CheckCircle, XCircle, MinusCircle,
+  Bell, RefreshCw, Plus, ExternalLink, Search,
+};
 
 export class KanbanBoard {
   private container: HTMLElement | null;
@@ -41,6 +51,7 @@ export class KanbanBoard {
 
     this.container.innerHTML = html;
     this.attachEventListeners();
+    createIcons({ icons: KANBAN_ICONS });
   }
 
   /**
@@ -54,10 +65,7 @@ export class KanbanBoard {
           <span class="kanban-count">${this.applications.length} candidatures</span>
         </div>
         <div class="kanban-search-wrapper">
-          <svg class="kanban-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="11" cy="11" r="8"/>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-          </svg>
+          <i data-lucide="search" class="kanban-search-icon"></i>
           <input
             type="text"
             placeholder="Rechercher..."
@@ -75,11 +83,11 @@ export class KanbanBoard {
    */
   private renderKanbanColumns(applications: Application[]): string {
     const columns = [
-      { key: 'waiting', label: 'En attente', emoji: '⏳', color: '#f59e0b' },
-      { key: 'interview', label: 'Entretien', emoji: '💼', color: '#8b5cf6' },
-      { key: 'accepted', label: 'Accepté', emoji: '✅', color: '#10b981' },
-      { key: 'rejected', label: 'Refusé', emoji: '❌', color: '#ef4444' },
-      { key: 'no-response', label: 'Pas de réponse', emoji: '🔇', color: '#6b7280' },
+      { key: 'waiting', label: 'En attente', icon: 'clock', color: '#f59e0b' },
+      { key: 'interview', label: 'Entretien', icon: 'briefcase', color: '#8b5cf6' },
+      { key: 'accepted', label: 'Accepté', icon: 'check-circle', color: '#10b981' },
+      { key: 'rejected', label: 'Refusé', icon: 'x-circle', color: '#ef4444' },
+      { key: 'no-response', label: 'Pas de réponse', icon: 'minus-circle', color: '#6b7280' },
     ];
 
     return `
@@ -92,23 +100,23 @@ export class KanbanBoard {
   /**
    * Une colonne Kanban
    */
-  private renderColumn(column: { key: string; label: string; emoji: string; color: string }, applications: Application[]): string {
+  private renderColumn(column: { key: string; label: string; icon: string; color: string }, applications: Application[]): string {
     const filtered = applications.filter(app => this.getStatusClass(app.status) === column.key);
     const count = filtered.length;
 
     return `
-      <div class="kanban-column" data-status="${column.key}">
-        <div class="kanban-column-header" style="border-color: ${column.color}">
+      <div class="kanban-column" data-status="${column.key}" style="--column-color: ${column.color}">
+        <div class="kanban-column-header">
           <div class="kanban-column-title">
-            <span class="kanban-column-emoji">${column.emoji}</span>
+            <span class="kanban-column-icon"><i data-lucide="${column.icon}"></i></span>
             <span class="kanban-column-label">${column.label}</span>
           </div>
-          <span class="kanban-column-count" style="background: ${column.color}20; color: ${column.color}">${count}</span>
+          <span class="kanban-column-count">${count}</span>
         </div>
         <div class="kanban-column-content" data-status="${column.key}">
           ${filtered.length === 0
             ? this.renderEmptyColumn()
-            : filtered.map(app => this.renderCard(app)).join('')
+            : filtered.map((app, idx) => this.renderCard(app, idx)).join('')
           }
         </div>
       </div>
@@ -118,12 +126,12 @@ export class KanbanBoard {
   /**
    * Une carte de candidature
    */
-  private renderCard(app: Application): string {
+  private renderCard(app: Application, animationIndex: number = 0): string {
     const statusClass = this.getStatusClass(app.status);
     const relanceText = app.relanced ? `${app.relance_count || 1}×` : '';
 
     return `
-      <div class="kanban-card" draggable="true" data-app-id="${app.id}" data-status="${statusClass}">
+      <div class="kanban-card" draggable="true" data-app-id="${app.id}" data-status="${statusClass}" style="animation-delay: ${animationIndex * 40}ms">
         <div class="kanban-card-header">
           <div class="kanban-card-company">
             <div class="kanban-card-avatar">${app.company.charAt(0).toUpperCase()}</div>
@@ -131,11 +139,7 @@ export class KanbanBoard {
               <div class="kanban-card-company-name">${this.escapeHtml(app.company)}</div>
               ${app.company_website ? `
                 <a href="${this.escapeHtml(app.company_website)}" target="_blank" rel="noopener" class="kanban-card-link" onclick="event.stopPropagation()">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
-                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-                    <polyline points="15 3 21 3 21 9"/>
-                    <line x1="10" y1="14" x2="21" y2="3"/>
-                  </svg>
+                  <i data-lucide="external-link"></i>
                 </a>
               ` : ''}
             </div>
@@ -151,29 +155,20 @@ export class KanbanBoard {
 
         <div class="kanban-card-footer">
           <span class="kanban-card-date">${this.formatDate(app.date)}</span>
-          ${app.relanced ? `<span class="kanban-card-relance" title="${app.relance_count || 1} relance(s)">🔔 ${relanceText}</span>` : ''}
+          ${app.relanced ? `<span class="kanban-card-relance" title="${app.relance_count || 1} relance(s)"><i data-lucide="bell"></i> ${relanceText}</span>` : ''}
         </div>
 
         <div class="kanban-card-actions">
           <button class="kanban-card-action" data-action="relance" data-id="${app.id}" title="Relancer">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
-            </svg>
+            <i data-lucide="refresh-cw"></i>
           </button>
           ${app.company_website && !app.company_description ? `
             <button class="kanban-card-action" data-action="enrich" data-id="${app.id}" data-website="${this.escapeHtml(app.company_website)}" title="Enrichir">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10"/>
-                <line x1="12" y1="8" x2="12" y2="16"/>
-                <line x1="8" y1="12" x2="16" y2="12"/>
-              </svg>
+              <i data-lucide="plus"></i>
             </button>
           ` : ''}
           <button class="kanban-card-action kanban-card-action-delete" data-action="delete" data-id="${app.id}" title="Supprimer">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="3 6 5 6 21 6"/>
-              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-            </svg>
+            <i data-lucide="trash-2"></i>
           </button>
         </div>
       </div>

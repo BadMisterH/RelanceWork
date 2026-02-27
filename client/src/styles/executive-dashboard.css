@@ -3,8 +3,6 @@
  * Clean, minimal, professional
  */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
 :root {
   /* Color Palette */
   --dash-bg: #fafafa;
@@ -66,47 +64,54 @@
 /* Status badge dark overrides are also in dark-mode.css */
 
 /* ============================================
-   VIEW NAVIGATION
+   VIEW NAVIGATION — Segmented Control
    ============================================ */
 .view-navigation {
-  display: flex;
-  gap: var(--dash-space-sm);
+  display: inline-flex;
+  gap: 0;
   margin-bottom: var(--dash-space-xl);
-  padding: var(--dash-space-xs);
+  padding: 4px;
   background: var(--dash-bg);
-  border-radius: var(--dash-radius-lg);
+  border: 1px solid var(--dash-border);
+  border-radius: 12px;
   width: fit-content;
+  position: relative;
 }
 
 .dash-nav-btn {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.625rem 1.25rem;
+  padding: 0.5rem 1.125rem;
   border: none;
   background: transparent;
   color: var(--dash-text-secondary);
-  font-size: 0.875rem;
-  font-weight: 500;
-  border-radius: var(--dash-radius-md);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  font-family: inherit;
+  letter-spacing: 0.01em;
+  border-radius: 8px;
   cursor: pointer;
-  transition: var(--dash-transition-fast);
+  transition: color 0.15s ease, background 0.15s ease;
+  position: relative;
+  white-space: nowrap;
 }
 
 .dash-nav-btn svg {
-  width: 18px;
-  height: 18px;
+  width: 15px;
+  height: 15px;
+  transition: color 0.15s ease;
 }
 
 .dash-nav-btn:hover {
-  background: var(--dash-card-bg);
   color: var(--dash-text);
+  background: rgba(0,0,0,0.04);
 }
 
 .dash-nav-btn.active {
   background: var(--dash-card-bg);
-  color: var(--dash-stat-total);
-  box-shadow: var(--dash-shadow-sm);
+  color: var(--dash-text);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
 }
 
 .dash-nav-btn.active svg {
@@ -118,43 +123,29 @@
    ============================================ */
 .dash-stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: var(--dash-space-lg);
-  margin-bottom: var(--dash-space-2xl);
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--dash-space-md);
+  margin-bottom: var(--dash-space-xl);
   padding: 0;
 }
 
 .dash-stat-card {
   background: var(--dash-card-bg);
   border: 1px solid var(--dash-border);
+  border-left: 3px solid var(--stat-color);
   border-radius: var(--dash-radius-lg);
-  padding: var(--dash-space-lg);
+  padding: 14px 16px 12px;
   transition: var(--dash-transition);
   position: relative;
   overflow: hidden;
   cursor: pointer;
-}
-
-.dash-stat-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 3px;
-  background: var(--stat-color);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 0.3s ease;
-}
-
-.dash-stat-card:hover::before {
-  transform: scaleX(1);
+  display: flex;
+  flex-direction: column;
 }
 
 .dash-stat-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--dash-shadow-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.07), 0 2px 6px rgba(0,0,0,0.04);
   border-color: var(--stat-color);
 }
 
@@ -164,45 +155,67 @@
 .dash-stat-accepted { --stat-color: var(--dash-stat-accepted); }
 .dash-stat-relance { --stat-color: var(--dash-stat-relance); }
 
+/* Header: label left, icon right */
 .dash-stat-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: var(--dash-space-md);
-}
-
-.dash-stat-icon {
-  font-size: 1.75rem;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+  margin-bottom: 8px;
 }
 
 .dash-stat-label {
-  font-size: 0.875rem;
-  font-weight: 600;
+  font-size: 0.7rem;
+  font-weight: 700;
   color: var(--dash-text-secondary);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.1em;
 }
 
+/* Icon — smaller, accent only */
+.dash-stat-icon-wrap {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.dash-stat-card:hover .dash-stat-icon-wrap {
+  transform: scale(1.1) rotate(-4deg);
+}
+
+.dash-stat-icon-wrap svg {
+  width: 17px;
+  height: 17px;
+}
+
+.dash-stat-icon-total     { background: rgba(59, 130, 246, 0.1); color: var(--dash-stat-total); }
+.dash-stat-icon-pending   { background: rgba(245, 158, 11, 0.1); color: var(--dash-stat-pending); }
+.dash-stat-icon-interview { background: rgba(139, 92, 246, 0.1); color: var(--dash-stat-interview); }
+.dash-stat-icon-accepted  { background: rgba(16, 185, 129, 0.1); color: var(--dash-stat-accepted); }
+.dash-stat-icon-relance   { background: rgba(239, 68, 68, 0.1);  color: var(--dash-stat-relance); }
+
+/* Hero number */
 .dash-stat-value {
-  font-size: 2.5rem;
-  font-weight: 700;
+  font-size: 2.125rem;
+  font-weight: 800;
   color: var(--dash-text);
   line-height: 1;
-  margin-bottom: var(--dash-space-sm);
+  font-family: 'Bricolage Grotesque', sans-serif;
   font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+  margin-bottom: 6px;
 }
 
-.dash-stat-footer {
-  margin-top: var(--dash-space-md);
-  padding-top: var(--dash-space-md);
-  border-top: 1px solid var(--dash-border);
-}
-
+/* Subtitle — no border, flows directly under number */
 .dash-stat-subtitle {
-  font-size: 0.75rem;
+  font-size: 0.78rem;
   color: var(--dash-text-muted);
   font-weight: 500;
+  margin-top: auto;
 }
 
 /* ============================================
@@ -234,19 +247,22 @@
 }
 
 .dash-table-title {
-  font-size: 1.5rem;
-  font-weight: 700;
+  font-size: 1.375rem;
+  font-weight: 800;
+  font-family: 'Bricolage Grotesque', sans-serif;
   color: var(--dash-text);
+  letter-spacing: -0.02em;
   margin: 0;
 }
 
 .dash-table-count {
   background: var(--dash-border);
   color: var(--dash-text-secondary);
-  padding: 0.25rem 0.75rem;
-  border-radius: var(--dash-radius-md);
-  font-size: 0.875rem;
-  font-weight: 600;
+  padding: 0.2rem 0.625rem;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
 }
 
 .dash-table-controls {
@@ -307,27 +323,29 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 6px 12px;
+  padding: 5px 13px;
   border: 1.5px solid var(--dash-border);
-  border-radius: var(--dash-radius-md);
+  border-radius: 9999px;
   background: var(--dash-card-bg);
   color: var(--dash-text-secondary);
-  font-size: 0.8rem;
-  font-weight: 500;
+  font-size: 0.775rem;
+  font-weight: 600;
   font-family: inherit;
+  letter-spacing: 0.01em;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
   white-space: nowrap;
 }
 
 .dash-filter-btn:hover {
-  border-color: var(--dash-text-muted);
+  border-color: var(--dash-text-secondary);
+  color: var(--dash-text);
   background: var(--dash-bg);
 }
 
 .dash-filter-btn.active {
   color: var(--dash-text);
-  font-weight: 600;
+  font-weight: 700;
   border-color: var(--dash-text-muted);
   background: var(--dash-bg);
 }
@@ -369,7 +387,14 @@
 }
 
 .dash-filter-icon {
-  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.dash-filter-icon svg {
+  width: 14px;
+  height: 14px;
 }
 
 .dash-filter-label {
@@ -505,8 +530,19 @@
 }
 
 .dash-status-icon {
-  font-size: 1rem;
-  line-height: 1;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.dash-status-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.dash-status-option .dash-status-icon svg {
+  width: 16px;
+  height: 16px;
 }
 
 .dash-status-sent {
@@ -553,9 +589,18 @@
 
 /* Relance Column */
 .dash-relance-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   color: var(--dash-text-muted);
   font-size: 0.8125rem;
   font-weight: 500;
+}
+
+.dash-relance-badge svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
 }
 
 .dash-relance-badge.dash-has-relance {
@@ -595,6 +640,12 @@
 .dash-action-btn svg {
   width: 1rem;
   height: 1rem;
+  flex-shrink: 0;
+}
+
+.dash-company-link svg {
+  width: 14px;
+  height: 14px;
 }
 
 .dash-btn-relance:hover {
@@ -622,9 +673,16 @@
 }
 
 .dash-empty-icon {
-  font-size: 4rem;
-  opacity: 0.3;
+  display: flex;
+  justify-content: center;
   margin-bottom: var(--dash-space-lg);
+  color: var(--dash-text-muted);
+}
+
+.dash-empty-icon svg {
+  width: 52px;
+  height: 52px;
+  opacity: 0.4;
 }
 
 .dash-empty-title {
@@ -644,7 +702,7 @@
    ============================================ */
 @media (max-width: 1024px) {
   .dash-stats-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, 1fr);
   }
 
   .dash-search-wrapper {

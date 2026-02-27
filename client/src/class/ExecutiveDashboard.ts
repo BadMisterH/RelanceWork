@@ -1,9 +1,24 @@
 /**
  * Executive Dashboard - Notion-Inspired Clean Interface
  * Aesthetic: Modern, minimal, professional
+ * Icons: Lucide (lucide.dev)
  */
 
 import type { Application } from '../main';
+import {
+  createIcons,
+  BarChart2, Clock, Briefcase, CheckCircle, Bell,
+  LayoutGrid, Send, XCircle, MinusCircle, Search,
+  RefreshCw, Trash2, Plus, ExternalLink, Inbox,
+  CornerDownLeft, Mail,
+} from 'lucide';
+
+const DASH_ICONS = {
+  BarChart2, Clock, Briefcase, CheckCircle, Bell,
+  LayoutGrid, Send, XCircle, MinusCircle, Search,
+  RefreshCw, Trash2, Plus, ExternalLink, Inbox,
+  CornerDownLeft, Mail,
+};
 
 export class ExecutiveDashboard {
   private container: HTMLElement | null;
@@ -22,12 +37,10 @@ export class ExecutiveDashboard {
   public render(applications: Application[]) {
     if (!this.container) return;
 
-    // Trier par date décroissante (plus récent en premier)
     this.applications = [...applications].sort((a, b) => {
       return this.parseDate(b.date).getTime() - this.parseDate(a.date).getTime();
     });
 
-    // Appliquer les filtres actifs (statut + recherche)
     let result = this.applications;
 
     if (this.activeFilter !== 'all') {
@@ -53,13 +66,12 @@ export class ExecutiveDashboard {
     this.container.innerHTML = html;
     this.attachEventListeners();
     this.updateStatsNumbers();
+    createIcons({ icons: DASH_ICONS });
 
-    // Restaurer la valeur de recherche dans l'input et le focus
     if (this.searchTerm) {
       const searchInput = document.getElementById('dashTableSearch') as HTMLInputElement;
       if (searchInput) {
         searchInput.value = this.searchTerm;
-        // Restaurer le focus et le curseur à la fin
         searchInput.focus();
         searchInput.setSelectionRange(this.searchTerm.length, this.searchTerm.length);
       }
@@ -76,57 +88,57 @@ export class ExecutiveDashboard {
       <div class="dash-stats-grid">
         <div class="dash-stat-card dash-stat-total" data-stat="total">
           <div class="dash-stat-header">
-            <span class="dash-stat-icon">📊</span>
             <span class="dash-stat-label">Total</span>
+            <div class="dash-stat-icon-wrap dash-stat-icon-total">
+              <i data-lucide="bar-chart-2"></i>
+            </div>
           </div>
           <div class="dash-stat-value" data-count="${stats.total}">0</div>
-          <div class="dash-stat-footer">
-            <span class="dash-stat-subtitle">Candidatures</span>
-          </div>
+          <span class="dash-stat-subtitle">Candidatures envoyées</span>
         </div>
 
         <div class="dash-stat-card dash-stat-pending" data-stat="pending">
           <div class="dash-stat-header">
-            <span class="dash-stat-icon">⏳</span>
             <span class="dash-stat-label">En attente</span>
+            <div class="dash-stat-icon-wrap dash-stat-icon-pending">
+              <i data-lucide="clock"></i>
+            </div>
           </div>
           <div class="dash-stat-value" data-count="${stats.pending}">0</div>
-          <div class="dash-stat-footer">
-            <span class="dash-stat-subtitle">${stats.pendingPercent}% du total</span>
-          </div>
+          <span class="dash-stat-subtitle">${stats.pendingPercent}% du total</span>
         </div>
 
         <div class="dash-stat-card dash-stat-interview" data-stat="interview">
           <div class="dash-stat-header">
-            <span class="dash-stat-icon">💼</span>
             <span class="dash-stat-label">Entretiens</span>
+            <div class="dash-stat-icon-wrap dash-stat-icon-interview">
+              <i data-lucide="briefcase"></i>
+            </div>
           </div>
           <div class="dash-stat-value" data-count="${stats.interviews}">0</div>
-          <div class="dash-stat-footer">
-            <span class="dash-stat-subtitle">${stats.interviewRate}% de conversion</span>
-          </div>
+          <span class="dash-stat-subtitle">${stats.interviewRate}% de conversion</span>
         </div>
 
         <div class="dash-stat-card dash-stat-accepted" data-stat="accepted">
           <div class="dash-stat-header">
-            <span class="dash-stat-icon">✅</span>
             <span class="dash-stat-label">Acceptées</span>
+            <div class="dash-stat-icon-wrap dash-stat-icon-accepted">
+              <i data-lucide="check-circle"></i>
+            </div>
           </div>
           <div class="dash-stat-value" data-count="${stats.accepted}">0</div>
-          <div class="dash-stat-footer">
-            <span class="dash-stat-subtitle">${stats.successRate}% de réussite</span>
-          </div>
+          <span class="dash-stat-subtitle">${stats.successRate}% de réussite</span>
         </div>
 
         <div class="dash-stat-card dash-stat-relance" data-stat="relance">
           <div class="dash-stat-header">
-            <span class="dash-stat-icon">🔔</span>
             <span class="dash-stat-label">À relancer</span>
+            <div class="dash-stat-icon-wrap dash-stat-icon-relance">
+              <i data-lucide="bell"></i>
+            </div>
           </div>
           <div class="dash-stat-value" data-count="${stats.toRelance}">0</div>
-          <div class="dash-stat-footer">
-            <span class="dash-stat-subtitle">${stats.relancePercent}% nécessitent action</span>
-          </div>
+          <span class="dash-stat-subtitle">${stats.relancePercent}% nécessitent action</span>
         </div>
       </div>
     `;
@@ -136,14 +148,24 @@ export class ExecutiveDashboard {
    * Boutons de filtre par statut
    */
   private renderFilterButtons(): string {
+    const filterIcons: Record<string, string> = {
+      all: 'layout-grid',
+      sent: 'send',
+      waiting: 'clock',
+      interview: 'briefcase',
+      accepted: 'check-circle',
+      rejected: 'x-circle',
+      'no-response': 'minus-circle',
+    };
+
     const filters = [
-      { key: 'all', label: 'Tout', icon: '📋' },
-      { key: 'sent', label: 'Envoyée', icon: '📤' },
-      { key: 'waiting', label: 'En attente', icon: '⏳' },
-      { key: 'interview', label: 'Entretien', icon: '💼' },
-      { key: 'accepted', label: 'Acceptée', icon: '✅' },
-      { key: 'rejected', label: 'Refusée', icon: '❌' },
-      { key: 'no-response', label: 'Pas de réponse', icon: '🔇' },
+      { key: 'all', label: 'Tout' },
+      { key: 'sent', label: 'Envoyée' },
+      { key: 'waiting', label: 'En attente' },
+      { key: 'interview', label: 'Entretien' },
+      { key: 'accepted', label: 'Acceptée' },
+      { key: 'rejected', label: 'Refusée' },
+      { key: 'no-response', label: 'Sans réponse' },
     ];
 
     return filters.map(f => {
@@ -153,7 +175,7 @@ export class ExecutiveDashboard {
 
       return `<button class="dash-filter-btn ${this.activeFilter === f.key ? 'active' : ''} dash-filter-${f.key}"
         data-filter="${f.key}">
-        <span class="dash-filter-icon">${f.icon}</span>
+        <span class="dash-filter-icon"><i data-lucide="${filterIcons[f.key]}"></i></span>
         <span class="dash-filter-label">${f.label}</span>
         <span class="dash-filter-count">${count}</span>
       </button>`;
@@ -178,10 +200,7 @@ export class ExecutiveDashboard {
               ${this.renderFilterButtons()}
             </div>
             <div class="dash-search-wrapper">
-              <svg class="dash-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="11" cy="11" r="8"/>
-                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-              </svg>
+              <i data-lucide="search" class="dash-search-icon"></i>
               <input
                 type="text"
                 placeholder="Rechercher une entreprise ou un poste..."
@@ -227,8 +246,8 @@ export class ExecutiveDashboard {
    */
   private renderTableRow(app: Application, index: number): string {
     const statusClass = this.getStatusClass(app.status);
-    const statusEmoji = this.getStatusEmoji(app.status);
-    const relanceText = app.relanced ? `${app.relance_count || 1}×` : '—';
+    const statusIcon = this.getStatusIcon(app.status);
+    const relanceText = app.relanced ? `${app.relance_count || 1}×` : '';
     const relanceClass = app.relanced ? 'dash-has-relance' : '';
 
     return `
@@ -240,11 +259,7 @@ export class ExecutiveDashboard {
               <div class="dash-company-name-row">
                 <span class="dash-company-name">${this.escapeHtml(app.company)}</span>
                 ${app.company_website ? `<a href="${this.escapeHtml(app.company_website)}" target="_blank" rel="noopener" class="dash-company-link" title="Voir le site web">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
-                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-                    <polyline points="15 3 21 3 21 9"/>
-                    <line x1="10" y1="14" x2="21" y2="3"/>
-                  </svg>
+                  <i data-lucide="external-link"></i>
                 </a>` : ''}
               </div>
               ${app.company_description ? `<span class="dash-company-desc">${this.escapeHtml(app.company_description).substring(0, 80)}${app.company_description.length > 80 ? '...' : ''}</span>` : ''}
@@ -257,7 +272,7 @@ export class ExecutiveDashboard {
         <td class="dash-td dash-td-status">
           <div class="dash-status-dropdown" data-app-id="${app.id}">
             <button class="dash-status-badge dash-status-${statusClass} dash-status-trigger" type="button">
-              <span class="dash-status-icon">${statusEmoji}</span>
+              <span class="dash-status-icon"><i data-lucide="${statusIcon}"></i></span>
               <span class="dash-status-text">${this.escapeHtml(app.status)}</span>
               <svg class="dash-status-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
                 <polyline points="6 9 12 15 18 9"></polyline>
@@ -273,7 +288,10 @@ export class ExecutiveDashboard {
         </td>
         <td class="dash-td dash-td-relance">
           <span class="dash-relance-badge ${relanceClass}">
-            ${app.relanced ? '🔔' : '—'} ${relanceText}
+            ${app.relanced
+              ? `<i data-lucide="bell"></i> ${relanceText}`
+              : '—'
+            }
           </span>
         </td>
         <td class="dash-td dash-td-actions">
@@ -284,10 +302,8 @@ export class ExecutiveDashboard {
               data-id="${app.id}"
               title="Relancer cette candidature"
             >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
-              </svg>
-              Relancer
+              <i data-lucide="refresh-cw"></i>
+              <span>Relancer</span>
             </button>
             ${app.company_website && !app.company_description ? `<button
               class="dash-action-btn dash-btn-enrich"
@@ -296,11 +312,7 @@ export class ExecutiveDashboard {
               data-website="${this.escapeHtml(app.company_website)}"
               title="Enrichir les infos entreprise"
             >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10"/>
-                <line x1="12" y1="8" x2="12" y2="16"/>
-                <line x1="8" y1="12" x2="16" y2="12"/>
-              </svg>
+              <i data-lucide="plus"></i>
             </button>` : ''}
             <button
               class="dash-action-btn dash-btn-delete"
@@ -308,10 +320,7 @@ export class ExecutiveDashboard {
               data-id="${app.id}"
               title="Supprimer cette candidature"
             >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="3 6 5 6 21 6"/>
-                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-              </svg>
+              <i data-lucide="trash-2"></i>
             </button>
           </div>
         </td>
@@ -325,7 +334,9 @@ export class ExecutiveDashboard {
   private renderEmptyState(): string {
     return `
       <div class="dash-empty-state">
-        <div class="dash-empty-icon">📭</div>
+        <div class="dash-empty-icon">
+          <i data-lucide="inbox"></i>
+        </div>
         <div class="dash-empty-title">Aucune candidature trouvée</div>
         <div class="dash-empty-text">
           ${this.searchTerm
@@ -388,18 +399,18 @@ export class ExecutiveDashboard {
   }
 
   /**
-   * Emoji selon le statut
+   * Nom d'icône Lucide selon le statut
    */
-  private getStatusEmoji(status: string): string {
+  private getStatusIcon(status: string): string {
     const s = status.toLowerCase();
-    if (s.includes('envoyée') || s.includes('candidature') || s.includes('postul')) return '📤';
-    if (s.includes('entretien')) return '💼';
-    if (s.includes('accepté') || s.includes('proposé')) return '✅';
-    if (s.includes('refusé')) return '❌';
-    if (s.includes('attente')) return '⏳';
-    if (s.includes('pas de réponse')) return '🔇';
-    if (s.includes('retiré')) return '🔙';
-    return '📧';
+    if (s.includes('envoyée') || s.includes('candidature') || s.includes('postul')) return 'send';
+    if (s.includes('entretien')) return 'briefcase';
+    if (s.includes('accepté') || s.includes('proposé')) return 'check-circle';
+    if (s.includes('refusé')) return 'x-circle';
+    if (s.includes('attente')) return 'clock';
+    if (s.includes('pas de réponse')) return 'minus-circle';
+    if (s.includes('retiré')) return 'corner-down-left';
+    return 'mail';
   }
 
   /**
@@ -407,11 +418,11 @@ export class ExecutiveDashboard {
    */
   private renderStatusOptions(currentStatus: string): string {
     const statuses = [
-      { label: 'En attente', emoji: '⏳', class: 'waiting' },
-      { label: 'Entretien', emoji: '💼', class: 'interview' },
-      { label: 'Accepté', emoji: '✅', class: 'accepted' },
-      { label: 'Refusé', emoji: '❌', class: 'rejected' },
-      { label: 'Pas de réponse', emoji: '🔇', class: 'no-response' },
+      { label: 'En attente', icon: 'clock', class: 'waiting' },
+      { label: 'Entretien', icon: 'briefcase', class: 'interview' },
+      { label: 'Accepté', icon: 'check-circle', class: 'accepted' },
+      { label: 'Refusé', icon: 'x-circle', class: 'rejected' },
+      { label: 'Pas de réponse', icon: 'minus-circle', class: 'no-response' },
     ];
 
     return statuses.map(s => {
@@ -422,7 +433,7 @@ export class ExecutiveDashboard {
           data-status="${s.label}"
           type="button"
         >
-          <span class="dash-status-icon">${s.emoji}</span>
+          <span class="dash-status-icon"><i data-lucide="${s.icon}"></i></span>
           <span class="dash-status-text">${s.label}</span>
           ${isActive ? '<svg class="dash-status-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" width="14" height="14"><polyline points="20 6 9 17 4 12"></polyline></svg>' : ''}
         </button>
@@ -464,8 +475,6 @@ export class ExecutiveDashboard {
     const animate = (currentTime: number) => {
       const elapsed = currentTime - startTime;
       const progress = Math.min(elapsed / duration, 1);
-
-      // Easing function (ease-out)
       const easeOut = 1 - Math.pow(1 - progress, 3);
       const current = Math.floor(start + (target - start) * easeOut);
 
@@ -505,7 +514,6 @@ export class ExecutiveDashboard {
    * Gestion des événements
    */
   private attachEventListeners() {
-    // Filtres par statut
     document.querySelectorAll('.dash-filter-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const filter = (btn as HTMLElement).dataset.filter || 'all';
@@ -514,7 +522,6 @@ export class ExecutiveDashboard {
       });
     });
 
-    // Recherche
     const searchInput = document.getElementById('dashTableSearch') as HTMLInputElement;
     if (searchInput) {
       searchInput.addEventListener('input', (e) => {
@@ -523,7 +530,6 @@ export class ExecutiveDashboard {
       });
     }
 
-    // Actions (Relancer / Supprimer)
     document.querySelectorAll('[data-action]').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -542,7 +548,6 @@ export class ExecutiveDashboard {
       });
     });
 
-    // Dropdowns de statut
     this.attachStatusDropdownListeners();
   }
 
@@ -550,24 +555,20 @@ export class ExecutiveDashboard {
    * Gérer les dropdowns de statut
    */
   private attachStatusDropdownListeners() {
-    // Ouvrir/fermer les dropdowns
     document.querySelectorAll('.dash-status-trigger').forEach(trigger => {
       trigger.addEventListener('click', (e) => {
         e.stopPropagation();
         const dropdown = (trigger as HTMLElement).closest('.dash-status-dropdown');
         const isOpen = dropdown?.classList.contains('active');
 
-        // Fermer tous les autres dropdowns
         document.querySelectorAll('.dash-status-dropdown').forEach(d => d.classList.remove('active'));
 
-        // Toggle ce dropdown
         if (!isOpen) {
           dropdown?.classList.add('active');
         }
       });
     });
 
-    // Sélection d'un statut
     document.querySelectorAll('.dash-status-option').forEach(option => {
       option.addEventListener('click', async (e) => {
         e.stopPropagation();
@@ -580,12 +581,10 @@ export class ExecutiveDashboard {
           await this.handleStatusChange(Number(appId), newStatus);
         }
 
-        // Fermer le dropdown
         dropdown?.classList.remove('active');
       });
     });
 
-    // Fermer les dropdowns au clic extérieur
     document.addEventListener('click', () => {
       document.querySelectorAll('.dash-status-dropdown').forEach(d => d.classList.remove('active'));
     });
@@ -600,34 +599,30 @@ export class ExecutiveDashboard {
   }
 
   /**
-   * Filtrer les candidatures
-   */
-  /**
    * Parse une date au format JJ/MM/AAAA ou ISO
    */
   private parseDate(dateStr: string): Date {
     if (!dateStr) return new Date(0);
 
-    // Format JJ/MM/AAAA
     const parts = dateStr.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
     if (parts) {
       return new Date(Number(parts[3]), Number(parts[2]) - 1, Number(parts[1]));
     }
 
-    // Format ISO ou autre
     const d = new Date(dateStr);
     return isNaN(d.getTime()) ? new Date(0) : d;
   }
 
+  /**
+   * Filtrer les candidatures
+   */
   private filterApplications() {
-    // Appliquer le filtre de statut
     let result = this.applications;
 
     if (this.activeFilter !== 'all') {
       result = result.filter(app => this.getStatusClass(app.status) === this.activeFilter);
     }
 
-    // Appliquer le filtre de recherche
     if (this.searchTerm) {
       const term = this.searchTerm.toLowerCase();
       result = result.filter(app =>
@@ -639,15 +634,14 @@ export class ExecutiveDashboard {
 
     this.filteredApplications = result;
 
-    // Mettre à jour uniquement le tableau et le compteur
     const tableWrapper = document.querySelector('.dash-table-wrapper');
     const countBadge = document.querySelector('.dash-table-count');
 
     if (tableWrapper) {
       const apps = this.filteredApplications;
       tableWrapper.innerHTML = apps.length === 0 ? this.renderEmptyState() : this.renderTable(apps);
+      createIcons({ icons: DASH_ICONS });
 
-      // Ré-attacher les événements d'action sur les nouvelles lignes
       document.querySelectorAll('[data-action]').forEach(btn => {
         btn.addEventListener('click', (e) => {
           e.stopPropagation();
@@ -666,7 +660,6 @@ export class ExecutiveDashboard {
         });
       });
 
-      // Ré-attacher les événements de dropdown de statut
       this.attachStatusDropdownListeners();
     }
 
@@ -674,32 +667,22 @@ export class ExecutiveDashboard {
       countBadge.textContent = `${this.filteredApplications.length}`;
     }
 
-    // Mettre à jour l'état actif des boutons de filtre
     document.querySelectorAll('.dash-filter-btn').forEach(btn => {
       const key = (btn as HTMLElement).dataset.filter;
       btn.classList.toggle('active', key === this.activeFilter);
     });
   }
 
-  /**
-   * Gérer la relance
-   */
   private handleRelance(id: number) {
     const event = new CustomEvent('relance-application', { detail: { id } });
     window.dispatchEvent(event);
   }
 
-  /**
-   * Gérer l'enrichissement entreprise
-   */
   private handleEnrich(id: number, website: string) {
     const event = new CustomEvent('enrich-company', { detail: { id, website } });
     window.dispatchEvent(event);
   }
 
-  /**
-   * Gérer la suppression
-   */
   private handleDelete(id: number) {
     if (confirm('Êtes-vous sûr de vouloir supprimer cette candidature ?')) {
       const event = new CustomEvent('delete-application', { detail: { id } });

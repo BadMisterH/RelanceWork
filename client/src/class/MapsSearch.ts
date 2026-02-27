@@ -1112,19 +1112,24 @@ export class MapsSearch {
     if (existingCounter) existingCounter.remove();
 
     const percentage = (current / max) * 100;
+    const isReached = current >= max;
     const isWarning = percentage >= 80;
-    const color = isWarning ? '#ef4444' : '#64748b';
+    const color = isReached ? '#ef4444' : isWarning ? '#f59e0b' : '#64748b';
+    const bg = isReached ? 'rgba(239, 68, 68, 0.08)' : isWarning ? 'rgba(245, 158, 11, 0.08)' : 'rgba(100, 116, 139, 0.08)';
+    const warningLabel = isReached
+      ? `<span style="margin-left: auto; font-size: 11px; opacity: 0.9; font-weight: 600;">Limite atteinte</span>`
+      : `<span style="margin-left: auto; font-size: 11px; opacity: 0.8;">Limite bientôt atteinte</span>`;
 
     const counter = document.createElement('div');
     counter.id = 'searchUsageCounter';
-    counter.style.cssText = `display: flex; align-items: center; gap: 8px; padding: 8px 14px; background: ${isWarning ? 'rgba(239, 68, 68, 0.08)' : 'rgba(100, 116, 139, 0.08)'}; border-radius: 8px; font-size: 13px; color: ${color}; font-weight: 500; margin-bottom: 12px;`;
+    counter.style.cssText = `display: flex; align-items: center; gap: 8px; padding: 8px 14px; background: ${bg}; border-radius: 8px; font-size: 13px; color: ${color}; font-weight: 500; margin-bottom: 12px;`;
     counter.innerHTML = `
       <svg viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" width="16" height="16">
         <circle cx="11" cy="11" r="8"/>
         <line x1="21" y1="21" x2="16.65" y2="16.65"/>
       </svg>
       <span>${current}/${max} recherches ce mois</span>
-      ${isWarning ? `<span style="margin-left: auto; font-size: 11px; opacity: 0.8;">Limite bientôt atteinte</span>` : ''}
+      ${isWarning ? warningLabel : ''}
     `;
 
     // Insérer avant le conteneur de résultats
