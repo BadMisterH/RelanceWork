@@ -334,7 +334,8 @@ export class GmailMultiUserService {
    * Vérifie les nouveaux emails pour un utilisateur spécifique
    * Filtre par tracking_started_at pour ne détecter que les emails récents
    */
-  public async checkEmailsForUser(userId: string): Promise<void> {
+  public async checkEmailsForUser(userId: string): Promise<number> {
+    let addedCount = 0;
     try {
       const oauth2Client = await this.getOAuth2ClientForUser(userId);
       const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
@@ -366,11 +367,15 @@ export class GmailMultiUserService {
       }
 
       // 2) Emails entrants Indeed (confirmation de candidature Indeed Apply)
+      // On cherche "via Indeed" (sous-chaîne) pour couvrir :
+      //   - "Candidature via Indeed : [poste]"   (singulier)
+      //   - "Candidatures via Indeed : [poste]"  (pluriel)
+      //   - "Vos candidatures via Indeed : [poste]"
       const indeedParams: any = {
         userId: 'me',
         labelIds: ['INBOX'],
-        maxResults: 10,
-        q: `from:indeedapply@indeed.com subject:"Candidatures via Indeed" ${afterQuery}`.trim()
+        maxResults: 50,
+        q: `from:(indeed.com) subject:"via Indeed" ${afterQuery}`.trim()
       };
 
       const [sentResponse, indeedResponse] = await Promise.all([
@@ -401,8 +406,6 @@ export class GmailMultiUserService {
         )
       );
 
-      let addedCount = 0;
-
       // Traiter chaque email
       for (const message of messages) {
         if (!message.id) continue;
@@ -429,17 +432,24 @@ export class GmailMultiUserService {
           // Ajouter à la base de données avec le user_id
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const { company_website: _cw, ...insertData } = emailData;
-          await supabase
+          const { error: insertError } = await supabase
             .from('applications')
             .insert({
               ...insertData,
               user_id: userId
             });
 
+          if (insertError) {
+            console.error(`❌ Erreur insert application (${emailData.company} - ${emailData.poste}):`, insertError.message);
+            continue;
+          }
+
           existingKeys.add(key);
           addedCount++;
         }
       }
+
+      return addedCount;
 
     } catch (error: any) {
       console.error(`❌ Error checking emails for user ${userId}:`, error.message);
@@ -675,7 +685,9 @@ export class GmailMultiUserService {
     // Expéditeur       : indeedapply@indeed.com
     // Company extraite : "envoyés à Veepee. Bonne chance !"
     // ─────────────────────────────────────────────────────────────────
-    const indeedApplyPattern = /^Candidatures?\s+via\s+Indeed\s*:\s*(.+)$/i;
+    // Pas d'ancre ^ : couvre "Candidature via Indeed", "Candidatures via Indeed",
+    // "Vos candidatures via Indeed", etc.
+    const indeedApplyPattern = /Candidatures?\s+via\s+Indeed\s*:\s*(.+)$/i;
     const indeedApplyMatch = subject.match(indeedApplyPattern);
 
     if (indeedApplyMatch) {

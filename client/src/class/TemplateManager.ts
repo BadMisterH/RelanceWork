@@ -32,6 +32,7 @@ export class TemplateManager {
   private currentApp: Application | null = null;
   private isEditing = false;
   private editingTemplateId: string | null = null;
+  private sessionEmail: string = '';
 
   // Advisor state
   private advisorExpanded = false;
@@ -56,6 +57,7 @@ export class TemplateManager {
     this.currentApp = app;
     this.isEditing = false;
     this.editingTemplateId = null;
+    this.sessionEmail = '';
 
     // Reset advisor state
     this.advisorExpanded = false;
@@ -81,6 +83,7 @@ export class TemplateManager {
     this.panelOverlay?.classList.remove('active');
     this.isEditing = false;
     this.editingTemplateId = null;
+    this.sessionEmail = '';
     this.advisorExpanded = false;
     this.advisorResult = null;
     this.advisorError = null;
@@ -302,8 +305,26 @@ export class TemplateManager {
       <div class="template-context">
         <span class="template-context-dot"></span>
         Relance pour <strong>${this.escapeHtml(app.poste)}</strong> chez <strong>${this.escapeHtml(app.company)}</strong>
-        ${app.email ? ` &mdash; ${this.escapeHtml(app.email)}` : ''}
+        ${app.email
+          ? ` &mdash; ${this.escapeHtml(app.email)}`
+          : this.sessionEmail
+            ? ` &mdash; ${this.escapeHtml(this.sessionEmail)} <span class="template-email-session">(non enregistré)</span>`
+            : ''}
       </div>
+
+      <!-- Missing email banner (Indeed candidatures) -->
+      ${!app.email && !this.sessionEmail ? `
+      <div class="template-missing-email">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" style="flex-shrink:0">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <span>Candidature Indeed — email du recruteur inconnu</span>
+        <div class="template-missing-email-row">
+          <input type="email" id="missingEmailInput" placeholder="recruteur@entreprise.com" autocomplete="email">
+          <button id="saveMissingEmailBtn">Utiliser</button>
+        </div>
+      </div>
+      ` : ''}
 
       <!-- Body: Sidebar + Main -->
       <div class="template-panel-body">
@@ -527,6 +548,23 @@ export class TemplateManager {
     // Advisor body events (if expanded)
     if (this.advisorExpanded) this.attachAdvisorBodyEvents();
 
+    // Missing email input (Indeed candidatures)
+    const missingEmailInput = document.getElementById('missingEmailInput') as HTMLInputElement | null;
+    document.getElementById('saveMissingEmailBtn')?.addEventListener('click', () => {
+      const email = missingEmailInput?.value.trim() || '';
+      if (!email || !email.includes('@')) {
+        this.showToast('Adresse email invalide', 'error');
+        return;
+      }
+      this.sessionEmail = email;
+      this.renderPanel();
+    });
+    missingEmailInput?.addEventListener('keydown', (e: KeyboardEvent) => {
+      if (e.key === 'Enter') {
+        (document.getElementById('saveMissingEmailBtn') as HTMLButtonElement | null)?.click();
+      }
+    });
+
     // Send via Gmail button
     document.getElementById('sendGmailBtn')?.addEventListener('click', () => this.handleSendViaGmail());
 
@@ -624,9 +662,10 @@ export class TemplateManager {
     const template = this.templates.find(t => t.id === this.selectedTemplateId);
     if (!template) return;
 
-    const to = this.currentApp.email || '';
+    const to = this.currentApp.email || this.sessionEmail;
     if (!to) {
-      this.showToast("Pas d'adresse email pour cette candidature", 'error');
+      this.showToast("Entrez l'email du recruteur ci-dessus", 'error');
+      document.getElementById('missingEmailInput')?.focus();
       return;
     }
 
@@ -645,6 +684,16 @@ export class TemplateManager {
 
     try {
       await api.post('/gmail-user/send-email', { to, subject, body });
+
+      // Persist the manually entered email so next relance works automatically
+      if (!this.currentApp.email && this.sessionEmail) {
+        try {
+          await api.put(`/applications/${this.currentApp.id}/email`, { email: this.sessionEmail });
+          this.currentApp.email = this.sessionEmail;
+        } catch {
+          // Non-blocking: email was sent, persistence is best-effort
+        }
+      }
 
       // Save preference
       this.saveSettings({ lastUsedTemplateId: template.id });

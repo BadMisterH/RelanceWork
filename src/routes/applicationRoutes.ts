@@ -6,6 +6,7 @@ import {
   updateApplicationStatus,
   sendRelance,
   deleteApplication,
+  updateApplicationEmail,
 } from "../controllers/applicationController";
 import { authenticateToken } from "../middleware/authMiddleware";
 import { checkApplicationLimit } from "../middleware/checkPlan";
@@ -26,6 +27,9 @@ router.put("/applications/:id/status", authenticateToken, updateApplicationStatu
 
 // PUT /applications/:id/send-relance - Enregistrer l'envoi d'une relance (incrémente le compteur)
 router.put("/applications/:id/send-relance", authenticateToken, sendRelance);
+
+// PUT /applications/:id/email - Mettre à jour l'email du recruteur (candidatures Indeed)
+router.put("/applications/:id/email", authenticateToken, updateApplicationEmail);
 
 // DELETE /applications/:id - Supprimer une application par ID
 router.delete("/applications/:id", authenticateToken, deleteApplication);

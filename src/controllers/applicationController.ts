@@ -319,6 +319,48 @@ export const deleteApplication = async (req: Request, res: Response): Promise<vo
   }
 };
 
+// PUT /applications/:id/email - Persister l'email du recruteur (candidatures Indeed sans email)
+export const updateApplicationEmail = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { email } = req.body;
+    const userId = (req as any).user?.id;
+
+    if (!userId) {
+      res.status(401).json({ message: "Utilisateur non authentifié" });
+      return;
+    }
+
+    if (!email || typeof email !== 'string' || !email.includes('@')) {
+      res.status(400).json({ message: "Adresse email invalide" });
+      return;
+    }
+
+    const { data: updatedApplication, error } = await supabase
+      .from('applications')
+      .update({ email: email.trim() })
+      .eq('id', id)
+      .eq('user_id', userId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('❌ Erreur mise à jour email:', error);
+      if (error.code === 'PGRST116') {
+        res.status(404).json({ message: "Aucune candidature trouvée" });
+        return;
+      }
+      res.status(500).json({ message: "Erreur lors de la mise à jour" });
+      return;
+    }
+
+    res.json({ message: "Email mis à jour", data: updatedApplication });
+  } catch (error) {
+    console.error("❌ Erreur mise à jour email:", error);
+    res.status(500).json({ message: "Erreur serveur" });
+  }
+};
+
 // Fonction utilitaire pour ajouter une application programmatiquement (depuis Gmail service)
 export const addApplication = async (data: {
   company?: string;

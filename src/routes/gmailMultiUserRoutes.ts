@@ -284,11 +284,12 @@ router.post('/check-emails', authenticateToken, async (req: Request, res: Respon
       });
     }
 
-    await gmailMultiUserService.checkEmailsForUser(userId);
+    const newCount = await gmailMultiUserService.checkEmailsForUser(userId);
 
     res.json({
       success: true,
-      message: 'Emails vérifiés avec succès. Les nouvelles candidatures ont été ajoutées.'
+      new_applications: newCount,
+      message: `Emails vérifiés. ${newCount} nouvelle(s) candidature(s) ajoutée(s).`
     });
   } catch (error: any) {
     console.error('Error checking emails:', error);
