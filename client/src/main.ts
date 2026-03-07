@@ -5,6 +5,7 @@ import { GmailConnector } from "./class/GmailConnector.ts";
 import { TemplateManager } from "./class/TemplateManager.ts";
 import { AnalyticsDashboard } from "./class/AnalyticsDashboard.ts";
 import { FavoritesList } from "./class/FavoritesList.ts";
+import { JobAgent } from "./class/JobAgent.ts";
 import "./style.css";
 import "./styles/favorites-page.css";
 import api from "./lib/api";
@@ -190,6 +191,7 @@ const kanbanBoard = new KanbanBoard();
 const templateManager = new TemplateManager();
 const analyticsDashboard = new AnalyticsDashboard();
 const favoritesList = new FavoritesList();
+const jobAgent = new JobAgent();
 let currentApplications: Application[] = [];
 let currentView: 'table' | 'kanban' = 'table';
 let userPlan: 'free' | 'pro' = 'free';
@@ -431,6 +433,7 @@ function initViewNavigation() {
 function initSidebarNavigation() {
   const dashboardContent = document.querySelector('.dashboard-content') as HTMLElement;
   const favoritesView = document.getElementById('favoritesList');
+  const jobAgentView = document.getElementById('jobAgentView');
   const sidebarNavItems = document.querySelectorAll('.nav-item');
 
   sidebarNavItems.forEach(item => {
@@ -438,26 +441,28 @@ function initSidebarNavigation() {
       e.preventDefault();
       const section = (item as HTMLElement).dataset.section;
 
-      // Mettre à jour l'état actif
       sidebarNavItems.forEach(navItem => navItem.classList.remove('active'));
       item.classList.add('active');
 
       if (section === 'dashboard' || section === 'applications') {
-        // Afficher le dashboard/applications
         dashboardContent?.setAttribute('style', '');
         favoritesView?.setAttribute('style', 'display:none');
+        jobAgentView?.setAttribute('style', 'display:none');
       } else if (section === 'favorites') {
-        // Afficher les favoris
         dashboardContent?.setAttribute('style', 'display:none');
         favoritesView?.setAttribute('style', '');
+        jobAgentView?.setAttribute('style', 'display:none');
         favoritesList.render();
+      } else if (section === 'job-agent') {
+        dashboardContent?.setAttribute('style', 'display:none');
+        favoritesView?.setAttribute('style', 'display:none');
+        jobAgentView?.setAttribute('style', '');
+        jobAgent.render();
       }
     });
   });
 
-  // Rafraîchir les favoris quand ils sont mis à jour
   window.addEventListener('favorites-updated', () => {
-    // Si la vue favoris est visible, la rafraîchir
     if (favoritesView?.style.display !== 'none') {
       favoritesList.render();
     }

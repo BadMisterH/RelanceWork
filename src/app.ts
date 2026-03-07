@@ -13,6 +13,7 @@ import searchRoutes from "./routes/searchRoutes";
 import authRoutes from "./routes/authRoutes";
 import favoritesRoutes from "./routes/favoritesRoutes";
 import relanceAdvisorRoutes from "./routes/relanceAdvisorRoutes";
+import jobAgentRoutes from "./routes/jobAgentRoutes";
 
 const app = express();
 
@@ -119,6 +120,7 @@ app.use("/api/company-enrichment", companyEnrichmentRoutes);
 app.use("/api/billing", billingRoutes);
 app.use("/api/search", searchRoutes);
 app.use("/api/relance-advisor", relanceAdvisorRoutes);
+app.use("/api/job-agent", jobAgentRoutes);
 
 // ============================================
 // STATIC FILES

@@ -24,7 +24,9 @@
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.0.2",
+    "openai": "^6.27.0",
     "pdf-parse": "^2.4.5",
+    "puppeteer": "^24.38.0",
     "resend": "^6.7.0",
     "stripe": "^20.3.1"
   },
