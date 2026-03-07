@@ -75,6 +75,26 @@ const advisorLimiter = rateLimit({
 });
 app.use("/api/relance-advisor", advisorLimiter);
 
+// Job Agent search : 3 recherches par heure par IP (chaque recherche = ~20 appels OpenAI)
+const jobAgentSearchLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 3,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Limite de recherches atteinte (3/heure). Réessayez plus tard." },
+});
+app.use("/api/job-agent/search", jobAgentSearchLimiter);
+
+// Job Agent lettres : 5 générations par heure par IP
+const jobAgentLetterLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Limite de lettres atteinte (5/heure). Réessayez plus tard." },
+});
+app.use("/api/job-agent/prospects", jobAgentLetterLimiter);
+
 // ============================================
 // CORS
 // ============================================

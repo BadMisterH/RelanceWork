@@ -24,10 +24,8 @@ export const startSearch = async (req: Request, res: Response): Promise<void> =>
     return;
   }
 
-  if (typeof maxPages !== 'number' || maxPages < 1 || maxPages > 5) {
-    res.status(400).json({ message: 'maxPages doit être entre 1 et 5' });
-    return;
-  }
+  // Hard cap: max 2 pages (~20 jobs) pour protéger les crédits OpenAI
+  const cappedPages = Math.min(Math.max(1, Number(maxPages) || 2), 2);
 
   // Récupère le nom depuis Supabase Auth
   const { data: { user: authUser } } = await supabase.auth.admin.getUserById(userId);
@@ -37,7 +35,7 @@ export const startSearch = async (req: Request, res: Response): Promise<void> =>
     const result = await runJobAgentPipeline(userId, {
       keyword,
       location,
-      maxPages,
+      maxPages: cappedPages,
       scoreThreshold,
       userProfile,
       userName,
