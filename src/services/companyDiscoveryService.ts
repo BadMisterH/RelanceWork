@@ -67,10 +67,12 @@ export async function enrichCompanyTargets(
     try {
       const info = await enrichCompany(company.website);
       if (info) {
-        const merged: CompanyTarget = { ...company };
+        const merged: CompanyTarget = { name: company.name, source: company.source };
+        if (company.website) merged.website = company.website;
         const desc = info.description || company.description;
         if (desc) merged.description = desc;
-        if (info.favicon) merged.favicon = info.favicon;
+        const favicon = info.favicon || company.favicon;
+        if (favicon) merged.favicon = favicon;
         const domain = info.domain || company.domain;
         if (domain) merged.domain = domain;
         enriched.push(merged);
