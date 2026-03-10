@@ -1,6 +1,10 @@
 import OpenAI from 'openai';
 
-const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+let _client: OpenAI | null = null;
+function getClient(): OpenAI {
+  if (!_client) _client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  return _client;
+}
 
 export async function generateCoverLetter(
   jobTitle: string,
@@ -47,7 +51,7 @@ Pour chaque compétence clé de l'offre, trouve la preuve concrète dans le CV (
 
 Retourne UNIQUEMENT la lettre rédigée.`;
 
-  const response = await client.chat.completions.create({
+  const response = await getClient().chat.completions.create({
     model: 'gpt-4o',
     max_tokens: 1000,
     messages: [{ role: 'user', content: prompt }],
@@ -81,7 +85,7 @@ RÈGLES:
 
 Retourne UNIQUEMENT le CV adapté, sans commentaire.`;
 
-  const response = await client.chat.completions.create({
+  const response = await getClient().chat.completions.create({
     model: 'gpt-4o',
     max_tokens: 800,
     messages: [{ role: 'user', content: prompt }],

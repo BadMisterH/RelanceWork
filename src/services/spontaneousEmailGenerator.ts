@@ -1,6 +1,10 @@
 import OpenAI from 'openai';
 
-const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+let _client: OpenAI | null = null;
+function getClient(): OpenAI {
+  if (!_client) _client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  return _client;
+}
 
 export interface SpontaneousEmailResult {
   subject: string;
@@ -57,7 +61,7 @@ Rédige un email de candidature spontanée en 2 parties :
 Retourne UNIQUEMENT ce format JSON (sans markdown) :
 {"subject": "...", "body": "..."}`;
 
-  const response = await client.chat.completions.create({
+  const response = await getClient().chat.completions.create({
     model: 'gpt-4o',
     max_tokens: 800,
     messages: [{ role: 'user', content: prompt }],

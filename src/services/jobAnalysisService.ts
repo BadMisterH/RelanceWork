@@ -1,6 +1,12 @@
 import OpenAI from 'openai';
 
-const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+let _client: OpenAI | null = null;
+function getClient(): OpenAI {
+  if (!_client) {
+    _client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  }
+  return _client;
+}
 
 export interface JobAnalysis {
   match_score: number;
@@ -66,7 +72,7 @@ Retourne UNIQUEMENT un JSON valide avec cette structure exacte :
   "why_apply": "<1-2 phrases concrètes : pourquoi ce profil matche + le point fort principal>"
 }`;
 
-  const response = await client.chat.completions.create({
+  const response = await getClient().chat.completions.create({
     model: 'gpt-4o-mini',
     max_tokens: 512,
     response_format: { type: 'json_object' },
