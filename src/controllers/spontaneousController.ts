@@ -114,7 +114,7 @@ export async function generateEmailForProspect(req: Request, res: Response): Pro
   }
 
   try {
-    const generated = await regenerateSpontaneousEmail(userId, id!, userProfile, userName, targetRole);
+    const generated = await regenerateSpontaneousEmail(userId, id as string, userProfile, userName, targetRole);
     res.json({ success: true, ...generated });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -133,7 +133,7 @@ export async function sendProspect(req: Request, res: Response): Promise<void> {
   const { cvBase64, cvFileName } = req.body;
 
   try {
-    const result = await sendSpontaneousProspect(userId, id!, cvBase64, cvFileName);
+    const result = await sendSpontaneousProspect(userId, id as string, cvBase64, cvFileName);
     res.json(result);
   } catch (err: any) {
     res.status(500).json({ error: err.message });

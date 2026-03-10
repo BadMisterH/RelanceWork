@@ -67,12 +67,13 @@ export async function enrichCompanyTargets(
     try {
       const info = await enrichCompany(company.website);
       if (info) {
-        enriched.push({
-          ...company,
-          description: info.description || company.description,
-          favicon: info.favicon,
-          domain: info.domain || company.domain,
-        });
+        const merged: CompanyTarget = { ...company };
+        const desc = info.description || company.description;
+        if (desc) merged.description = desc;
+        if (info.favicon) merged.favicon = info.favicon;
+        const domain = info.domain || company.domain;
+        if (domain) merged.domain = domain;
+        enriched.push(merged);
       } else {
         enriched.push(company);
       }
@@ -93,10 +94,11 @@ export async function enrichCompanyTargets(
 export function buildManualTargets(
   companies: Array<{ name: string; domain?: string; website?: string }>
 ): CompanyTarget[] {
-  return companies.map(c => ({
-    name: c.name,
-    domain: c.domain,
-    website: c.website || (c.domain ? `https://${c.domain}` : undefined),
-    source: 'manual' as const,
-  }));
+  return companies.map(c => {
+    const target: CompanyTarget = { name: c.name, source: 'manual' };
+    if (c.domain) target.domain = c.domain;
+    const website = c.website || (c.domain ? `https://${c.domain}` : undefined);
+    if (website) target.website = website;
+    return target;
+  });
 }
