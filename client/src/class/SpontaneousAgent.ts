@@ -1,10 +1,4 @@
 import api from '../lib/api';
-import * as pdfjsLib from 'pdfjs-dist';
-import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
-
-pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
-
-const PROFILE_KEY = 'relancework-spont-profile';
 
 interface SpontaneousProspect {
   id: string;
@@ -26,11 +20,8 @@ interface SpontaneousProspect {
 export class SpontaneousAgent {
   private container: HTMLElement | null;
   private prospects: SpontaneousProspect[] = [];
-  private isSearching = false;
   private currentProspectId: string | null = null;
   private isEditing = false;
-  private cvFile: File | null = null;        // Fichier CV pour l'envoi (pièce jointe)
-  private cvBase64: string | null = null;    // CV en base64
 
   constructor(containerId: string = 'spontaneousView') {
     this.container = document.getElementById(containerId);
@@ -46,106 +37,8 @@ export class SpontaneousAgent {
   // ─── HTML ─────────────────────────────────────────────────────────────────
 
   private buildHTML(): string {
-    const savedProfile = localStorage.getItem(PROFILE_KEY) || '';
     return `
       <div class="ja-layout">
-        <!-- Left: Form -->
-        <div class="ja-panel">
-          <div class="ja-panel-header">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-              <polyline points="17 8 12 3 7 8"/>
-              <line x1="12" y1="3" x2="12" y2="15"/>
-            </svg>
-            <h3>Candidatures spontanées</h3>
-          </div>
-
-          <div class="ja-form">
-            <!-- Source -->
-            <div class="ja-field">
-              <label>Source des entreprises</label>
-              <select id="sp-source">
-                <option value="indeed">Indeed — extraire les entreprises d'offres d'emploi</option>
-                <option value="jsearch">JSearch — LinkedIn + Indeed + Glassdoor</option>
-                <option value="manual">Liste manuelle</option>
-              </select>
-            </div>
-
-            <!-- Keyword / Location (caché en mode manual) -->
-            <div id="sp-auto-fields">
-              <div class="ja-field-row">
-                <div class="ja-field">
-                  <label>Secteur / Poste cible</label>
-                  <input id="sp-keyword" type="text" placeholder="Ex: startup tech, agence web..." />
-                </div>
-                <div class="ja-field">
-                  <label>Localisation</label>
-                  <input id="sp-location" type="text" value="Paris" />
-                </div>
-              </div>
-            </div>
-
-            <!-- Liste manuelle (cachée par défaut) -->
-            <div id="sp-manual-fields" style="display:none">
-              <div class="ja-field">
-                <label>Entreprises <span class="ja-label-hint">(une par ligne : Nom, domaine.fr)</span></label>
-                <textarea id="sp-manual-list" rows="5" placeholder="Google, google.fr&#10;Doctolib, doctolib.fr&#10;Contentsquare"></textarea>
-              </div>
-            </div>
-
-            <!-- Poste visé -->
-            <div class="ja-field">
-              <label>Poste visé <span class="ja-label-hint">(optionnel)</span></label>
-              <input id="sp-role" type="text" placeholder="Ex: Développeur React, Product Manager..." />
-            </div>
-
-            <!-- CV texte (profil) -->
-            <div class="ja-field">
-              <label>CV <span class="ja-label-hint">(PDF — texte extrait pour l'IA)</span></label>
-              <div class="ja-cv-drop" id="sp-cv-drop">
-                <input type="file" id="sp-cv-input" accept=".pdf" style="display:none" />
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="28" height="28">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                  <polyline points="14 2 14 8 20 8"/>
-                  <line x1="12" y1="18" x2="12" y2="12"/>
-                  <line x1="9" y1="15" x2="15" y2="15"/>
-                </svg>
-                <span id="sp-cv-label">${savedProfile ? 'CV importé — cliquer pour changer' : 'Déposer votre CV (PDF) ou <u>cliquer ici</u>'}</span>
-                <span class="ja-cv-hint" id="sp-cv-status" style="color:${savedProfile ? '#10b981' : ''}">${savedProfile ? savedProfile.length + ' car. en mémoire' : ''}</span>
-              </div>
-            </div>
-
-            <!-- Options envoi -->
-            <div class="sp-send-options">
-              <label class="ja-checkbox-label">
-                <input type="checkbox" id="sp-auto-send" />
-                Envoyer automatiquement les emails (Gmail requis)
-              </label>
-              <div id="sp-attach-note" class="sp-attach-note" style="display:none">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
-                  <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
-                </svg>
-                CV joint en pièce jointe à l'envoi
-              </div>
-            </div>
-
-            <textarea id="sp-profile" style="display:none">${savedProfile}</textarea>
-
-            <button class="ja-search-btn" id="sp-search-btn">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-                <polygon points="5 3 19 12 5 21 5 3"/>
-              </svg>
-              Lancer la recherche
-            </button>
-          </div>
-
-          <div class="ja-loading" id="sp-loading" style="display:none">
-            <div class="ja-spinner"></div>
-            <p id="sp-loading-msg">Découverte des entreprises...</p>
-          </div>
-        </div>
-
-        <!-- Right: Results -->
         <div class="ja-results-panel">
           <div class="ja-results-header">
             <div class="ja-results-title">
@@ -179,7 +72,7 @@ export class SpontaneousAgent {
                 <polyline points="17 8 12 3 7 8"/>
                 <line x1="12" y1="3" x2="12" y2="15"/>
               </svg>
-              <p>Lance une recherche pour générer tes candidatures spontanées</p>
+              <p>Aucun prospect pour le moment</p>
             </div>
           </div>
         </div>
@@ -206,12 +99,11 @@ export class SpontaneousAgent {
             </div>
           </div>
 
-          <!-- Subject display -->
-          <div class="sp-modal-subject" id="sp-modal-subject-wrap">
-            <span class="sp-subject-label">Objet :</span>
-            <span id="sp-modal-subject-text"></span>
+          <div class="sp-modal-subject-wrap" id="sp-modal-subject-wrap">
+            <span class="sp-subject-label">Objet</span>
+            <span class="sp-subject-value" id="sp-modal-subject-text"></span>
           </div>
-          <input class="sp-modal-subject-input" id="sp-modal-subject-input" type="text" style="display:none" placeholder="Objet de l'email" />
+          <input class="sp-subject-input" id="sp-modal-subject-input" type="text" style="display:none" placeholder="Objet de l'email" />
 
           <div class="ja-modal-body" id="sp-modal-body"></div>
           <textarea class="ja-modal-editor" id="sp-modal-editor" style="display:none" rows="12"></textarea>
@@ -225,7 +117,7 @@ export class SpontaneousAgent {
               </svg>
               Sauvegarder
             </button>
-            <button class="ja-btn-primary" id="sp-send-now" style="display:none">
+            <button class="sp-btn-send" id="sp-send-now">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
                 <line x1="22" y1="2" x2="11" y2="13"/>
                 <polygon points="22 2 15 22 11 13 2 9 22 2"/>
@@ -241,172 +133,15 @@ export class SpontaneousAgent {
   // ─── Events ───────────────────────────────────────────────────────────────
 
   private bindEvents() {
-    document.getElementById('sp-search-btn')?.addEventListener('click', () => this.startSearch());
     document.getElementById('sp-modal-close')?.addEventListener('click', () => this.closeModal());
     document.getElementById('sp-copy-email')?.addEventListener('click', () => this.copyEmail());
     document.getElementById('sp-edit-email')?.addEventListener('click', () => this.toggleEditMode());
     document.getElementById('sp-save-email')?.addEventListener('click', () => this.saveEmail());
     document.getElementById('sp-send-now')?.addEventListener('click', () => this.sendFromModal());
-
     document.getElementById('sp-modal')?.addEventListener('click', (e) => {
       if ((e.target as HTMLElement).id === 'sp-modal') this.closeModal();
     });
-
-    document.getElementById('sp-filter-status')?.addEventListener('change', () => this.renderProspects());
-
-    // Source toggle
-    document.getElementById('sp-source')?.addEventListener('change', () => this.toggleSourceFields());
-
-    // Auto-send toggle
-    document.getElementById('sp-auto-send')?.addEventListener('change', () => {
-      const checked = (document.getElementById('sp-auto-send') as HTMLInputElement).checked;
-      const note = document.getElementById('sp-attach-note');
-      if (note) note.style.display = checked && this.cvFile ? 'flex' : 'none';
-    });
-
-    // PDF Upload
-    const dropZone = document.getElementById('sp-cv-drop');
-    const fileInput = document.getElementById('sp-cv-input') as HTMLInputElement;
-    dropZone?.addEventListener('click', () => fileInput?.click());
-    fileInput?.addEventListener('change', () => {
-      const file = fileInput.files?.[0];
-      if (file) this.handlePdfFile(file);
-    });
-    dropZone?.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      dropZone.classList.add('ja-cv-drop-active');
-    });
-    dropZone?.addEventListener('dragleave', () => dropZone.classList.remove('ja-cv-drop-active'));
-    dropZone?.addEventListener('drop', (e) => {
-      e.preventDefault();
-      dropZone.classList.remove('ja-cv-drop-active');
-      const file = (e as DragEvent).dataTransfer?.files?.[0];
-      if (file?.type === 'application/pdf') this.handlePdfFile(file);
-    });
-  }
-
-  private toggleSourceFields() {
-    const source = (document.getElementById('sp-source') as HTMLSelectElement).value;
-    const autoFields = document.getElementById('sp-auto-fields');
-    const manualFields = document.getElementById('sp-manual-fields');
-    if (autoFields) autoFields.style.display = source === 'manual' ? 'none' : '';
-    if (manualFields) manualFields.style.display = source === 'manual' ? '' : 'none';
-  }
-
-  // ─── PDF Handling ─────────────────────────────────────────────────────────
-
-  private async handlePdfFile(file: File) {
-    const statusEl = document.getElementById('sp-cv-status');
-    const labelEl = document.getElementById('sp-cv-label');
-    if (labelEl) labelEl.textContent = `Lecture de "${file.name}"...`;
-
-    try {
-      const text = await this.extractPdfText(file);
-      const textarea = document.getElementById('sp-profile') as HTMLTextAreaElement;
-      if (textarea) textarea.value = text;
-      localStorage.setItem(PROFILE_KEY, text);
-
-      // Stocker le fichier pour la pièce jointe
-      this.cvFile = file;
-      this.cvBase64 = await this.fileToBase64(file);
-
-      if (labelEl) labelEl.innerHTML = `<strong>${file.name}</strong> importé`;
-      if (statusEl) {
-        statusEl.textContent = `${text.length} caractères + pièce jointe prête`;
-        statusEl.style.color = '#10b981';
-      }
-
-      // Afficher note d'attachement si autoSend est coché
-      const autoSend = (document.getElementById('sp-auto-send') as HTMLInputElement)?.checked;
-      const note = document.getElementById('sp-attach-note');
-      if (note) note.style.display = autoSend ? 'flex' : 'none';
-
-    } catch {
-      if (labelEl) labelEl.innerHTML = `Déposer votre CV (PDF) ou <u>cliquer ici</u>`;
-      if (statusEl) { statusEl.textContent = 'Erreur de lecture du PDF'; statusEl.style.color = '#ef4444'; }
-    }
-  }
-
-  private async extractPdfText(file: File): Promise<string> {
-    const arrayBuffer = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-    const parts: string[] = [];
-    for (let i = 1; i <= pdf.numPages; i++) {
-      const page = await pdf.getPage(i);
-      const content = await page.getTextContent();
-      const text = content.items.map((item: any) => item.str).join(' ').replace(/\s+/g, ' ').trim();
-      if (text) parts.push(text);
-    }
-    return parts.join('\n\n').substring(0, 6000);
-  }
-
-  private fileToBase64(file: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const result = reader.result as string;
-        // Strip data URL prefix: "data:application/pdf;base64,"
-        const base64 = result.split(',')[1] ?? '';
-        resolve(base64);
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  }
-
-  // ─── Search ───────────────────────────────────────────────────────────────
-
-  private async startSearch() {
-    if (this.isSearching) return;
-
-    const source = (document.getElementById('sp-source') as HTMLSelectElement)?.value || 'indeed';
-    const keyword = (document.getElementById('sp-keyword') as HTMLInputElement)?.value.trim();
-    const location = (document.getElementById('sp-location') as HTMLInputElement)?.value.trim() || 'France';
-    const targetRole = (document.getElementById('sp-role') as HTMLInputElement)?.value.trim();
-    const autoSend = (document.getElementById('sp-auto-send') as HTMLInputElement)?.checked;
-    const cvText = (document.getElementById('sp-profile') as HTMLTextAreaElement)?.value.trim();
-    const manualRaw = (document.getElementById('sp-manual-list') as HTMLTextAreaElement)?.value.trim();
-
-    if (!cvText) { (window as any).showToast?.('warning', 'Importez votre CV PDF'); return; }
-    if (source !== 'manual' && !keyword) { (window as any).showToast?.('warning', 'Entrez un secteur/poste cible'); return; }
-
-    // Parser les entreprises manuelles
-    let manualCompanies: Array<{ name: string; domain?: string }> = [];
-    if (source === 'manual') {
-      if (!manualRaw) { (window as any).showToast?.('warning', 'Entrez au moins une entreprise'); return; }
-      manualCompanies = manualRaw.split('\n')
-        .map(line => line.trim())
-        .filter(Boolean)
-        .map(line => {
-          const parts = line.split(',').map(p => p.trim());
-          return { name: parts[0] ?? line, domain: parts[1] };
-        });
-    }
-
-    this.setLoading(true, 'Découverte des entreprises...');
-
-    try {
-      const payload: Record<string, any> = {
-        source, location, userProfile: cvText, targetRole: targetRole || undefined, autoSend,
-      };
-      if (source !== 'manual') { payload['keyword'] = keyword; payload['maxPages'] = 1; }
-      else { payload['manualCompanies'] = manualCompanies; }
-      if (autoSend && this.cvBase64 && this.cvFile) {
-        payload['cvBase64'] = this.cvBase64;
-        payload['cvFileName'] = this.cvFile.name;
-      }
-
-      const res = await api.post('/spontaneous/search', payload);
-      const r = res.data.result;
-      this.setLoading(false);
-      (window as any).showToast?.('success',
-        `${r.saved} prospect(s) sauvegardés${r.sent ? ` · ${r.sent} email(s) envoyés` : ''}`
-      );
-      await this.loadProspects();
-    } catch (err: any) {
-      this.setLoading(false);
-      (window as any).showToast?.('error', err.response?.data?.error || 'Erreur lors de la recherche');
-    }
+    document.getElementById('sp-filter-status')?.addEventListener('change', () => this.loadProspects());
   }
 
   // ─── Load & Render ────────────────────────────────────────────────────────
@@ -436,7 +171,7 @@ export class SpontaneousAgent {
             <polyline points="17 8 12 3 7 8"/>
             <line x1="12" y1="3" x2="12" y2="15"/>
           </svg>
-          <p>Aucun prospect pour le moment — lance une recherche</p>
+          <p>Aucun prospect pour le moment</p>
         </div>`;
       return;
     }
@@ -452,22 +187,19 @@ export class SpontaneousAgent {
   }
 
   private buildCard(p: SpontaneousProspect): string {
-    const statusConfig: Record<string, { color: string; label: string }> = {
-      pending:  { color: '#f59e0b', label: 'En attente' },
-      sent:     { color: '#10b981', label: 'Envoyé' },
-      failed:   { color: '#ef4444', label: 'Échec' },
-      replied:  { color: '#6366f1', label: 'Répondu' },
-      rejected: { color: '#94a3b8', label: 'Refusé' },
+    const statusLabels: Record<string, string> = {
+      pending: 'En attente', sent: 'Envoyé', failed: 'Échec',
+      replied: 'Répondu', rejected: 'Refusé',
     };
-    const sc = statusConfig[p.status] ?? statusConfig['pending']!;
+    const label = statusLabels[p.status] ?? 'En attente';
 
     const favicon = p.company_favicon
-      ? `<img src="${p.company_favicon}" width="16" height="16" style="border-radius:3px;margin-right:6px" onerror="this.style.display='none'" />`
-      : '';
+      ? `<img src="${p.company_favicon}" class="sp-favicon" alt="" onerror="this.style.display='none'" />`
+      : `<div class="sp-favicon-placeholder">${p.company_name.substring(0, 2).toUpperCase()}</div>`;
 
-    const emailInfo = p.contact_email
-      ? `<span class="sp-card-email">📧 ${p.contact_email}</span>`
-      : `<span class="sp-card-email sp-no-email">Pas d'email trouvé</span>`;
+    const emailChip = p.contact_email
+      ? `<span class="sp-email-chip">✉ ${p.contact_email}</span>`
+      : `<span class="sp-email-chip no-email">Pas d'email trouvé</span>`;
 
     const desc = p.company_description
       ? `<p class="ja-card-why">${p.company_description.substring(0, 120)}...</p>`
@@ -486,23 +218,26 @@ export class SpontaneousAgent {
       : `<span class="ja-link" style="opacity:.4">${p.company_domain || '—'}</span>`;
 
     return `
-      <div class="ja-card">
+      <div class="ja-card sp-card sp-bar-${p.status}">
+        <div class="sp-card-status-bar"></div>
         <div class="ja-card-top">
-          <div class="ja-card-score" style="background:${sc.color};font-size:10px;min-width:60px;padding:4px 8px">
-            ${sc.label}
+          <div class="sp-company-row" style="flex:1;min-width:0">
+            ${favicon}
+            <span class="ja-card-title">${p.company_name}</span>
           </div>
-          <div class="ja-card-info">
-            <div class="ja-card-title">${favicon}${p.company_name}</div>
-            ${emailInfo}
-            ${p.sent_at ? `<div style="font-size:11px;color:var(--text-muted);margin-top:2px">Envoyé le ${new Date(p.sent_at).toLocaleDateString('fr-FR')}</div>` : ''}
-          </div>
-          <div class="ja-card-actions-top">
+          <div class="ja-card-actions-top" style="gap:8px">
+            <span class="sp-status sp-status--${p.status}">${label}</span>
             <button class="ja-icon-btn" id="sp-delete-${p.id}" title="Supprimer">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
                 <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/>
               </svg>
             </button>
           </div>
+        </div>
+
+        <div style="padding:4px 14px 6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          ${emailChip}
+          ${p.sent_at ? `<span style="font-size:11px;color:var(--text-muted)">· ${new Date(p.sent_at).toLocaleDateString('fr-FR')}</span>` : ''}
         </div>
 
         ${desc}
@@ -537,7 +272,7 @@ export class SpontaneousAgent {
     if (subjectText) subjectText.textContent = p.email_subject ?? '';
     if (subjectInput) subjectInput.value = p.email_subject ?? '';
     if (body) body.textContent = p.email_body;
-    if (sendBtn) sendBtn.style.display = (p.status === 'pending' && !!p.contact_email) ? 'flex' : 'none';
+    if (sendBtn) sendBtn.classList.toggle('visible', p.status === 'pending' && !!p.contact_email);
     if (modal) modal.style.display = 'flex';
   }
 
@@ -550,19 +285,9 @@ export class SpontaneousAgent {
   }
 
   private async generateEmail(p: SpontaneousProspect) {
-    const cvText = (document.getElementById('sp-profile') as HTMLTextAreaElement)?.value.trim()
-      || localStorage.getItem(PROFILE_KEY) || '';
-    const targetRole = (document.getElementById('sp-role') as HTMLInputElement)?.value.trim();
-
-    if (!cvText) { (window as any).showToast?.('warning', 'Importez votre CV pour générer l\'email'); return; }
-
     (window as any).showToast?.('info', `Génération en cours pour ${p.company_name}...`);
-
     try {
-      const res = await api.post(`/spontaneous/prospects/${p.id}/generate-email`, {
-        userProfile: cvText, targetRole: targetRole || undefined,
-      });
-      // Mettre à jour localement
+      const res = await api.post(`/spontaneous/prospects/${p.id}/generate-email`, {});
       const prospect = this.prospects.find(pr => pr.id === p.id);
       if (prospect) {
         prospect.email_subject = res.data.subject;
@@ -578,10 +303,7 @@ export class SpontaneousAgent {
 
   private async sendProspect(id: string) {
     try {
-      await api.post(`/spontaneous/prospects/${id}/send`, {
-        cvBase64: this.cvBase64 || undefined,
-        cvFileName: this.cvFile?.name,
-      });
+      await api.post(`/spontaneous/prospects/${id}/send`);
       const p = this.prospects.find(pr => pr.id === id);
       if (p) p.status = 'sent';
       (window as any).showToast?.('success', 'Email envoyé avec succès');
@@ -635,9 +357,9 @@ export class SpontaneousAgent {
       if (saveBtn) saveBtn.style.display = 'flex';
     } else {
       if (editor.style.display !== 'none') body.textContent = editor.value;
-      body.style.display = 'block';
+      body.style.display = '';
       editor.style.display = 'none';
-      if (subjectWrap) subjectWrap.style.display = 'flex';
+      if (subjectWrap) subjectWrap.style.display = '';
       if (subjectInput) subjectInput.style.display = 'none';
       if (editBtn) editBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Modifier`;
       if (saveBtn) saveBtn.style.display = 'none';
@@ -677,17 +399,5 @@ export class SpontaneousAgent {
     } finally {
       if (saveBtn) saveBtn.disabled = false;
     }
-  }
-
-  // ─── Utils ────────────────────────────────────────────────────────────────
-
-  private setLoading(loading: boolean, msg = '') {
-    this.isSearching = loading;
-    const btn = document.getElementById('sp-search-btn') as HTMLButtonElement;
-    const loadingEl = document.getElementById('sp-loading');
-    const msgEl = document.getElementById('sp-loading-msg');
-    if (btn) btn.disabled = loading;
-    if (loadingEl) loadingEl.style.display = loading ? 'flex' : 'none';
-    if (msgEl) msgEl.textContent = msg;
   }
 }
