@@ -9,12 +9,12 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <script type="module" crossorigin src="/app/assets/main-zjMKNXY6.js"></script>
+    <script type="module" crossorigin src="/app/assets/main-C9lBgf3o.js"></script>
     <link rel="modulepreload" crossorigin href="/app/assets/modulepreload-polyfill-B5Qt9EMX.js">
     <link rel="modulepreload" crossorigin href="/app/assets/supabase-BUtq60nk.js">
-    <link rel="stylesheet" crossorigin href="/app/assets/main-DHcqqgkX.css">
+    <link rel="stylesheet" crossorigin href="/app/assets/main-BP15d3ni.css">
   </head>
   <body>
     <!-- Mobile Menu Toggle -->
@@ -80,20 +80,28 @@
             </svg>
             Favoris
           </a>
-        </nav>
-        <div class="sidebar-footer">
-          <div class="quick-add-btn" id="quickSearchBtn">
+          <a href="#" class="nav-item" data-section="job-agent">
             <svg
+              class="nav-icon"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
               stroke-width="2"
             >
-              <circle cx="11" cy="11" r="8" />
-              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>
+            </svg>
+            Agent IA
+          </a>
+        </nav>
+        <div class="sidebar-footer">
+          <button class="quick-add-btn" id="quickSearchBtn" style="width:100%;justify-content:center;gap:8px;font-size:0.8rem;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+              <circle cx="11" cy="11" r="8"/>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"/>
             </svg>
             Chercher entreprises
-          </div>
+          </button>
         </div>
       </aside>
 
@@ -229,6 +237,11 @@
         <!-- Favorites Content (rendered by FavoritesList) - EN DEHORS de dashboard-content -->
         <div id="favoritesList" style="display:none">
         </div>
+
+        <!-- Job Agent View -->
+        <div id="jobAgentView" style="display:none">
+        </div>
+
       </div>
     </div>
 

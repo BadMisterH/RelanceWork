@@ -400,7 +400,27 @@ window.addEventListener('enrich-company', async (e: Event) => {
 function initViewNavigation() {
   const dashboardView = document.getElementById('applicationsList');
   const analyticsView = document.getElementById('analyticsList');
+  const dashboardContent = document.querySelector('.dashboard-content') as HTMLElement | null;
   const navBtns = document.querySelectorAll('.dash-nav-btn');
+
+  const enterKanban = () => {
+    dashboardContent?.classList.add('kanban-mode');
+    // Auto-collapse sidebar to give max horizontal space
+    if (appWrapper && !appWrapper.classList.contains('sidebar-collapsed')) {
+      appWrapper.classList.add('sidebar-collapsed');
+      appWrapper.dataset.kanbanCollapsed = 'true'; // remember we collapsed it
+    }
+  };
+
+  const leaveKanban = () => {
+    dashboardContent?.classList.remove('kanban-mode');
+    // Restore sidebar only if we were the ones who collapsed it
+    if (appWrapper?.dataset.kanbanCollapsed === 'true') {
+      appWrapper.classList.remove('sidebar-collapsed');
+      delete appWrapper.dataset.kanbanCollapsed;
+      localStorage.setItem('relancework-sidebar', 'open');
+    }
+  };
 
   navBtns.forEach(btn => {
     btn.addEventListener('click', () => {
@@ -410,14 +430,17 @@ function initViewNavigation() {
       btn.classList.add('active');
 
       if (view === 'analytics') {
+        leaveKanban();
         dashboardView?.setAttribute('style', 'display:none');
         analyticsView?.setAttribute('style', '');
       } else if (view === 'kanban') {
         currentView = 'kanban';
         dashboardView?.setAttribute('style', '');
         analyticsView?.setAttribute('style', 'display:none');
+        enterKanban();
         kanbanBoard.render(currentApplications);
       } else {
+        leaveKanban();
         currentView = 'table';
         dashboardView?.setAttribute('style', '');
         analyticsView?.setAttribute('style', 'display:none');
@@ -436,6 +459,12 @@ function initSidebarNavigation() {
   const jobAgentView = document.getElementById('jobAgentView');
   const sidebarNavItems = document.querySelectorAll('.nav-item');
 
+  const hideAll = () => {
+    dashboardContent?.setAttribute('style', 'display:none');
+    favoritesView?.setAttribute('style', 'display:none');
+    jobAgentView?.setAttribute('style', 'display:none');
+  };
+
   sidebarNavItems.forEach(item => {
     item.addEventListener('click', (e) => {
       e.preventDefault();
@@ -444,18 +473,14 @@ function initSidebarNavigation() {
       sidebarNavItems.forEach(navItem => navItem.classList.remove('active'));
       item.classList.add('active');
 
+      hideAll();
+
       if (section === 'dashboard' || section === 'applications') {
         dashboardContent?.setAttribute('style', '');
-        favoritesView?.setAttribute('style', 'display:none');
-        jobAgentView?.setAttribute('style', 'display:none');
       } else if (section === 'favorites') {
-        dashboardContent?.setAttribute('style', 'display:none');
         favoritesView?.setAttribute('style', '');
-        jobAgentView?.setAttribute('style', 'display:none');
         favoritesList.render();
       } else if (section === 'job-agent') {
-        dashboardContent?.setAttribute('style', 'display:none');
-        favoritesView?.setAttribute('style', 'display:none');
         jobAgentView?.setAttribute('style', '');
         jobAgent.render();
       }

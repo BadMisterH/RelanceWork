@@ -20,6 +20,7 @@ export class KanbanBoard {
   private searchTerm: string = '';
   private draggedCard: HTMLElement | null = null;
   private draggedAppId: number | null = null;
+  private placeholder: HTMLElement | null = null;
 
   constructor(containerId: string = 'applicationsList') {
     this.container = document.getElementById(containerId);
@@ -272,6 +273,36 @@ export class KanbanBoard {
   }
 
   /**
+   * Créer un placeholder animé à la bonne hauteur
+   */
+  private createPlaceholder(): HTMLElement {
+    const ph = document.createElement('div');
+    ph.className = 'kanban-card-placeholder';
+    ph.style.height = this.draggedCard
+      ? `${this.draggedCard.offsetHeight}px`
+      : '80px';
+    return ph;
+  }
+
+  /**
+   * Trouver la carte juste après le curseur (pour insertion)
+   */
+  private getCardAfterCursor(column: Element, y: number): Element | null {
+    const cards = [...column.querySelectorAll('.kanban-card:not(.dragging)')];
+    return cards.reduce<{ offset: number; element: Element | null }>(
+      (closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = y - box.top - box.height / 2;
+        if (offset < 0 && offset > closest.offset) {
+          return { offset, element: child };
+        }
+        return closest;
+      },
+      { offset: Number.NEGATIVE_INFINITY, element: null }
+    ).element;
+  }
+
+  /**
    * Drag & Drop
    */
   private attachDragDropListeners() {
@@ -280,9 +311,12 @@ export class KanbanBoard {
       card.addEventListener('dragstart', (e) => {
         this.draggedCard = e.currentTarget as HTMLElement;
         this.draggedAppId = Number(this.draggedCard.dataset.appId);
-        this.draggedCard.classList.add('dragging');
 
-        // Autoriser le drop sur toutes les colonnes
+        // Légère transparence après le début du drag
+        requestAnimationFrame(() => {
+          this.draggedCard?.classList.add('dragging');
+        });
+
         document.querySelectorAll('.kanban-column-content').forEach(col => {
           col.classList.add('drag-active');
         });
@@ -293,6 +327,12 @@ export class KanbanBoard {
           this.draggedCard.classList.remove('dragging');
           this.draggedCard = null;
           this.draggedAppId = null;
+        }
+
+        // Nettoyer le placeholder
+        if (this.placeholder) {
+          this.placeholder.remove();
+          this.placeholder = null;
         }
 
         document.querySelectorAll('.kanban-column-content').forEach(col => {
@@ -306,26 +346,52 @@ export class KanbanBoard {
       column.addEventListener('dragover', (e) => {
         e.preventDefault();
         column.classList.add('drag-over');
+
+        // Déplacer le placeholder dans cette colonne à la bonne position
+        if (!this.placeholder) {
+          this.placeholder = this.createPlaceholder();
+        }
+
+        // Retirer le placeholder des autres colonnes
+        if (this.placeholder.parentElement !== column) {
+          this.placeholder.remove();
+        }
+
+        const afterCard = this.getCardAfterCursor(column, (e as DragEvent).clientY);
+        if (afterCard) {
+          column.insertBefore(this.placeholder, afterCard);
+        } else {
+          column.appendChild(this.placeholder);
+        }
       });
 
-      column.addEventListener('dragleave', () => {
-        column.classList.remove('drag-over');
+      column.addEventListener('dragleave', (e) => {
+        // Ne pas retirer si on survole un enfant de la colonne
+        if (!(column as HTMLElement).contains((e as DragEvent).relatedTarget as Node)) {
+          column.classList.remove('drag-over');
+          if (this.placeholder?.parentElement === column) {
+            this.placeholder.remove();
+            this.placeholder = null;
+          }
+        }
       });
 
       column.addEventListener('drop', async (e) => {
         e.preventDefault();
         column.classList.remove('drag-over', 'drag-active');
 
+        // Supprimer le placeholder
+        if (this.placeholder) {
+          this.placeholder.remove();
+          this.placeholder = null;
+        }
+
         const targetStatus = (column as HTMLElement).dataset.status;
         const currentStatus = this.draggedCard?.dataset.status;
 
         if (this.draggedAppId && targetStatus && targetStatus !== currentStatus) {
-          // Ajouter l'animation de drop réussi
           column.classList.add('drop-success');
-          setTimeout(() => {
-            column.classList.remove('drop-success');
-          }, 600);
-
+          setTimeout(() => column.classList.remove('drop-success'), 600);
           await this.handleStatusChange(this.draggedAppId, targetStatus);
         }
       });

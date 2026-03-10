@@ -90,6 +90,8 @@
   display: flex;
   gap: var(--kanban-gap);
   overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain; /* prevent scroll chaining to parent */
   padding-bottom: var(--dash-space-lg);
   padding-top: 4px; /* prevent card shadow clip */
   min-height: 500px;
@@ -180,17 +182,17 @@
 
 /* Drag placeholder */
 .kanban-card-placeholder {
-  height: 100px;
   background: color-mix(in srgb, var(--column-color) 8%, transparent);
-  border: 2px dashed color-mix(in srgb, var(--column-color) 40%, transparent);
+  border: 2px dashed color-mix(in srgb, var(--column-color) 45%, transparent);
   border-radius: var(--kanban-card-radius);
-  margin-bottom: 10px;
-  animation: pulse-placeholder 1.2s ease-in-out infinite;
+  box-sizing: border-box;
+  animation: placeholder-in 0.15s ease-out both;
+  flex-shrink: 0;
 }
 
-@keyframes pulse-placeholder {
-  0%, 100% { opacity: 0.5; }
-  50%       { opacity: 0.9; }
+@keyframes placeholder-in {
+  from { opacity: 0; transform: scaleY(0.6); }
+  to   { opacity: 1; transform: scaleY(1); }
 }
 
 /* Column content */
@@ -279,12 +281,12 @@
 }
 
 .kanban-card.dragging {
-  opacity: 0.8;
+  opacity: 0.45;
   cursor: grabbing;
-  transform: rotate(2deg) scale(1.03);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18);
+  transform: scale(0.98);
+  box-shadow: none;
   z-index: 1000;
-  transition: none;
+  transition: opacity 0.1s ease, transform 0.1s ease;
 }
 
 /* Card header */

@@ -14,11 +14,33 @@ import authRoutes from "./routes/authRoutes";
 import favoritesRoutes from "./routes/favoritesRoutes";
 import relanceAdvisorRoutes from "./routes/relanceAdvisorRoutes";
 import jobAgentRoutes from "./routes/jobAgentRoutes";
+import spontaneousRoutes from "./routes/spontaneousRoutes";
 
 const app = express();
 
 // Trust reverse proxy (Railway, Render, etc.) for correct IP detection
 app.set("trust proxy", 1);
+
+// ============================================
+// CORS — doit être avant tout middleware (rate limiters, helmet…)
+// pour que les preflight OPTIONS reçoivent bien les headers CORS
+// ============================================
+const allowedOrigins = [
+  "https://www.relance-work.fr",
+  "https://www.relancework-production.up.railway.app",
+];
+
+if (process.env.NODE_ENV !== "production") {
+  allowedOrigins.push("http://localhost:3000", "http://localhost:5173");
+}
+
+const corsOptions = {
+  origin: allowedOrigins,
+  credentials: true,
+};
+
+app.options(/(.*)/, cors(corsOptions));
+app.use(cors(corsOptions));
 
 // ============================================
 // SECURITY - Helmet (headers de sécurité)
@@ -95,25 +117,25 @@ const jobAgentLetterLimiter = rateLimit({
 });
 app.use("/api/job-agent/prospects", jobAgentLetterLimiter);
 
-// ============================================
-// CORS
-// ============================================
-const allowedOrigins = [
-  "https://www.relance-work.fr",
-  "https://www.relancework-production.up.railway.app",
-];
+// Candidatures spontanées : 2 recherches/heure (scraping + OpenAI par lot)
+const spontaneousSearchLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 2,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Limite de recherches spontanées atteinte (2/heure). Réessayez plus tard." },
+});
+app.use("/api/spontaneous/search", spontaneousSearchLimiter);
 
-if (process.env.NODE_ENV !== "production") {
-  allowedOrigins.push("http://localhost:3000", "http://localhost:5173");
-}
-
-const corsOptions = {
-  origin: allowedOrigins,
-  credentials: true,
-};
-
-app.options(/(.*)/, cors(corsOptions));
-app.use(cors(corsOptions));
+// Envoi email spontané : 20 envois/heure par IP
+const spontaneousSendLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Limite d'envois atteinte (20/heure). Réessayez plus tard." },
+});
+app.use("/api/spontaneous/prospects", spontaneousSendLimiter);
 
 // ============================================
 // MIDDLEWARE
@@ -141,6 +163,7 @@ app.use("/api/billing", billingRoutes);
 app.use("/api/search", searchRoutes);
 app.use("/api/relance-advisor", relanceAdvisorRoutes);
 app.use("/api/job-agent", jobAgentRoutes);
+app.use("/api/spontaneous", spontaneousRoutes);
 
 // ============================================
 // STATIC FILES

@@ -245,6 +245,8 @@ body {
 /* Main Content */
 .main-content {
   flex: 1;
+  min-width: 0; /* flex child: don't grow past container */
+  overflow-x: hidden; /* block horizontal page scroll */
   margin-left: var(--sidebar-width);
   min-height: 100vh;
   display: flex;
@@ -310,6 +312,12 @@ body {
   background-size: 24px 24px;
   background-position: 0 0;
   background-attachment: local;
+}
+
+/* Kanban needs full width — remove max-width constraint */
+.dashboard-content.kanban-mode {
+  max-width: none;
+  margin: 0;
 }
 
 /* Dashboard Content Container */

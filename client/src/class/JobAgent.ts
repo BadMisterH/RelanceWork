@@ -47,101 +47,7 @@ export class JobAgent {
     const savedLinkedin = localStorage.getItem(PROFILE_KEY + '-linkedin') || '';
     return `
       <div class="ja-layout">
-        <!-- Left: Search Form -->
-        <div class="ja-panel">
-          <div class="ja-panel-header">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
-              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-            </svg>
-            <h3>Nouvelle recherche</h3>
-          </div>
-
-          <div class="ja-form">
-            <div class="ja-field">
-              <label>Poste recherché</label>
-              <input id="ja-keyword" type="text" placeholder="Ex: Développeur React, DevOps..." />
-            </div>
-            <div class="ja-field">
-              <label>Localisation</label>
-              <input id="ja-location" type="text" value="Paris" />
-            </div>
-            <div class="ja-field">
-              <label>Source des offres</label>
-              <select id="ja-source">
-                <option value="indeed">Indeed (Puppeteer — gratuit)</option>
-                <option value="jsearch">LinkedIn + Indeed + Glassdoor (JSearch API)</option>
-              </select>
-            </div>
-
-            <div class="ja-field-row">
-              <div class="ja-field">
-                <label>Pages</label>
-                <select id="ja-pages">
-                  <option value="1">1 page (~10 offres)</option>
-                  <option value="2" selected>2 pages (~20 offres)</option>
-                  <option value="3">3 pages (~30 offres)</option>
-                </select>
-              </div>
-              <div class="ja-field">
-                <label>Score minimum</label>
-                <select id="ja-score">
-                  <option value="50">50+</option>
-                  <option value="60">60+</option>
-                  <option value="70" selected>70+</option>
-                  <option value="80">80+</option>
-                </select>
-              </div>
-            </div>
-
-            <!-- CV Upload -->
-            <div class="ja-field">
-              <label>CV <span class="ja-label-hint">(PDF)</span></label>
-              <div class="ja-cv-drop" id="ja-cv-drop">
-                <input type="file" id="ja-cv-input" accept=".pdf" style="display:none" />
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="28" height="28">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                  <polyline points="14 2 14 8 20 8"/>
-                  <line x1="12" y1="18" x2="12" y2="12"/>
-                  <line x1="9" y1="15" x2="15" y2="15"/>
-                </svg>
-                <span id="ja-cv-label">${savedProfile ? 'CV importé — cliquer pour changer' : 'Déposer votre CV (PDF) ou <u>cliquer ici</u>'}</span>
-                <span class="ja-cv-hint" id="ja-cv-status" style="color:${savedProfile ? '#10b981' : ''}">${savedProfile ? savedProfile.length + ' caractères en mémoire' : ''}</span>
-              </div>
-            </div>
-
-            <!-- LinkedIn -->
-            <div class="ja-field">
-              <label>
-                <svg viewBox="0 0 24 24" fill="currentColor" width="13" height="13" style="vertical-align:middle;margin-right:4px">
-                  <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6zM2 9h4v12H2z"/><circle cx="4" cy="4" r="2"/>
-                </svg>
-                Profil LinkedIn <span class="ja-label-hint">(optionnel)</span>
-              </label>
-              <input id="ja-linkedin" type="url" placeholder="https://linkedin.com/in/votre-profil" value="${savedLinkedin}" />
-            </div>
-
-            <!-- Hidden profile textarea (populated from PDF) -->
-            <textarea id="ja-profile" style="display:none">${savedProfile}</textarea>
-
-            <label class="ja-checkbox-label">
-              <input type="checkbox" id="ja-letters" />
-              Générer les lettres de motivation automatiquement
-            </label>
-            <button class="ja-search-btn" id="ja-search-btn">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-                <polygon points="5 3 19 12 5 21 5 3"/>
-              </svg>
-              Lancer la recherche
-            </button>
-          </div>
-
-          <div class="ja-loading" id="ja-loading" style="display:none">
-            <div class="ja-spinner"></div>
-            <p id="ja-loading-msg">Scraping Indeed en cours...</p>
-          </div>
-        </div>
-
-        <!-- Right: Results -->
+        <!-- Results area (full width) -->
         <div class="ja-results-panel">
           <div class="ja-results-header">
             <div class="ja-results-title">
@@ -149,7 +55,7 @@ export class JobAgent {
               <span class="ja-count" id="ja-count">0 offre(s)</span>
             </div>
             <div class="ja-filter-row">
-              <label class="ja-filter-label">Afficher score ≥</label>
+              <label class="ja-filter-label">Score ≥</label>
               <select id="ja-filter-score" class="ja-filter-select">
                 <option value="0">Tout</option>
                 <option value="50">50+</option>
@@ -157,13 +63,21 @@ export class JobAgent {
                 <option value="70">70+</option>
                 <option value="80">80+</option>
               </select>
+              <button class="ja-new-search-btn" id="ja-open-search">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14">
+                  <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+                Nouvelle recherche
+              </button>
             </div>
           </div>
+
           <div class="ja-score-legend">
             <span class="legend-dot legend-high"></span><span>≥80 Excellent</span>
             <span class="legend-dot legend-mid"></span><span>60–79 Bon</span>
             <span class="legend-dot legend-low"></span><span>&lt;60 Partiel</span>
           </div>
+
           <div id="ja-results-list" class="ja-results-list">
             <div class="ja-empty">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="40" height="40">
@@ -172,6 +86,108 @@ export class JobAgent {
               <p>Lance une recherche pour voir les offres analysées par l'IA</p>
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- ── Neomorphic Search Modal ── -->
+      <div class="ja-search-modal-overlay" id="ja-search-modal" style="display:none">
+        <div class="ja-search-modal">
+          <div class="ja-search-modal-header">
+            <h3>Nouvelle recherche</h3>
+            <button class="ja-neo-close" id="ja-close-search" title="Fermer">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          </div>
+
+          <div class="ja-neo-form">
+            <!-- Row 1 : Poste | Localisation | Source -->
+            <div class="ja-neo-field">
+              <span class="ja-neo-label">Poste recherché</span>
+              <input class="ja-neo-input" id="ja-keyword" type="text" placeholder="Ex: Développeur React, DevOps..." />
+            </div>
+            <div class="ja-neo-field">
+              <span class="ja-neo-label">Localisation</span>
+              <input class="ja-neo-input" id="ja-location" type="text" value="Paris" />
+            </div>
+            <div class="ja-neo-field">
+              <span class="ja-neo-label">Source</span>
+              <div class="ja-neo-select-wrap">
+                <select class="ja-neo-select" id="ja-source">
+                  <option value="indeed">Indeed (Puppeteer)</option>
+                  <option value="jsearch">LinkedIn + Indeed + Glassdoor</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Row 2 : Pages | Score minimum | (spacer) -->
+            <div class="ja-neo-field">
+              <span class="ja-neo-label">Pages</span>
+              <div class="ja-neo-select-wrap">
+                <select class="ja-neo-select" id="ja-pages">
+                  <option value="1">1 page (~10 offres)</option>
+                  <option value="2" selected>2 pages (~20 offres)</option>
+                  <option value="3">3 pages (~30 offres)</option>
+                </select>
+              </div>
+            </div>
+            <div class="ja-neo-field">
+              <span class="ja-neo-label">Score minimum</span>
+              <div class="ja-neo-select-wrap">
+                <select class="ja-neo-select" id="ja-score">
+                  <option value="50">50+</option>
+                  <option value="60">60+</option>
+                  <option value="70" selected>70+</option>
+                  <option value="80">80+</option>
+                </select>
+              </div>
+            </div>
+            <div></div>
+
+            <!-- Row 3 : CV drop (full width) -->
+            <div class="ja-neo-form-row-full">
+              <div class="ja-neo-field" style="flex:1">
+                <span class="ja-neo-label">CV (PDF)</span>
+                <div class="ja-neo-drop" id="ja-cv-drop">
+                  <input type="file" id="ja-cv-input" accept=".pdf" style="display:none" />
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="28" height="28" style="color:#6366f1;opacity:.6">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                    <line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/>
+                  </svg>
+                  <span id="ja-cv-label">${savedProfile ? 'CV importé — cliquer pour changer' : 'Déposer votre CV (PDF) ou <u>cliquer ici</u>'}</span>
+                  <span style="font-size:0.71rem;font-weight:600;color:${savedProfile ? '#10b981' : '#9ca3af'}" id="ja-cv-status">${savedProfile ? savedProfile.length + ' car. en mémoire' : ''}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Row 4 : LinkedIn | checkbox | button -->
+            <div class="ja-neo-form-row-full" style="align-items:flex-end">
+              <div class="ja-neo-field" style="flex:1;min-width:200px">
+                <span class="ja-neo-label">Profil LinkedIn (optionnel)</span>
+                <input class="ja-neo-input" id="ja-linkedin" type="url" placeholder="https://linkedin.com/in/..." value="${savedLinkedin}" />
+              </div>
+              <label class="ja-neo-checkbox" style="flex-shrink:0">
+                <input type="checkbox" id="ja-letters" />
+                Lettres de motivation auto
+              </label>
+              <button class="ja-neo-launch-btn" id="ja-search-btn" style="flex-shrink:0">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="15" height="15">
+                  <polygon points="5 3 19 12 5 21 5 3"/>
+                </svg>
+                Lancer la recherche
+              </button>
+            </div>
+          </div>
+
+          <!-- Loading inside modal -->
+          <div class="ja-neo-loading" id="ja-loading" style="display:none">
+            <div class="ja-spinner"></div>
+            <span id="ja-loading-msg">Scraping en cours...</span>
+          </div>
+
+          <textarea id="ja-profile" style="display:none">${savedProfile}</textarea>
         </div>
       </div>
 
@@ -213,6 +229,13 @@ export class JobAgent {
   }
 
   private bindEvents() {
+    // Search modal
+    document.getElementById('ja-open-search')?.addEventListener('click', () => this.openSearchModal());
+    document.getElementById('ja-close-search')?.addEventListener('click', () => this.closeSearchModal());
+    document.getElementById('ja-search-modal')?.addEventListener('click', (e) => {
+      if ((e.target as HTMLElement).id === 'ja-search-modal') this.closeSearchModal();
+    });
+
     document.getElementById('ja-search-btn')?.addEventListener('click', () => this.startSearch());
     const syncFilter = (e: Event) => {
       const val = parseInt((e.target as HTMLSelectElement).value || '0');
@@ -249,16 +272,16 @@ export class JobAgent {
     // Drag & drop
     dropZone?.addEventListener('dragover', (e) => {
       e.preventDefault();
-      dropZone.classList.add('ja-cv-drop-active');
+      dropZone.classList.add('ja-neo-drop-active');
     });
 
     dropZone?.addEventListener('dragleave', () => {
-      dropZone.classList.remove('ja-cv-drop-active');
+      dropZone.classList.remove('ja-neo-drop-active');
     });
 
     dropZone?.addEventListener('drop', (e) => {
       e.preventDefault();
-      dropZone.classList.remove('ja-cv-drop-active');
+      dropZone.classList.remove('ja-neo-drop-active');
       const file = (e as DragEvent).dataTransfer?.files?.[0];
       if (file?.type === 'application/pdf') this.handlePdfFile(file);
     });
@@ -311,6 +334,16 @@ export class JobAgent {
     return textParts.join('\n\n').substring(0, 6000);
   }
 
+  private openSearchModal() {
+    const m = document.getElementById('ja-search-modal');
+    if (m) m.style.display = 'flex';
+  }
+
+  private closeSearchModal() {
+    const m = document.getElementById('ja-search-modal');
+    if (m) m.style.display = 'none';
+  }
+
   private async startSearch() {
     if (this.isSearching) return;
 
@@ -348,12 +381,14 @@ export class JobAgent {
       });
 
       this.setLoading(false);
+      this.closeSearchModal();
       (window as any).showToast?.('success', res.data.message);
       await this.loadProspects();
     } catch (err: any) {
       this.setLoading(false);
       const msg = err.response?.data?.message || 'Erreur lors de la recherche';
       (window as any).showToast?.('error', msg);
+      this.closeSearchModal();
     }
   }
 
@@ -471,7 +506,7 @@ export class JobAgent {
       </div>`;
   }
 
-  private async applyToProspect(id: string, title: string, company: string, sourceUrl?: string) {
+  private async applyToProspect(id: string, _title: string, _company: string, sourceUrl?: string) {
     try {
       await api.post(`/job-agent/prospects/${id}/apply`);
       // Open the job listing so the user can actually submit their application

@@ -1,0 +1,61 @@
+/* ── Candidature Spontanée — styles spécifiques ─────────────────────────── */
+
+/* Champ objet dans la modal */
+.sp-modal-subject {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: var(--bg-secondary, #f8fafc);
+  border-bottom: 1px solid var(--border-color, #e2e8f0);
+  font-size: 13px;
+}
+
+.sp-subject-label {
+  font-weight: 600;
+  color: var(--text-muted, #64748b);
+  white-space: nowrap;
+}
+
+.sp-modal-subject-input {
+  width: calc(100% - 40px);
+  margin: 0 20px;
+  padding: 8px 12px;
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 8px;
+  font-size: 13px;
+  background: var(--bg-primary, #fff);
+  color: var(--text-primary, #1e293b);
+}
+
+/* Email info dans les cards */
+.sp-card-email {
+  font-size: 12px;
+  color: var(--text-muted, #64748b);
+  margin-top: 4px;
+  display: block;
+}
+
+.sp-no-email {
+  color: #ef4444;
+  opacity: .7;
+}
+
+/* Note pièce jointe */
+.sp-send-options {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sp-attach-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #10b981;
+  padding: 6px 10px;
+  background: rgba(16, 185, 129, .08);
+  border-radius: 6px;
+  border: 1px solid rgba(16, 185, 129, .2);
+}

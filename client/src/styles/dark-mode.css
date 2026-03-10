@@ -20,6 +20,16 @@
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 10px 24px rgba(0, 0, 0, 0.5);
 
+  /* Generic variables used by job-agent, kanban, and other components */
+  --card-bg: #161b22;
+  --border: #30363d;
+  --text: #e6edf3;
+  --text-secondary: #b1bac4;
+  --text-muted: #7d8590;
+  --input-bg: #0d1117;
+  --badge-bg: #21262d;
+  --accent: #6366f1;
+
   /* Dashboard-specific overrides */
   --dash-bg: #0d1117;
   --dash-card-bg: #161b22;

@@ -77,7 +77,7 @@
         left: 0;
         right: 0;
         z-index: 100;
-        padding: 16px 32px;
+        padding: 10px 22px;
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -85,6 +85,11 @@
         -webkit-backdrop-filter: blur(16px);
         background: rgba(248, 250, 252, 0.8);
         border-bottom: 1px solid var(--pr-border);
+      }
+
+      .pr-nav-logo-img{
+        height: 80px;
+        width: 80px;
       }
 
       :root[data-theme="dark"] .pr-nav {
@@ -677,8 +682,7 @@
     <!-- NAV -->
     <nav class="pr-nav">
       <a href="/" class="pr-nav-brand">
-        <div class="pr-nav-logo">R</div>
-        <span class="pr-nav-name">RelanceWork</span>
+       <img style="height: auto ;width: 100px; object-fit: contain;" src="./public/images/LogoRelanceWork.png" alt="">
       </a>
       <a href="/" class="pr-nav-back" id="backBtn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">

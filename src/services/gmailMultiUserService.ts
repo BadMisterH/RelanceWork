@@ -861,6 +861,71 @@ export class GmailMultiUserService {
   }
 
   /**
+   * Envoie un email avec pièce jointe (CV PDF) via Gmail API.
+   * attachment.base64 doit être le contenu du fichier encodé en base64.
+   */
+  public async sendEmailWithAttachment(
+    userId: string,
+    to: string,
+    subject: string,
+    body: string,
+    attachment?: { base64: string; filename: string }
+  ): Promise<{ success: boolean; messageId: string }> {
+    if (!attachment) {
+      return this.sendEmail(userId, to, subject, body);
+    }
+
+    const oauth2Client = await this.getOAuth2ClientForUser(userId);
+    const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
+
+    const gmailEmail = await this.getGmailEmail(userId);
+    if (!gmailEmail) {
+      throw new Error('Gmail non connecté');
+    }
+
+    const boundary = `boundary_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+
+    // Construire le message multipart RFC 2822
+    const parts: string[] = [
+      `From: ${gmailEmail}`,
+      `To: ${to}`,
+      `Subject: =?UTF-8?B?${Buffer.from(subject).toString('base64')}?=`,
+      'MIME-Version: 1.0',
+      `Content-Type: multipart/mixed; boundary="${boundary}"`,
+      '',
+      `--${boundary}`,
+      'Content-Type: text/plain; charset=utf-8',
+      'Content-Transfer-Encoding: base64',
+      '',
+      Buffer.from(body, 'utf-8').toString('base64'),
+      '',
+      `--${boundary}`,
+      `Content-Type: application/pdf; name="${attachment.filename}"`,
+      'Content-Transfer-Encoding: base64',
+      `Content-Disposition: attachment; filename="${attachment.filename}"`,
+      '',
+      attachment.base64,
+      '',
+      `--${boundary}--`,
+    ];
+
+    const rawMessage = parts.join('\r\n');
+
+    const encodedMessage = Buffer.from(rawMessage)
+      .toString('base64')
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '');
+
+    const result = await gmail.users.messages.send({
+      userId: 'me',
+      requestBody: { raw: encodedMessage },
+    });
+
+    return { success: true, messageId: result.data.id! };
+  }
+
+  /**
    * Déconnecte Gmail pour un utilisateur
    */
   public async disconnectGmail(userId: string): Promise<void> {
