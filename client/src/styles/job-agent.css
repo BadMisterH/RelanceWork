@@ -303,7 +303,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
   gap: 12px;
-  align-items: start;
+  align-items: stretch;
 }
 
 /* Full-width empty state inside grid */
@@ -525,13 +525,14 @@
 .ja-skill-ok   { background: #ede9fe; color: #5b21b6; }
 .ja-skill-miss { background: #fef3c7; color: #92400e; border: 1.5px dashed #fcd34d; }
 
-/* Card footer */
+/* Card footer — always pinned to bottom */
 .ja-card-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding-top: 10px;
   border-top: 1px solid var(--border, #f3f4f6);
+  margin-top: auto;
 }
 
 .ja-link {
