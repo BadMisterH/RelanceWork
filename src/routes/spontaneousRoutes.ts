@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { authenticateToken } from '../middleware/authMiddleware';
+import { requireProPlan } from '../middleware/planMiddleware';
 import {
   startSpontaneousSearch,
   getProspects,
@@ -15,14 +16,14 @@ const router = Router();
 // Tous les endpoints nécessitent d'être authentifié
 router.use(authenticateToken);
 
-// Lancer la découverte + génération d'emails
-router.post('/search', startSpontaneousSearch);
+// Lancer la découverte + génération d'emails [Pro only]
+router.post('/search', requireProPlan, startSpontaneousSearch);
 
 // Liste des prospects spontanés
 router.get('/prospects', getProspects);
 
-// Générer / régénérer l'email d'un prospect
-router.post('/prospects/:id/generate-email', generateEmailForProspect);
+// Générer / régénérer l'email d'un prospect [Pro only]
+router.post('/prospects/:id/generate-email', requireProPlan, generateEmailForProspect);
 
 // Envoyer l'email via Gmail
 router.post('/prospects/:id/send', sendProspect);

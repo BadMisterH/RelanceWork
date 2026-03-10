@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import multer from "multer";
 import { authenticateToken } from "../middleware/authMiddleware";
+import { requireProPlan } from "../middleware/planMiddleware";
 import { analyzeRelance } from "../services/relanceAdvisorService";
 
 const router = Router();
@@ -20,6 +21,7 @@ const upload = multer({
 router.post(
   "/analyze",
   authenticateToken,
+  requireProPlan,
   upload.single("cv"),
   async (req: Request, res: Response): Promise<void> => {
     const { jobUrl, company, poste } = req.body as {

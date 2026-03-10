@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { authenticateToken } from '../middleware/authMiddleware';
+import { requireProPlan } from '../middleware/planMiddleware';
 import {
   startSearch,
   getProspects,
@@ -13,17 +14,17 @@ import {
 
 const router = Router();
 
-// POST /api/job-agent/search — Lance le pipeline complet (scrape + analyse IA)
-router.post('/search', authenticateToken, startSearch);
+// POST /api/job-agent/search — Lance le pipeline complet (scrape + analyse IA) [Pro only]
+router.post('/search', authenticateToken, requireProPlan, startSearch);
 
 // GET /api/job-agent/prospects — Liste les offres analysées (?status=ready&minScore=80)
 router.get('/prospects', authenticateToken, getProspects);
 
-// POST /api/job-agent/prospects/:id/generate-letter — Génère la lettre de motivation
-router.post('/prospects/:id/generate-letter', authenticateToken, generateLetter);
+// POST /api/job-agent/prospects/:id/generate-letter — Génère la lettre de motivation [Pro only]
+router.post('/prospects/:id/generate-letter', authenticateToken, requireProPlan, generateLetter);
 
-// POST /api/job-agent/prospects/:id/adapt-cv — Adapte le CV pour l'offre
-router.post('/prospects/:id/adapt-cv', authenticateToken, adaptCVForProspect);
+// POST /api/job-agent/prospects/:id/adapt-cv — Adapte le CV pour l'offre [Pro only]
+router.post('/prospects/:id/adapt-cv', authenticateToken, requireProPlan, adaptCVForProspect);
 
 // POST /api/job-agent/prospects/:id/apply — Convertit en candidature dans le dashboard
 router.post('/prospects/:id/apply', authenticateToken, applyToProspect);
