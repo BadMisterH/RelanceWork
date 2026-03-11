@@ -3,10 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="RelanceWork suit vos candidatures depuis Gmail et vous dit quand relancer. Pour étudiants et profils tech. 80% des candidats ne relancent jamais — soyez dans les 20%. Gratuit.">
-    <meta name="keywords" content="suivi candidature, relance candidature, outil recherche emploi, tracking candidature Gmail, logiciel candidature, jeune diplômé, alternance, stage, entretien emploi, recherche emploi étudiant">
-    <title>RelanceWork - Suivi de candidatures automatique | Décrochez plus d'entretiens</title>
+    <meta name="description" content="RelanceWork détecte automatiquement vos candidatures Gmail et vous alerte quand relancer — au bon moment, avec le bon template. Obtenez 2× plus d'entretiens. Gratuit, sans carte bancaire.">
+    <meta name="keywords" content="suivi candidature, relance candidature, outil recherche emploi, tracking candidature Gmail, logiciel candidature, jeune diplômé, alternance, stage, entretien emploi, recherche emploi étudiant, suivi candidature automatique, application suivi emploi">
+    <title>RelanceWork — Suivez vos candidatures Gmail et décrochez 2× plus d'entretiens</title>
     <link rel="canonical" href="https://www.relance-work.fr/">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://www.relance-work.fr/">
+    <meta property="og:title" content="RelanceWork — Suivez vos candidatures Gmail et décrochez 2× plus d'entretiens">
+    <meta property="og:description" content="80 % des candidats ne relancent jamais. RelanceWork détecte vos candidatures depuis Gmail et vous dit exactement quand et comment relancer. Gratuit.">
+    <meta property="og:image" content="https://www.relance-work.fr/images/og-preview.png">
+    <meta property="og:locale" content="fr_FR">
+    <meta property="og:site_name" content="RelanceWork">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="RelanceWork — Suivez vos candidatures Gmail et décrochez 2× plus d'entretiens">
+    <meta name="twitter:description" content="80 % des candidats ne relancent jamais. RelanceWork détecte vos candidatures depuis Gmail et vous dit exactement quand et comment relancer. Gratuit.">
+    <meta name="twitter:image" content="https://www.relance-work.fr/images/og-preview.png">
     <link rel="icon" type="image/png" href="/images/LogoRelanceWork.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -20,6 +35,29 @@
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         document.documentElement.setAttribute('data-theme', saved || (prefersDark ? 'dark' : 'light'));
       })();
+    </script>
+
+    <!-- Structured data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "RelanceWork",
+      "url": "https://www.relance-work.fr/",
+      "description": "Outil de suivi de candidatures qui détecte automatiquement vos emails depuis Gmail et vous alerte quand relancer pour décrocher plus d'entretiens.",
+      "applicationCategory": "ProductivityApplication",
+      "operatingSystem": "Web",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "EUR",
+        "description": "Plan gratuit — jusqu'à 10 candidatures"
+      },
+      "audience": {
+        "@type": "Audience",
+        "audienceType": "Étudiants, jeunes diplômés, alternants, profils tech en recherche d'emploi"
+      }
+    }
     </script>
 </head>
 <body>
@@ -68,13 +106,13 @@
             <div class="hero-content">
                 <div class="hero-badge">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-                    Pour étudiants &amp; profils tech en recherche active
+                    Étudiants, alternants &amp; profils tech — gratuit
                 </div>
                 <h1 class="hero-title">
                     Transformez vos<br>candidatures en<br><span class="accent-word">entretiens</span>
                 </h1>
                 <p class="hero-subtitle">
-                    Ne laissez plus vos candidatures sans réponse. RelanceWork suit vos candidatures Gmail et vous indique exactement quand relancer.
+                    Vous postulez, vous attendez, vous oubliez. RelanceWork détecte chaque candidature dans votre Gmail et vous alerte exactement quand relancer — pour être dans les 20 % qui décrochent une réponse.
                 </p>
                 <div class="hero-cta">
                     <a href="/app/auth.html" class="btn btn-primary btn-lg">
@@ -245,7 +283,7 @@
         <div class="container">
             <div class="section-header" data-outline="REALITE">
                 <span class="section-tag">La réalité de la recherche d'emploi</span>
-                <h2>Après 2 semaines, 80&nbsp;% des candidats<br>ont déjà oublié de relancer</h2>
+                <h2>Vous avez postulé. Vous attendez.<br>Pendant ce temps, votre candidature est oubliée.</h2>
             </div>
             <div class="problems-grid">
                 <div class="problem-card" data-anim>
@@ -280,7 +318,7 @@
         <div class="container">
             <div class="section-header" data-outline="ETAPES">
                 <span class="section-tag">Comment ça marche</span>
-                <h2>Gmail → RelanceWork → Entretien.<br>En 3 étapes.</h2>
+                <h2>De votre Gmail à l'entretien.<br>En 3 étapes, en 30 secondes.</h2>
             </div>
             <div class="steps-grid">
                 <div class="step" data-anim>
@@ -343,7 +381,7 @@
             <div class="section-header" data-outline="OUTILS">
                 <span class="section-tag">Fonctionnalités</span>
                 <h2>Tout ce qu'il faut pour<br>décrocher l'entretien</h2>
-                <p class="section-desc">RelanceWork automatise votre suivi de candidature de A à Z — de la détection Gmail jusqu'à la relance envoyée.</p>
+                <p class="section-desc">RelanceWork automatise votre suivi de candidature de A à Z — de la détection automatique dans Gmail jusqu'au template de relance envoyé en un clic.</p>
             </div>
             <div class="features-layout">
                 <div class="feature-hero" data-anim>
@@ -549,8 +587,8 @@
             <div class="pricing-cta-card">
                 <div class="pricing-cta-glow"></div>
                 <div class="pricing-cta-content">
-                    <h2>Prêt à décrocher plus d'entretiens ?</h2>
-                    <p>Rejoignez les candidats qui relancent intelligemment. Commencez gratuitement, sans carte bancaire.</p>
+                    <h2>Arrêtez d'attendre. Commencez à relancer.</h2>
+                    <p>Rejoignez les candidats qui obtiennent des réponses. Gratuit, sans carte bancaire, opérationnel en 30 secondes.</p>
                     <div class="pricing-cta-actions">
                         <a href="/app/auth.html" class="btn btn-white btn-lg">
                             Commencer gratuitement
@@ -682,58 +720,6 @@
     </footer>
 
     <script src="js/main.js"></script>
-
-    <!-- Auth state + inactivity logout -->
-    <script type="module">
-      import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
-
-      const supabaseUrl = 'https://owiwkxcwutaprgndlkhp.supabase.co';
-      const supabaseAnonKey = 'sb_publishable_rr2bz-6nDx-vilDTvskaGg_wx7UiMMa';
-      const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
-      const INACTIVITY_TIMEOUT = 30 * 60 * 1000;
-      let inactivityTimer = null;
-
-      function resetInactivityTimer() {
-        if (inactivityTimer) clearTimeout(inactivityTimer);
-        inactivityTimer = setTimeout(async () => {
-          await supabase.auth.signOut();
-          window.location.reload();
-        }, INACTIVITY_TIMEOUT);
-      }
-
-      async function initAuth() {
-        const { data: { session } } = await supabase.auth.getSession();
-        const loginBtn = document.getElementById('loginBtn');
-        const ctaBtn = document.getElementById('ctaBtn');
-
-        if (session?.user) {
-          const email = session.user.email;
-
-          if (loginBtn) {
-            loginBtn.href = '/app';
-            loginBtn.textContent = 'Mon espace';
-          }
-          if (ctaBtn) {
-            ctaBtn.href = '#';
-            ctaBtn.innerHTML = 'Déconnexion';
-            ctaBtn.classList.remove('btn-primary');
-            ctaBtn.classList.add('btn-outline');
-            ctaBtn.addEventListener('click', async (e) => {
-              e.preventDefault();
-              await supabase.auth.signOut();
-              window.location.reload();
-            });
-          }
-
-          resetInactivityTimer();
-          ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'].forEach(evt => {
-            document.addEventListener(evt, resetInactivityTimer, { passive: true });
-          });
-        }
-      }
-
-      initAuth();
-    </script>
+    <script type="module" src="js/auth-state.js"></script>
 </body>
 </html>
