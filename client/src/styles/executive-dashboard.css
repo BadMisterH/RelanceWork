@@ -309,6 +309,40 @@
   color: var(--dash-text-muted);
 }
 
+.dash-export-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.625rem 1rem;
+  border: 1.5px solid var(--dash-border);
+  border-radius: var(--dash-radius-md);
+  background: var(--dash-card-bg);
+  color: var(--dash-text-secondary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: var(--dash-transition-fast);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.dash-export-btn svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.dash-export-btn:hover {
+  border-color: var(--dash-stat-accepted);
+  color: var(--dash-stat-accepted);
+  background: var(--dash-status-accepted-bg);
+}
+
+.dash-export-btn:active {
+  transform: scale(0.97);
+}
+
 /* ============================================
    STATUS FILTERS
    ============================================ */

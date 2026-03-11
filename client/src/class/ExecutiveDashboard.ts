@@ -10,14 +10,14 @@ import {
   BarChart2, Clock, Briefcase, CheckCircle, Bell,
   LayoutGrid, Send, XCircle, MinusCircle, Search,
   RefreshCw, Trash2, Plus, ExternalLink, Inbox,
-  CornerDownLeft, Mail,
+  CornerDownLeft, Mail, Download,
 } from 'lucide';
 
 const DASH_ICONS = {
   BarChart2, Clock, Briefcase, CheckCircle, Bell,
   LayoutGrid, Send, XCircle, MinusCircle, Search,
   RefreshCw, Trash2, Plus, ExternalLink, Inbox,
-  CornerDownLeft, Mail,
+  CornerDownLeft, Mail, Download,
 };
 
 export class ExecutiveDashboard {
@@ -208,6 +208,10 @@ export class ExecutiveDashboard {
                 class="dash-search-input"
               />
             </div>
+            <button class="dash-export-btn" id="dashExportCSV" title="Exporter en CSV">
+              <i data-lucide="download"></i>
+              <span>CSV</span>
+            </button>
           </div>
         </div>
 
@@ -522,6 +526,8 @@ export class ExecutiveDashboard {
       });
     });
 
+    document.getElementById('dashExportCSV')?.addEventListener('click', () => this.exportToCSV());
+
     const searchInput = document.getElementById('dashTableSearch') as HTMLInputElement;
     if (searchInput) {
       searchInput.addEventListener('input', (e) => {
@@ -671,6 +677,30 @@ export class ExecutiveDashboard {
       const key = (btn as HTMLElement).dataset.filter;
       btn.classList.toggle('active', key === this.activeFilter);
     });
+  }
+
+  private exportToCSV() {
+    const headers = ['Entreprise', 'Poste', 'Statut', 'Date', 'Relances', 'Email'];
+    const rows = this.filteredApplications.map(app => [
+      app.company,
+      app.poste,
+      app.status,
+      app.date,
+      app.relance_count.toString(),
+      app.email || ''
+    ]);
+
+    const csv = [headers, ...rows]
+      .map(row => row.map(cell => `"${cell.replace(/"/g, '""')}"`).join(','))
+      .join('\n');
+
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `candidatures_${new Date().toLocaleDateString('fr-FR').replace(/\//g, '-')}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   private handleRelance(id: number) {
