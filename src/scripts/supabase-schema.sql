@@ -90,6 +90,43 @@ CREATE TABLE IF NOT EXISTS public.gmail_service_tokens (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+ALTER TABLE public.gmail_service_tokens ENABLE ROW LEVEL SECURITY;
+
+-- Aucun accès public — uniquement via le backend avec la service_role_key
+CREATE POLICY "No public access to gmail tokens"
+  ON public.gmail_service_tokens FOR ALL
+  USING (false);
+
+-- ============================================
+-- Favorites
+-- ============================================
+ALTER TABLE public.favorites ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can only access their own favorites"
+  ON public.favorites FOR ALL
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+
+-- ============================================
+-- Search Usage
+-- ============================================
+ALTER TABLE public.search_usage ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can only access their own search usage"
+  ON public.search_usage FOR ALL
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+
+-- ============================================
+-- Subscriptions
+-- ============================================
+ALTER TABLE public.subscriptions ENABLE ROW LEVEL SECURITY;
+
+-- Lecture seule — les écritures se font via le webhook Stripe (service_role_key)
+CREATE POLICY "Users can only read their own subscription"
+  ON public.subscriptions FOR SELECT
+  USING (auth.uid() = user_id);
+
 -- ============================================
 -- Notes importantes:
 -- ============================================
