@@ -5,7 +5,7 @@ const BREVO_API_KEY = process.env.BREVO_API_KEY || "";
 const SENDER_EMAIL = process.env.SENDER_EMAIL || "noreply@relancework.com";
 const SENDER_NAME = "RelanceWork";
 const BASE_URL = process.env.FRONTEND_URL ?? "https://www.relance-work.fr";
-const LOGO_HTML = `<img src="${BASE_URL}/images/LogoRelanceWork.png" alt="RelanceWork" width="48" height="48" style="display:block;border-radius:10px;" />`;
+const LOGO_HTML = `<img src="${BASE_URL}/images/LogoRelanceWork.png" alt="RelanceWork" width="80" height="80" style="display:block;margin:0 auto;border-radius:14px;" />`;
 
 interface SendEmailOptions {
   to: string;
