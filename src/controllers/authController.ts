@@ -51,7 +51,7 @@ function fixRedirectUrl(actionLink: string): string {
 
 // Signup - Créer un nouveau compte avec Supabase Auth
 export const signup = async (req: Request, res: Response): Promise<void> => {
-  const { name, email, password } = req.body;
+  const { name, email, password, acquisition } = req.body;
 
   try {
     // Validate input
@@ -82,6 +82,7 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
       email_confirm: false,
       user_metadata: {
         name: name,
+        ...(acquisition ? { acquisition } : {}),
       },
     });
 

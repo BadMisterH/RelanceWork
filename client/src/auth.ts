@@ -454,12 +454,19 @@ signupForm?.addEventListener("submit", async (e) => {
   try {
     // Appeler le backend qui auto-confirme l'email (évite rate limit)
     const apiUrl = getApiUrl();
+    // Récupérer les données d'acquisition (UTM/referrer) capturées sur la landing
+    let acquisition = null;
+    try {
+      const raw = localStorage.getItem('rw_acquisition');
+      if (raw) acquisition = JSON.parse(raw);
+    } catch { /* ignore */ }
+
     const response = await fetch(`${apiUrl}/auth/signup`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ name, email, password }),
+      body: JSON.stringify({ name, email, password, acquisition }),
     });
 
     if (!response.ok) {
