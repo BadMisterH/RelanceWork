@@ -108,6 +108,7 @@ export async function scrapeJSearch(
         description: (job.job_description || '').substring(0, 4000),
         url: job.job_apply_link,
         scrapedAt: new Date().toISOString(),
+        publishedAt: job.job_posted_at_datetime_utc || null,
       });
 
       console.log(`  ✓ [${job.job_publisher || 'JSearch'}] ${job.job_title} @ ${job.employer_name}`);

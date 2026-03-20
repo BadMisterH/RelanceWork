@@ -60,13 +60,22 @@ export const getProspects = async (req: Request, res: Response): Promise<void> =
   const userId = (req as any).user?.id;
   if (!userId) { res.status(401).json({ message: 'Non authentifié' }); return; }
 
-  const { status, minScore } = req.query;
+  const { status, minScore, sort } = req.query;
+
+  const sortByDate = sort === 'date';
 
   let query = supabase
     .from('job_prospects')
     .select('*')
-    .eq('user_id', userId)
-    .order('match_score', { ascending: false });
+    .eq('user_id', userId);
+
+  if (sortByDate) {
+    query = query
+      .order('published_at', { ascending: false, nullsFirst: false })
+      .order('created_at', { ascending: false });
+  } else {
+    query = query.order('match_score', { ascending: false });
+  }
 
   if (status) query = query.eq('status', status as string);
   if (minScore) query = query.gte('match_score', Number(minScore));

@@ -119,6 +119,7 @@ export async function runJobAgentPipeline(
         why_apply: analysis.why_apply,
         cover_letter: coverLetter,
         search_keyword: keyword,
+        published_at: job.publishedAt || null,
         status: 'ready',
       });
 

@@ -21,6 +21,7 @@ interface Prospect {
   status: string;
   source_url: string;
   created_at: string;
+  published_at: string | null;
 }
 
 export class JobAgent {
@@ -30,6 +31,7 @@ export class JobAgent {
   private currentProspectId: string | null = null;
   private isEditing = false;
   private filterScore = 0;
+  private sortMode: 'score' | 'date' = 'score';
 
   constructor(containerId: string = 'jobAgentView') {
     this.container = document.getElementById(containerId);
@@ -62,6 +64,10 @@ export class JobAgent {
                 <option value="60">60+</option>
                 <option value="70">70+</option>
                 <option value="80">80+</option>
+              </select>
+              <select id="ja-sort-mode" class="ja-filter-select" title="Trier par">
+                <option value="score">Score</option>
+                <option value="date">Date de publication</option>
               </select>
               <button class="ja-new-search-btn" id="ja-open-search">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14">
@@ -249,6 +255,10 @@ export class JobAgent {
     };
     document.getElementById('ja-filter-score')?.addEventListener('change', syncFilter);
     document.getElementById('ja-score')?.addEventListener('change', syncFilter);
+    document.getElementById('ja-sort-mode')?.addEventListener('change', (e) => {
+      this.sortMode = (e.target as HTMLSelectElement).value as 'score' | 'date';
+      this.loadProspects();
+    });
     document.getElementById('ja-modal-close')?.addEventListener('click', () => this.closeModal());
     document.getElementById('ja-copy-letter')?.addEventListener('click', () => this.copyLetter());
     document.getElementById('ja-edit-letter')?.addEventListener('click', () => this.toggleEditMode());
@@ -394,7 +404,8 @@ export class JobAgent {
 
   private async loadProspects() {
     try {
-      const res = await api.get<Prospect[]>('/job-agent/prospects');
+      const params = this.sortMode === 'date' ? '?sort=date' : '';
+      const res = await api.get<Prospect[]>(`/job-agent/prospects${params}`);
       this.prospects = res.data;
       this.renderProspects();
     } catch {
@@ -478,6 +489,7 @@ export class JobAgent {
             <div class="ja-card-tags">
               <span class="ja-tag">${p.job_type || 'CDI'}</span>
               <span class="ja-tag">${p.seniority || 'Junior'}</span>
+              ${p.published_at ? `<span class="ja-tag" style="color:var(--text-muted)">📅 ${new Date(p.published_at).toLocaleDateString('fr-FR')}</span>` : ''}
               ${statusBadge}
             </div>
           </div>

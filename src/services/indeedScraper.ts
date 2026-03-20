@@ -8,6 +8,7 @@ export interface ScrapedJob {
   description: string;
   url: string;
   scrapedAt: string;
+  publishedAt?: string | null;
 }
 
 const DELAY_MS = (min: number, max: number) =>
