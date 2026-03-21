@@ -115,7 +115,7 @@ const jobAgentLetterLimiter = rateLimit({
   legacyHeaders: false,
   message: { error: "Limite de lettres atteinte (5/heure). Réessayez plus tard." },
 });
-app.use("/api/job-agent/prospects", jobAgentLetterLimiter);
+app.use("/api/job-agent/prospects/:id/generate-letter", jobAgentLetterLimiter);
 
 // Candidatures spontanées : 2 recherches/heure (scraping + OpenAI par lot)
 const spontaneousSearchLimiter = rateLimit({
