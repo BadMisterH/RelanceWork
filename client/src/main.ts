@@ -6,8 +6,10 @@ import { TemplateManager } from "./class/TemplateManager.ts";
 import { AnalyticsDashboard } from "./class/AnalyticsDashboard.ts";
 import { FavoritesList } from "./class/FavoritesList.ts";
 import { JobAgent } from "./class/JobAgent.ts";
+import { OnboardingWizard } from "./class/OnboardingWizard.ts";
 import "./style.css";
 import "./styles/favorites-page.css";
+import "./styles/onboarding.css";
 import api from "./lib/api";
 import { supabase } from "./lib/supabase";
 import { authUrl } from "./lib/paths";
@@ -609,7 +611,7 @@ function initThemeToggle() {
 initThemeToggle();
 
 // Vérifier l'authentification avant de charger l'application
-checkAuth().then((isAuthenticated) => {
+checkAuth().then(async (isAuthenticated) => {
   if (isAuthenticated) {
     // Afficher la date
     updateCurrentDate();
@@ -631,6 +633,13 @@ checkAuth().then((isAuthenticated) => {
 
     // Charger les données
     GetAllDataPost();
+
+    // Afficher le wizard d'onboarding si pas encore complété
+    const wizard = new OnboardingWizard();
+    const shouldShow = await wizard.shouldShow();
+    if (shouldShow) {
+      wizard.show();
+    }
 
     // Vérifier si retour de Stripe Checkout
     const urlParams = new URLSearchParams(window.location.search);

@@ -15,6 +15,7 @@ import favoritesRoutes from "./routes/favoritesRoutes";
 import relanceAdvisorRoutes from "./routes/relanceAdvisorRoutes";
 import jobAgentRoutes from "./routes/jobAgentRoutes";
 import spontaneousRoutes from "./routes/spontaneousRoutes";
+import onboardingRoutes from "./routes/onboardingRoutes";
 
 const app = express();
 
@@ -164,6 +165,7 @@ app.use("/api/search", searchRoutes);
 app.use("/api/relance-advisor", relanceAdvisorRoutes);
 app.use("/api/job-agent", jobAgentRoutes);
 app.use("/api/spontaneous", spontaneousRoutes);
+app.use("/api/onboarding", onboardingRoutes);
 
 // ============================================
 // STATIC FILES

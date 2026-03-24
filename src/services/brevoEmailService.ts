@@ -154,6 +154,255 @@ export async function sendRelanceReminderEmail(
   });
 }
 
+// ============================================
+// ONBOARDING EMAIL SEQUENCE (J+0 to J+7)
+// ============================================
+
+export async function sendWelcomeEmail(to: string, userName: string): Promise<boolean> {
+  const appUrl = `${BASE_URL}/app`;
+  return sendEmail({
+    to,
+    subject: `Bienvenue sur RelanceWork, ${userName} !`,
+    html: `
+      <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:560px;margin:0 auto;padding:40px 24px;color:#1a1a2e;background:#f8fafc;">
+        <div style="background:#ffffff;border-radius:16px;padding:40px 36px;box-shadow:0 4px 24px rgba(15,23,42,0.08);">
+          <div style="text-align:center;margin-bottom:32px;">
+            ${LOGO_HTML}
+            <h1 style="font-size:22px;font-weight:700;margin:16px 0 0;color:#0f172a;">RelanceWork</h1>
+          </div>
+          <h2 style="font-size:20px;font-weight:700;color:#0f172a;margin:0 0 12px;">Bienvenue ${userName} !</h2>
+          <p style="font-size:15px;color:#475569;line-height:1.6;margin:0 0 24px;">
+            Ton compte est actif. RelanceWork va t'aider à trouver des offres pertinentes, générer tes lettres de motivation et ne plus jamais oublier de relancer.
+          </p>
+          <div style="background:#f1f5f9;border-radius:12px;padding:20px 24px;margin:0 0 28px;">
+            <p style="font-size:14px;font-weight:600;color:#0f172a;margin:0 0 12px;">Pour commencer :</p>
+            <ol style="font-size:14px;color:#475569;line-height:1.8;margin:0;padding-left:20px;">
+              <li>Configure ton profil de recherche</li>
+              <li>Lance le Job Agent pour trouver tes offres</li>
+              <li>Génère ta première lettre en 10 secondes</li>
+            </ol>
+          </div>
+          <table width="100%" cellpadding="0" cellspacing="0" border="0">
+            <tr><td align="center">
+              <a href="${appUrl}" style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;font-size:15px;font-weight:600;padding:14px 32px;border-radius:10px;">
+                Commencer ma recherche →
+              </a>
+            </td></tr>
+          </table>
+          <hr style="border:none;border-top:1px solid #e2e8f0;margin:32px 0;" />
+          <p style="font-size:12px;color:#94a3b8;text-align:center;margin:0;">RelanceWork · Tu reçois cet email car tu viens de créer un compte.</p>
+        </div>
+      </div>
+    `,
+  });
+}
+
+export async function sendActivationEmail(to: string, userName: string): Promise<boolean> {
+  const appUrl = `${BASE_URL}/app`;
+  return sendEmail({
+    to,
+    subject: `${userName}, tes offres t'attendent 🎯`,
+    html: `
+      <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:560px;margin:0 auto;padding:40px 24px;color:#1a1a2e;background:#f8fafc;">
+        <div style="background:#ffffff;border-radius:16px;padding:40px 36px;box-shadow:0 4px 24px rgba(15,23,42,0.08);">
+          <div style="text-align:center;margin-bottom:32px;">
+            ${LOGO_HTML}
+            <h1 style="font-size:22px;font-weight:700;margin:16px 0 0;color:#0f172a;">RelanceWork</h1>
+          </div>
+          <h2 style="font-size:20px;font-weight:700;color:#0f172a;margin:0 0 12px;">Tu n'as pas encore postulé</h2>
+          <p style="font-size:15px;color:#475569;line-height:1.6;margin:0 0 24px;">
+            Le Job Agent est prêt à trouver des offres qui correspondent à ton profil. Ça prend moins de 2 minutes.
+          </p>
+          <div style="background:#eff6ff;border-left:4px solid #2563eb;padding:16px 20px;border-radius:0 8px 8px 0;margin:0 0 28px;">
+            <p style="font-size:14px;color:#1e40af;margin:0;font-weight:500;">
+              💡 Les candidats qui postulent dans les 48h après inscription obtiennent 3x plus d'entretiens.
+            </p>
+          </div>
+          <table width="100%" cellpadding="0" cellspacing="0" border="0">
+            <tr><td align="center">
+              <a href="${appUrl}" style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;font-size:15px;font-weight:600;padding:14px 32px;border-radius:10px;">
+                Lancer le Job Agent
+              </a>
+            </td></tr>
+          </table>
+          <hr style="border:none;border-top:1px solid #e2e8f0;margin:32px 0;" />
+          <p style="font-size:12px;color:#94a3b8;text-align:center;margin:0;">RelanceWork · Tu reçois cet email car tu n'as pas encore postulé.</p>
+        </div>
+      </div>
+    `,
+  });
+}
+
+export async function sendLetterPreviewEmail(to: string, userName: string): Promise<boolean> {
+  const appUrl = `${BASE_URL}/app`;
+  return sendEmail({
+    to,
+    subject: `Ta lettre de motivation est déjà rédigée, ${userName}`,
+    html: `
+      <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:560px;margin:0 auto;padding:40px 24px;color:#1a1a2e;background:#f8fafc;">
+        <div style="background:#ffffff;border-radius:16px;padding:40px 36px;box-shadow:0 4px 24px rgba(15,23,42,0.08);">
+          <div style="text-align:center;margin-bottom:32px;">
+            ${LOGO_HTML}
+            <h1 style="font-size:22px;font-weight:700;margin:16px 0 0;color:#0f172a;">RelanceWork</h1>
+          </div>
+          <h2 style="font-size:20px;font-weight:700;color:#0f172a;margin:0 0 12px;">Ta lettre est prête en 10 secondes</h2>
+          <p style="font-size:15px;color:#475569;line-height:1.6;margin:0 0 20px;">
+            Le Job Agent analyse chaque offre et génère une lettre personnalisée pour toi — sans effort.
+          </p>
+          <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:20px 24px;margin:0 0 28px;font-style:italic;color:#64748b;font-size:14px;line-height:1.7;">
+            "Madame, Monsieur,<br><br>
+            Passionné(e) par [ton domaine], je postule au poste de [poste] chez [entreprise]…<br><br>
+            <span style="color:#94a3b8;">[Suite générée automatiquement selon ton CV et l'offre]</span>"
+          </div>
+          <table width="100%" cellpadding="0" cellspacing="0" border="0">
+            <tr><td align="center">
+              <a href="${appUrl}" style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;font-size:15px;font-weight:600;padding:14px 32px;border-radius:10px;">
+                Générer ma vraie lettre →
+              </a>
+            </td></tr>
+          </table>
+          <hr style="border:none;border-top:1px solid #e2e8f0;margin:32px 0;" />
+          <p style="font-size:12px;color:#94a3b8;text-align:center;margin:0;">RelanceWork · Génération de lettres incluse dans tous les plans.</p>
+        </div>
+      </div>
+    `,
+  });
+}
+
+export async function sendSocialProofEmail(to: string, userName: string): Promise<boolean> {
+  const appUrl = `${BASE_URL}/app`;
+  return sendEmail({
+    to,
+    subject: `"J'ai eu 3 entretiens en 2 semaines" — voici comment`,
+    html: `
+      <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:560px;margin:0 auto;padding:40px 24px;color:#1a1a2e;background:#f8fafc;">
+        <div style="background:#ffffff;border-radius:16px;padding:40px 36px;box-shadow:0 4px 24px rgba(15,23,42,0.08);">
+          <div style="text-align:center;margin-bottom:32px;">
+            ${LOGO_HTML}
+            <h1 style="font-size:22px;font-weight:700;margin:16px 0 0;color:#0f172a;">RelanceWork</h1>
+          </div>
+          <h2 style="font-size:20px;font-weight:700;color:#0f172a;margin:0 0 20px;">Ce que disent nos utilisateurs</h2>
+          <div style="background:#f8fafc;border-left:4px solid #10b981;padding:20px 24px;border-radius:0 12px 12px 0;margin:0 0 20px;">
+            <p style="font-size:15px;color:#1e293b;line-height:1.7;margin:0 0 12px;font-style:italic;">
+              "J'ai postulé à 12 offres en une semaine grâce au Job Agent. 3 entretiens décroché. La lettre générée automatiquement m'a clairement différencié des autres candidats."
+            </p>
+            <p style="font-size:13px;color:#64748b;margin:0;font-weight:600;">— Thomas M., Développeur Web · Paris</p>
+          </div>
+          <div style="background:#f8fafc;border-left:4px solid #2563eb;padding:20px 24px;border-radius:0 12px 12px 0;margin:0 0 28px;">
+            <p style="font-size:15px;color:#1e293b;line-height:1.7;margin:0 0 12px;font-style:italic;">
+              "Je galérais à suivre mes candidatures. Maintenant tout est centralisé et je reçois des rappels pour relancer. Ça change tout."
+            </p>
+            <p style="font-size:13px;color:#64748b;margin:0;font-weight:600;">— Sarah K., Chef de projet · Lyon</p>
+          </div>
+          <table width="100%" cellpadding="0" cellspacing="0" border="0">
+            <tr><td align="center">
+              <a href="${appUrl}" style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;font-size:15px;font-weight:600;padding:14px 32px;border-radius:10px;">
+                Rejoindre ${userName}
+              </a>
+            </td></tr>
+          </table>
+          <hr style="border:none;border-top:1px solid #e2e8f0;margin:32px 0;" />
+          <p style="font-size:12px;color:#94a3b8;text-align:center;margin:0;">RelanceWork · Des vrais résultats pour de vrais candidats.</p>
+        </div>
+      </div>
+    `,
+  });
+}
+
+export async function sendUrgencyEmail(to: string, userName: string): Promise<boolean> {
+  const appUrl = `${BASE_URL}/app`;
+  return sendEmail({
+    to,
+    subject: `${userName}, certaines offres expirent bientôt`,
+    html: `
+      <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:560px;margin:0 auto;padding:40px 24px;color:#1a1a2e;background:#f8fafc;">
+        <div style="background:#ffffff;border-radius:16px;padding:40px 36px;box-shadow:0 4px 24px rgba(15,23,42,0.08);">
+          <div style="text-align:center;margin-bottom:32px;">
+            ${LOGO_HTML}
+            <h1 style="font-size:22px;font-weight:700;margin:16px 0 0;color:#0f172a;">RelanceWork</h1>
+          </div>
+          <h2 style="font-size:20px;font-weight:700;color:#0f172a;margin:0 0 12px;">Ne laisse pas passer ces offres</h2>
+          <p style="font-size:15px;color:#475569;line-height:1.6;margin:0 0 24px;">
+            Les offres publiées il y a plus de 5 jours reçoivent 70% moins de candidatures. C'est le bon moment pour postuler — les recruteurs sont encore actifs.
+          </p>
+          <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;padding:16px 20px;margin:0 0 28px;">
+            <p style="font-size:14px;color:#c2410c;font-weight:600;margin:0;">
+              ⏰ Lance le Job Agent maintenant pour voir les offres récentes de ta zone.
+            </p>
+          </div>
+          <table width="100%" cellpadding="0" cellspacing="0" border="0">
+            <tr><td align="center">
+              <a href="${appUrl}" style="display:inline-block;background:#ea580c;color:#ffffff;text-decoration:none;font-size:15px;font-weight:600;padding:14px 32px;border-radius:10px;">
+                Voir les offres récentes
+              </a>
+            </td></tr>
+          </table>
+          <hr style="border:none;border-top:1px solid #e2e8f0;margin:32px 0;" />
+          <p style="font-size:12px;color:#94a3b8;text-align:center;margin:0;">RelanceWork · Tu reçois cet email car tu n'as pas encore utilisé le Job Agent.</p>
+        </div>
+      </div>
+    `,
+  });
+}
+
+export async function sendWeekCheckInEmail(to: string, userName: string, hasApplications: boolean): Promise<boolean> {
+  const appUrl = `${BASE_URL}/app`;
+  const subject = hasApplications
+    ? `${userName}, pense à relancer tes candidatures`
+    : `Comment avance ta recherche, ${userName} ?`;
+
+  const bodyContent = hasApplications
+    ? `
+      <h2 style="font-size:20px;font-weight:700;color:#0f172a;margin:0 0 12px;">N'oublie pas de relancer</h2>
+      <p style="font-size:15px;color:#475569;line-height:1.6;margin:0 0 24px;">
+        Les candidatures sans relance sont ignorées dans 80% des cas. Un simple message peut faire la différence.
+      </p>
+      <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:16px 20px;margin:0 0 28px;">
+        <p style="font-size:14px;color:#15803d;font-weight:500;margin:0;">
+          ✓ RelanceWork te rappelle automatiquement quand relancer chaque candidature.
+        </p>
+      </div>
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr><td align="center">
+          <a href="${appUrl}" style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;font-size:15px;font-weight:600;padding:14px 32px;border-radius:10px;">
+            Voir mes candidatures
+          </a>
+        </td></tr>
+      </table>
+    `
+    : `
+      <h2 style="font-size:20px;font-weight:700;color:#0f172a;margin:0 0 12px;">Tu cherches toujours ?</h2>
+      <p style="font-size:15px;color:#475569;line-height:1.6;margin:0 0 24px;">
+        On a simplifié le processus depuis ton inscription. En 2 minutes, tu peux voir des offres scorées selon ton profil et générer ta première lettre.
+      </p>
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr><td align="center">
+          <a href="${appUrl}" style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;font-size:15px;font-weight:600;padding:14px 32px;border-radius:10px;">
+            Recommencer en 2 min →
+          </a>
+        </td></tr>
+      </table>
+    `;
+
+  return sendEmail({
+    to,
+    subject,
+    html: `
+      <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:560px;margin:0 auto;padding:40px 24px;color:#1a1a2e;background:#f8fafc;">
+        <div style="background:#ffffff;border-radius:16px;padding:40px 36px;box-shadow:0 4px 24px rgba(15,23,42,0.08);">
+          <div style="text-align:center;margin-bottom:32px;">
+            ${LOGO_HTML}
+            <h1 style="font-size:22px;font-weight:700;margin:16px 0 0;color:#0f172a;">RelanceWork</h1>
+          </div>
+          ${bodyContent}
+          <hr style="border:none;border-top:1px solid #e2e8f0;margin:32px 0;" />
+          <p style="font-size:12px;color:#94a3b8;text-align:center;margin:0;">RelanceWork · Bilan de ta première semaine.</p>
+        </div>
+      </div>
+    `,
+  });
+}
+
 export async function sendPasswordResetEmail(to: string, resetLink: string): Promise<boolean> {
   return sendEmail({
     to,
