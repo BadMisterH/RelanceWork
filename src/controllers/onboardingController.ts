@@ -48,10 +48,20 @@ export const saveOnboardingProfile = async (req: Request, res: Response): Promis
   }
 };
 
+// Users created before this date already know the product — skip onboarding wizard
+const ONBOARDING_LAUNCH_DATE = new Date("2026-03-24T00:00:00.000Z");
+
 // GET /api/onboarding/status
 // Returns the onboarding status for the current user.
 export const getOnboardingStatus = async (req: Request, res: Response): Promise<void> => {
   const user = (req as any).user;
+
+  // Skip wizard for users who registered before onboarding was launched
+  const createdAt = new Date(user.created_at);
+  if (createdAt < ONBOARDING_LAUNCH_DATE) {
+    res.status(200).json({ completed: true, profile: null });
+    return;
+  }
 
   const onboarding = user.user_metadata?.onboarding ?? null;
 
