@@ -47,6 +47,14 @@ export default defineConfig(({ command, mode }) => {
         env.VITE_LANDING_URL || process.env.VITE_LANDING_URL
       ),
     },
+    server: {
+      proxy: {
+        "/api": {
+          target: "http://localhost:3000",
+          changeOrigin: true,
+        },
+      },
+    },
     build: {
       rollupOptions: {
         input: {
