@@ -265,6 +265,7 @@ export class OnboardingWizard {
       // Navigate to the Job Agent section
       setTimeout(() => {
         const jobAgentNav = document.querySelector<HTMLElement>('.nav-item[data-section="job-agent"]');
+        if (jobAgentNav?.dataset.disabled === 'true') return;
         jobAgentNav?.click();
       }, 300);
     }

@@ -491,6 +491,22 @@
   box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
 }
 
+.favorites-cta:disabled,
+.favorites-cta--disabled {
+  background: var(--dash-border);
+  color: var(--dash-text-muted);
+  box-shadow: none;
+  cursor: not-allowed;
+  opacity: 0.7;
+  filter: grayscale(1);
+  transform: none;
+}
+
+.favorites-cta:disabled svg,
+.favorites-cta--disabled svg {
+  opacity: 0.6;
+}
+
 .favorites-cta:active {
   transform: translateY(0);
 }

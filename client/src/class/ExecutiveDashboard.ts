@@ -20,12 +20,22 @@ const DASH_ICONS = {
   CornerDownLeft, Mail, Download,
 };
 
+const RELANCE_DELAY_DAYS = 7;
+const MAX_DAILY_ACTIONS = 5;
+
+type RelanceCandidate = {
+  app: Application;
+  daysSince: number;
+  baseDate: Date;
+};
+
 export class ExecutiveDashboard {
   private container: HTMLElement | null;
   private applications: Application[] = [];
   private filteredApplications: Application[] = [];
   private searchTerm: string = '';
   private activeFilter: string = 'all';
+  private activeSourceFilter: 'all' | 'indeed' | 'other' = 'all';
 
   constructor(containerId: string = 'applicationsList') {
     this.container = document.getElementById(containerId);
@@ -60,6 +70,7 @@ export class ExecutiveDashboard {
 
     const html = `
       ${this.renderStats()}
+      ${this.renderDailyActions()}
       ${this.renderTrackingTable()}
     `;
 
@@ -142,6 +153,215 @@ export class ExecutiveDashboard {
         </div>
       </div>
     `;
+  }
+
+  /**
+   * Actions du jour (relances prioritaires)
+   */
+  private renderDailyActions(): string {
+    const candidates = this.getRelanceCandidates();
+    const due = candidates.filter(c => c.daysSince >= RELANCE_DELAY_DAYS);
+    const hasDue = due.length > 0;
+    const baseList = hasDue ? due : candidates;
+    const sourceCounts = this.getSourceCounts(baseList);
+    const filtered = this.filterBySource(baseList);
+    const list = filtered.slice(0, MAX_DAILY_ACTIONS);
+    const count = filtered.length;
+    const filterSuffix = this.activeSourceFilter === 'all'
+      ? ''
+      : ` (${this.getSourceFilterLabel()})`;
+
+    const subtitle = hasDue
+      ? `Relances prioritaires à envoyer${filterSuffix}`
+      : `Aucune relance urgente aujourd'hui${filterSuffix}`;
+    const hint = hasDue
+      ? `Basé sur ${RELANCE_DELAY_DAYS}j sans réponse`
+      : (list.length > 0 ? 'Prochaines relances recommandées' : 'Tout est à jour');
+
+    return `
+      <section class="dash-actions-today">
+        <div class="dash-actions-header">
+          <div class="dash-actions-title-group">
+            <div class="dash-actions-title-row">
+              <span class="dash-actions-icon"><i data-lucide="bell"></i></span>
+              <h2 class="dash-actions-title">Actions du jour</h2>
+              <span class="dash-actions-count">${count}</span>
+            </div>
+            <p class="dash-actions-subtitle">${subtitle}</p>
+          </div>
+          <div class="dash-actions-hint">${hint}</div>
+        </div>
+
+        <div class="dash-actions-filters">
+          ${this.renderSourceFilterButton('all', 'Toutes', sourceCounts.all)}
+          ${this.renderSourceFilterButton('indeed', 'Indeed', sourceCounts.indeed)}
+          ${this.renderSourceFilterButton('other', 'Autres', sourceCounts.other)}
+        </div>
+
+        ${list.length === 0 ? this.renderDailyActionsEmpty(baseList.length > 0) : `
+          <div class="dash-actions-list">
+            ${list.map(candidate => this.renderDailyActionCard(candidate, hasDue)).join('')}
+          </div>
+        `}
+      </section>
+    `;
+  }
+
+  private renderDailyActionsEmpty(hasCandidates: boolean): string {
+    const emptyTitle = hasCandidates
+      ? `Aucune relance ${this.getSourceFilterLabel()}`
+      : 'Rien à relancer pour le moment';
+    const emptyText = hasCandidates
+      ? 'Changez le filtre pour voir les autres priorités.'
+      : 'Toutes les candidatures suivies sont à jour.';
+    return `
+      <div class="dash-actions-empty">
+        <div class="dash-actions-empty-icon"><i data-lucide="check-circle"></i></div>
+        <div class="dash-actions-empty-title">${emptyTitle}</div>
+        <div class="dash-actions-empty-text">${emptyText}</div>
+      </div>
+    `;
+  }
+
+  private renderDailyActionCard(candidate: RelanceCandidate, hasDue: boolean): string {
+    const { app, daysSince } = candidate;
+    const daysLabel = daysSince <= 1 ? `${daysSince} jour` : `${daysSince} jours`;
+    const relanceIn = Math.max(0, RELANCE_DELAY_DAYS - daysSince);
+    const sourceLabel = this.getSourceType(app) === 'indeed' ? 'Indeed' : 'Autres';
+
+    const badgeLabel = hasDue ? `J+${daysSince}` : `Dans ${relanceIn}j`;
+    const badgeClass = hasDue
+      ? (daysSince >= RELANCE_DELAY_DAYS + 7 ? 'urgent' : 'priority')
+      : 'upcoming';
+    const hint = hasDue
+      ? `Sans réponse depuis ${daysLabel}`
+      : `Relance conseillée dans ${relanceIn}j`;
+
+    return `
+      <div class="dash-action-card" data-app-id="${app.id}">
+        <div class="dash-action-main">
+          <div class="dash-action-company">${this.escapeHtml(app.company)}</div>
+          <div class="dash-action-poste">${this.escapeHtml(app.poste)}</div>
+          <div class="dash-action-meta">
+            <span class="dash-action-badge dash-action-badge--${badgeClass}">${badgeLabel}</span>
+            <span class="dash-action-meta-text">${hint}</span>
+            <span class="dash-action-meta-dot">•</span>
+            <span class="dash-action-meta-text">Source ${sourceLabel}</span>
+            <span class="dash-action-meta-dot">•</span>
+            <span class="dash-action-meta-text">Envoyée ${this.getApplicationDateLabel(app)}</span>
+          </div>
+        </div>
+        <div class="dash-action-cta">
+          <button
+            class="dash-action-btn dash-btn-relance"
+            data-action="relance"
+            data-id="${app.id}"
+            title="Relancer cette candidature"
+          >
+            <i data-lucide="refresh-cw"></i>
+            <span>Relancer</span>
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  private renderSourceFilterButton(
+    key: 'all' | 'indeed' | 'other',
+    label: string,
+    count: number
+  ): string {
+    return `
+      <button
+        class="dash-actions-filter ${this.activeSourceFilter === key ? 'active' : ''}"
+        data-source-filter="${key}"
+        type="button"
+      >
+        <span>${label}</span>
+        <span class="dash-actions-filter-count">${count}</span>
+      </button>
+    `;
+  }
+
+  private getSourceCounts(list: RelanceCandidate[]) {
+    const counts = { all: list.length, indeed: 0, other: 0 };
+    list.forEach(candidate => {
+      const source = this.getSourceType(candidate.app);
+      if (source === 'indeed') counts.indeed += 1;
+      else counts.other += 1;
+    });
+    return counts;
+  }
+
+  private filterBySource(list: RelanceCandidate[]): RelanceCandidate[] {
+    if (this.activeSourceFilter === 'all') return list;
+    return list.filter(candidate => this.getSourceType(candidate.app) === this.activeSourceFilter);
+  }
+
+  private getSourceType(app: Application): 'indeed' | 'other' {
+    const raw = (app.source || '').toLowerCase();
+    if (raw.includes('indeed')) return 'indeed';
+    if (raw && !raw.includes('indeed')) return 'other';
+
+    const status = app.status.toLowerCase();
+    const isCandidature = /(candidature|postul|envoyée)/i.test(status);
+    const isRelance = /relance/i.test(status);
+    const hasEmail = !!app.email;
+    const website = (app.company_website || '').toLowerCase();
+
+    if (website.includes('indeed.')) return 'indeed';
+    if (!hasEmail && isCandidature && !isRelance) return 'indeed';
+    return 'other';
+  }
+
+  private getSourceFilterLabel(): string {
+    if (this.activeSourceFilter === 'indeed') return 'Indeed';
+    if (this.activeSourceFilter === 'other') return 'autres sources';
+    return 'toutes sources';
+  }
+
+  private getRelanceCandidates(): RelanceCandidate[] {
+    const now = new Date();
+    const dayMs = 1000 * 60 * 60 * 24;
+
+    return this.applications
+      .filter(app => this.shouldRelance(app))
+      .map(app => {
+        const baseDate = this.getApplicationDate(app);
+        if (!baseDate) return null;
+        const diff = Math.floor((now.getTime() - baseDate.getTime()) / dayMs);
+        const daysSince = Math.max(0, diff);
+        return { app, daysSince, baseDate } as RelanceCandidate;
+      })
+      .filter((candidate): candidate is RelanceCandidate => candidate !== null)
+      .sort((a, b) => b.daysSince - a.daysSince);
+  }
+
+  private shouldRelance(app: Application): boolean {
+    if (app.relanced) return false;
+    const status = app.status.toLowerCase();
+    if (status.includes('accepté') || status.includes('proposé')) return false;
+    if (status.includes('refusé') || status.includes('retiré')) return false;
+    if (status.includes('entretien')) return false;
+    return true;
+  }
+
+  private getApplicationDate(app: Application): Date | null {
+    if (app.date) {
+      const parsed = this.parseDate(app.date);
+      if (!isNaN(parsed.getTime()) && parsed.getTime() > 0) return parsed;
+    }
+    if (app.created_at) {
+      const created = new Date(app.created_at);
+      if (!isNaN(created.getTime())) return created;
+    }
+    return null;
+  }
+
+  private getApplicationDateLabel(app: Application): string {
+    if (app.date) return this.formatDate(app.date);
+    if (app.created_at) return this.formatDate(app.created_at);
+    return '—';
   }
 
   /**
@@ -253,6 +473,9 @@ export class ExecutiveDashboard {
     const statusIcon = this.getStatusIcon(app.status);
     const relanceText = app.relanced ? `${app.relance_count || 1}×` : '';
     const relanceClass = app.relanced ? 'dash-has-relance' : '';
+    const sourceBadge = this.getSourceType(app) === 'indeed'
+      ? `<span class="dash-source-badge dash-source-badge--indeed" title="Candidature via Indeed">Indeed</span>`
+      : '';
 
     return `
       <tr class="dash-table-row" data-app-id="${app.id}" style="animation-delay: ${index * 0.03}s">
@@ -262,6 +485,7 @@ export class ExecutiveDashboard {
             <div class="dash-company-info">
               <div class="dash-company-name-row">
                 <span class="dash-company-name">${this.escapeHtml(app.company)}</span>
+                ${sourceBadge}
                 ${app.company_website ? `<a href="${this.escapeHtml(app.company_website)}" target="_blank" rel="noopener" class="dash-company-link" title="Voir le site web">
                   <i data-lucide="external-link"></i>
                 </a>` : ''}
@@ -551,6 +775,15 @@ export class ExecutiveDashboard {
           const website = target.dataset.website;
           this.handleEnrich(Number(id), website || '');
         }
+      });
+    });
+
+    document.querySelectorAll('.dash-actions-filter').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const key = (btn as HTMLElement).dataset.sourceFilter as 'all' | 'indeed' | 'other' | undefined;
+        if (!key) return;
+        this.activeSourceFilter = key;
+        this.render(this.applications);
       });
     });
 

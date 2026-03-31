@@ -110,6 +110,7 @@ export interface Application {
   user_id?: string; // UUID de l'utilisateur (Supabase)
   company_website?: string; // Site web de l'entreprise
   company_description?: string; // Description enrichie de l'entreprise
+  source?: string; // Source (indeed / gmail / manual / job-agent...)
 }
 
 // ============================================
@@ -470,6 +471,8 @@ function initSidebarNavigation() {
   sidebarNavItems.forEach(item => {
     item.addEventListener('click', (e) => {
       e.preventDefault();
+      const isDisabled = (item as HTMLElement).dataset.disabled === 'true';
+      if (isDisabled) return;
       const section = (item as HTMLElement).dataset.section;
 
       sidebarNavItems.forEach(navItem => navItem.classList.remove('active'));
@@ -637,7 +640,9 @@ checkAuth().then(async (isAuthenticated) => {
     // Afficher le wizard d'onboarding si pas encore complété
     const wizard = new OnboardingWizard();
     const shouldShow = await wizard.shouldShow();
-    if (shouldShow) {
+    const jobAgentNav = document.querySelector<HTMLElement>('.nav-item[data-section="job-agent"]');
+    const jobAgentDisabled = jobAgentNav?.dataset.disabled === 'true';
+    if (shouldShow && !jobAgentDisabled) {
       wizard.show();
     }
 

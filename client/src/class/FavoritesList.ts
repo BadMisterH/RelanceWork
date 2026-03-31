@@ -215,6 +215,7 @@ export class FavoritesList {
    * État vide
    */
   private renderEmptyState(): string {
+    const searchDisabled = this.isSearchDisabled();
     return `
       <div class="favorites-empty">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="80" height="80">
@@ -222,7 +223,7 @@ export class FavoritesList {
         </svg>
         <h3>Aucun favori pour le moment</h3>
         <p>Ajoutez des entreprises à vos favoris lors de vos recherches pour les retrouver facilement ici.</p>
-        <button class="favorites-cta" id="openSearchFromFavorites">
+        <button class="favorites-cta${searchDisabled ? ' favorites-cta--disabled' : ''}" id="openSearchFromFavorites" ${searchDisabled ? 'data-disabled="true" aria-disabled="true" disabled' : ''}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
             <circle cx="11" cy="11" r="8"/>
             <line x1="21" y1="21" x2="16.65" y2="16.65"/>
@@ -277,12 +278,15 @@ export class FavoritesList {
     });
 
     // Bouton CTA "Rechercher des entreprises"
-    const ctaBtn = document.getElementById('openSearchFromFavorites');
+    const ctaBtn = document.getElementById('openSearchFromFavorites') as HTMLButtonElement | null;
     if (ctaBtn) {
-      ctaBtn.addEventListener('click', () => {
-        const searchModal = document.getElementById('searchModal');
-        searchModal?.classList.add('active');
-      });
+      const disabled = ctaBtn.disabled || ctaBtn.dataset.disabled === 'true';
+      if (!disabled) {
+        ctaBtn.addEventListener('click', () => {
+          const searchModal = document.getElementById('searchModal');
+          searchModal?.classList.add('active');
+        });
+      }
     }
 
     // Bouton "Réessayer" (état d'erreur)
@@ -290,6 +294,11 @@ export class FavoritesList {
     if (retryBtn) {
       retryBtn.addEventListener('click', () => this.render());
     }
+  }
+
+  private isSearchDisabled(): boolean {
+    const quickSearchBtn = document.getElementById('quickSearchBtn') as HTMLButtonElement | null;
+    return quickSearchBtn?.disabled === true || quickSearchBtn?.dataset.disabled === 'true';
   }
 
   /**

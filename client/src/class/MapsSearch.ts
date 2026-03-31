@@ -496,10 +496,12 @@ export class MapsSearch {
     const searchBtn = document.getElementById("mapsSearchBtn");
     const searchInput = document.getElementById("mapsSearchInput") as HTMLInputElement;
     const closeBtn = document.getElementById("closeSearchModalBtn");
-    const quickSearchBtn = document.getElementById("quickSearchBtn");
+    const quickSearchBtn = document.getElementById("quickSearchBtn") as HTMLButtonElement | null;
     const modal = document.getElementById("searchModal");
 
-    if (quickSearchBtn && modal) {
+    const quickSearchDisabled = quickSearchBtn?.disabled === true || quickSearchBtn?.dataset.disabled === 'true';
+
+    if (quickSearchBtn && modal && !quickSearchDisabled) {
       quickSearchBtn.addEventListener("click", () => {
         modal.classList.add("active");
 
