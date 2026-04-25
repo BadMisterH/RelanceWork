@@ -112,17 +112,12 @@
   flex-direction: column;
   background: var(--dash-bg);
   border: 1px solid var(--dash-border);
-  border-top: 2px solid var(--column-color);
+  border-top: 3px solid var(--column-color);
   border-radius: 12px;
   padding: 14px 12px 12px;
-  max-height: calc(100vh - 240px);
+  /* Hauteur ajustée pour la top nav (60px) + page header (~60px) + padding */
+  max-height: calc(100vh - 180px);
   scroll-snap-align: start;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.kanban-column:has(.drag-over) {
-  transform: scale(1.01);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
 }
 
 /* Column header */
@@ -205,7 +200,7 @@
   padding-right: 2px;
   min-height: 80px;
   position: relative;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background 0.2s ease, outline-color 0.2s ease;
 }
 
 .kanban-column-content::-webkit-scrollbar { width: 4px; }
@@ -226,7 +221,6 @@
   border-radius: 8px;
   outline: 2px dashed color-mix(in srgb, var(--column-color) 50%, transparent);
   outline-offset: 2px;
-  transform: scale(1.01);
 }
 
 .kanban-column-content.drop-success {
@@ -261,7 +255,6 @@
   cursor: grab;
   transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
   position: relative;
-  will-change: transform;
   animation: card-appear 0.3s ease-out both;
 }
 

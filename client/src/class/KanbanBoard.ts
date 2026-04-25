@@ -21,6 +21,9 @@ export class KanbanBoard {
   private draggedCard: HTMLElement | null = null;
   private draggedAppId: number | null = null;
   private placeholder: HTMLElement | null = null;
+  private rafId: number | null = null;
+  private searchTimer: ReturnType<typeof setTimeout> | null = null;
+  private dragleaveTimers: Map<Element, ReturnType<typeof setTimeout>> = new Map();
 
   constructor(containerId: string = 'applicationsList') {
     this.container = document.getElementById(containerId);
@@ -240,12 +243,15 @@ export class KanbanBoard {
    * Gestion des événements
    */
   private attachEventListeners() {
-    // Recherche
+    // Recherche — debounce 150ms pour éviter de re-render à chaque touche
     const searchInput = document.getElementById('kanbanSearch') as HTMLInputElement;
     if (searchInput) {
       searchInput.addEventListener('input', (e) => {
-        this.searchTerm = (e.target as HTMLInputElement).value;
-        this.render(this.applications);
+        if (this.searchTimer) clearTimeout(this.searchTimer);
+        this.searchTimer = setTimeout(() => {
+          this.searchTerm = (e.target as HTMLInputElement).value;
+          this.render(this.applications);
+        }, 150);
       });
     }
 
@@ -312,7 +318,9 @@ export class KanbanBoard {
         this.draggedCard = e.currentTarget as HTMLElement;
         this.draggedAppId = Number(this.draggedCard.dataset.appId);
 
-        // Légère transparence après le début du drag
+        // will-change uniquement pendant le drag (pas global)
+        this.draggedCard.style.willChange = 'transform, opacity';
+
         requestAnimationFrame(() => {
           this.draggedCard?.classList.add('dragging');
         });
@@ -324,12 +332,17 @@ export class KanbanBoard {
 
       card.addEventListener('dragend', () => {
         if (this.draggedCard) {
+          this.draggedCard.style.willChange = '';
           this.draggedCard.classList.remove('dragging');
           this.draggedCard = null;
           this.draggedAppId = null;
         }
 
-        // Nettoyer le placeholder
+        if (this.rafId !== null) {
+          cancelAnimationFrame(this.rafId);
+          this.rafId = null;
+        }
+
         if (this.placeholder) {
           this.placeholder.remove();
           this.placeholder = null;
@@ -345,42 +358,64 @@ export class KanbanBoard {
     document.querySelectorAll('.kanban-column-content').forEach(column => {
       column.addEventListener('dragover', (e) => {
         e.preventDefault();
+
+        // Annuler le dragleave timer si on est de retour dans la colonne
+        const existing = this.dragleaveTimers.get(column);
+        if (existing) {
+          clearTimeout(existing);
+          this.dragleaveTimers.delete(column);
+        }
+
         column.classList.add('drag-over');
 
-        // Déplacer le placeholder dans cette colonne à la bonne position
-        if (!this.placeholder) {
-          this.placeholder = this.createPlaceholder();
-        }
+        // Throttle DOM mutations via RAF — une seule fois par frame
+        if (this.rafId !== null) return;
+        this.rafId = requestAnimationFrame(() => {
+          this.rafId = null;
 
-        // Retirer le placeholder des autres colonnes
-        if (this.placeholder.parentElement !== column) {
-          this.placeholder.remove();
-        }
+          if (!this.placeholder) {
+            this.placeholder = this.createPlaceholder();
+          }
 
-        const afterCard = this.getCardAfterCursor(column, (e as DragEvent).clientY);
-        if (afterCard) {
-          column.insertBefore(this.placeholder, afterCard);
-        } else {
-          column.appendChild(this.placeholder);
-        }
+          if (this.placeholder.parentElement !== column) {
+            this.placeholder.remove();
+          }
+
+          const afterCard = this.getCardAfterCursor(column, (e as DragEvent).clientY);
+          if (afterCard) {
+            column.insertBefore(this.placeholder, afterCard);
+          } else {
+            column.appendChild(this.placeholder);
+          }
+        });
       });
 
       column.addEventListener('dragleave', (e) => {
-        // Ne pas retirer si on survole un enfant de la colonne
-        if (!(column as HTMLElement).contains((e as DragEvent).relatedTarget as Node)) {
-          column.classList.remove('drag-over');
-          if (this.placeholder?.parentElement === column) {
-            this.placeholder.remove();
-            this.placeholder = null;
+        // Petit délai pour éviter le flicker quand on survole un enfant
+        const timer = setTimeout(() => {
+          if (!(column as HTMLElement).contains((e as DragEvent).relatedTarget as Node)) {
+            column.classList.remove('drag-over');
+            if (this.placeholder?.parentElement === column) {
+              this.placeholder.remove();
+              this.placeholder = null;
+            }
           }
-        }
+          this.dragleaveTimers.delete(column);
+        }, 30);
+        this.dragleaveTimers.set(column, timer);
       });
 
       column.addEventListener('drop', async (e) => {
         e.preventDefault();
+
+        // Annuler RAF en cours
+        if (this.rafId !== null) {
+          cancelAnimationFrame(this.rafId);
+          this.rafId = null;
+        }
+
         column.classList.remove('drag-over', 'drag-active');
 
-        // Supprimer le placeholder
         if (this.placeholder) {
           this.placeholder.remove();
           this.placeholder = null;
@@ -391,7 +426,7 @@ export class KanbanBoard {
 
         if (this.draggedAppId && targetStatus && targetStatus !== currentStatus) {
           column.classList.add('drop-success');
-          setTimeout(() => column.classList.remove('drop-success'), 600);
+          setTimeout(() => column.classList.remove('drop-success'), 500);
           await this.handleStatusChange(this.draggedAppId, targetStatus);
         }
       });
