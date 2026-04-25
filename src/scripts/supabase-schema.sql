@@ -23,7 +23,8 @@ CREATE TABLE IF NOT EXISTS public.applications (
   email TEXT,
   user_email TEXT,
   relance_count INTEGER DEFAULT 0,
-  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  source TEXT -- indeed / gmail / manual / job-agent...
 );
 
 -- Index pour améliorer les performances

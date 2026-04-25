@@ -9,12 +9,12 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
 
-    <script type="module" crossorigin src="/app/assets/main-DiMdp925.js"></script>
+    <script type="module" crossorigin src="/app/assets/main-Cm8tqczL.js"></script>
     <link rel="modulepreload" crossorigin href="/app/assets/modulepreload-polyfill-B5Qt9EMX.js">
     <link rel="modulepreload" crossorigin href="/app/assets/supabase-BUtq60nk.js">
-    <link rel="stylesheet" crossorigin href="/app/assets/main-D-S1P4fm.css">
+    <link rel="stylesheet" crossorigin href="/app/assets/main-BwdzEuIU.css">
   </head>
   <body>
     <!-- Mobile Menu Toggle -->
@@ -27,166 +27,152 @@
     <!-- Mobile Overlay -->
     <div class="mobile-overlay" id="mobileOverlay"></div>
 
-    <div class="app-wrapper sidebar-collapsed">
-      <!-- Sidebar -->
+    <div class="app-wrapper">
+      <!-- ═══ TOP NAVIGATION BAR ═══ -->
       <aside class="sidebar">
+        <!-- Brand -->
         <div class="sidebar-header">
           <div class="logo">
             <img class="logo-img" src="/app/images/LogoRelanceWork.png" alt="RelanceWork">
+            <span class="logo-wordmark"><span class="logo-accent">Relance</span>Work</span>
           </div>
         </div>
+
+        <!-- Mobile hamburger (desktop: hidden via CSS) -->
+        <button class="sidebar-toggle" id="sidebarToggle" title="Menu" aria-label="Ouvrir le menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <line x1="3" y1="12" x2="21" y2="12"/>
+            <line x1="3" y1="18" x2="21" y2="18"/>
+          </svg>
+        </button>
+
+        <!-- Nav links -->
         <nav class="sidebar-nav">
           <a href="#" class="nav-item active" data-section="dashboard">
-            <svg
-              class="nav-icon"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <rect x="3" y="3" width="7" height="7" rx="1" />
-              <rect x="14" y="3" width="7" height="7" rx="1" />
-              <rect x="3" y="14" width="7" height="7" rx="1" />
-              <rect x="14" y="14" width="7" height="7" rx="1" />
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="7" height="7" rx="1"/>
+              <rect x="14" y="3" width="7" height="7" rx="1"/>
+              <rect x="3" y="14" width="7" height="7" rx="1"/>
+              <rect x="14" y="14" width="7" height="7" rx="1"/>
             </svg>
             Dashboard
           </a>
           <a href="#" class="nav-item" data-section="applications">
-            <svg
-              class="nav-icon"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path
-                d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
-              />
-              <polyline points="14 2 14 8 20 8" />
-              <line x1="16" y1="13" x2="8" y2="13" />
-              <line x1="16" y1="17" x2="8" y2="17" />
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/>
+              <line x1="16" y1="17" x2="8" y2="17"/>
             </svg>
             Candidatures
           </a>
           <a href="#" class="nav-item" data-section="favorites">
-            <svg
-              class="nav-icon"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
             </svg>
             Favoris
           </a>
-          <a href="#" class="nav-item" data-section="job-agent">
-            <svg
-              class="nav-icon"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
+          <a href="#" class="nav-item nav-item--disabled" data-section="job-agent" data-disabled="true" aria-disabled="true">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="12" cy="12" r="3"/>
               <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>
             </svg>
             Agent IA
           </a>
         </nav>
+
+        <!-- Right-side actions -->
         <div class="sidebar-footer">
-          <button class="quick-add-btn" id="quickSearchBtn" style="width:100%;justify-content:center;gap:8px;font-size:0.8rem;">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+          <!-- Search entreprises (icon btn on desktop) -->
+          <button class="nav-icon-btn quick-add-btn--disabled" id="quickSearchBtn" data-disabled="true" aria-disabled="true" disabled title="Chercher des entreprises">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="17" height="17">
               <circle cx="11" cy="11" r="8"/>
               <line x1="21" y1="21" x2="16.65" y2="16.65"/>
             </svg>
-            Chercher entreprises
+            <span class="nav-icon-btn-label">Chercher</span>
           </button>
+
+          <!-- Separator -->
+          <div class="nav-sep"></div>
+
+          <!-- Site public -->
+          <a class="nav-icon-btn" data-landing-link title="Site public">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="17" height="17">
+              <path d="M3 10.5L12 3l9 7.5"/>
+              <path d="M5 10v10h14V10"/>
+              <path d="M9 20v-6h6v6"/>
+            </svg>
+          </a>
+
+          <!-- Theme Toggle -->
+          <div class="theme-toggle" id="themeToggle" title="Basculer mode sombre">
+            <svg class="theme-toggle-icon sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="5"/>
+              <line x1="12" y1="1" x2="12" y2="3"/>
+              <line x1="12" y1="21" x2="12" y2="23"/>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+              <line x1="1" y1="12" x2="3" y2="12"/>
+              <line x1="21" y1="12" x2="23" y2="12"/>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+            </svg>
+            <div class="theme-toggle-switch"></div>
+            <svg class="theme-toggle-icon moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+            </svg>
+          </div>
+
+          <!-- User Profile -->
+          <div style="position: relative;">
+            <div class="profile-header">
+              <div class="profile-avatar" id="profileAvatar">U</div>
+              <div class="profile-info">
+                <div class="profile-name" id="profileName">Utilisateur</div>
+                <div class="profile-email" id="profileEmail">user@example.com</div>
+              </div>
+              <svg class="profile-dropdown-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="6 9 12 15 18 9"/>
+              </svg>
+            </div>
+            <div class="profile-menu">
+              <button class="profile-menu-item" id="profileBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
+                </svg>
+                Mon profil
+              </button>
+              <button class="profile-menu-item" id="billingBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+                  <line x1="1" y1="10" x2="23" y2="10"/>
+                </svg>
+                Abonnement
+              </button>
+              <div class="profile-menu-divider"></div>
+              <button class="profile-menu-item danger" id="logoutBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                  <polyline points="16 17 21 12 16 7"/>
+                  <line x1="21" y1="12" x2="9" y2="12"/>
+                </svg>
+                Déconnexion
+              </button>
+            </div>
+          </div>
         </div>
       </aside>
 
-      <!-- Main Content -->
+      <!-- ═══ MAIN CONTENT ═══ -->
       <div class="main-content">
+        <!-- Slim page context bar -->
         <header class="top-header">
           <div class="header-left">
-            <button class="sidebar-toggle" id="sidebarToggle" title="Ouvrir/Fermer le menu">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
-                <line x1="3" y1="6" x2="21" y2="6"/>
-                <line x1="3" y1="12" x2="21" y2="12"/>
-                <line x1="3" y1="18" x2="21" y2="18"/>
-              </svg>
-            </button>
             <div>
               <h1 class="page-title">Dashboard</h1>
               <p class="page-subtitle">Vue d'ensemble de vos candidatures</p>
-            </div>
-          </div>
-          <div class="header-right">
-            <a class="header-link" data-landing-link>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M3 10.5L12 3l9 7.5"></path>
-                <path d="M5 10v10h14V10"></path>
-                <path d="M9 20v-6h6v6"></path>
-              </svg>
-              Site public
-            </a>
-            <!-- Theme Toggle -->
-            <div class="theme-toggle" id="themeToggle" title="Basculer mode sombre">
-              <svg class="theme-toggle-icon sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="5"></circle>
-                <line x1="12" y1="1" x2="12" y2="3"></line>
-                <line x1="12" y1="21" x2="12" y2="23"></line>
-                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                <line x1="1" y1="12" x2="3" y2="12"></line>
-                <line x1="21" y1="12" x2="23" y2="12"></line>
-                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-              </svg>
-              <div class="theme-toggle-switch"></div>
-              <svg class="theme-toggle-icon moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-              </svg>
-            </div>
-
-            <!-- User Profile Menu -->
-            <div style="position: relative;">
-              <div class="profile-header">
-                <div class="profile-avatar" id="profileAvatar">U</div>
-                <div class="profile-info">
-                  <div class="profile-name" id="profileName">Utilisateur</div>
-                  <div class="profile-email" id="profileEmail">user@example.com</div>
-                </div>
-                <svg class="profile-dropdown-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polyline points="6 9 12 15 18 9"></polyline>
-                </svg>
-              </div>
-
-              <div class="profile-menu">
-                <button class="profile-menu-item" id="profileBtn">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="12" cy="7" r="4"></circle>
-                  </svg>
-                  Mon profil
-                </button>
-                <button class="profile-menu-item" id="billingBtn">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
-                    <line x1="1" y1="10" x2="23" y2="10"></line>
-                  </svg>
-                  Abonnement
-                </button>
-                <div class="profile-menu-divider"></div>
-                <button class="profile-menu-item danger" id="logoutBtn">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                    <polyline points="16 17 21 12 16 7"></polyline>
-                    <line x1="21" y1="12" x2="9" y2="12"></line>
-                  </svg>
-                  Déconnexion
-                </button>
-              </div>
             </div>
           </div>
         </header>

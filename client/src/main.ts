@@ -108,9 +108,9 @@ export interface Application {
   user_email?: string; // Email de l'utilisateur
   created_at?: string;
   user_id?: string; // UUID de l'utilisateur (Supabase)
-  company_website?: string; // Site web de l'entreprise
-  company_description?: string; // Description enrichie de l'entreprise
-  source?: string; // Source (indeed / gmail / manual / job-agent...)
+  company_website?: string;
+  company_description?: string;
+  source?: string;
 }
 
 // ============================================
@@ -377,6 +377,27 @@ window.addEventListener('status-change', async (e: Event) => {
 });
 
 // ============================================
+// MONITORING - Activer/Désactiver le scan
+// ============================================
+window.addEventListener('toggle-monitoring', async (e: Event) => {
+  const { id, enabled } = (e as CustomEvent).detail;
+  
+  try {
+    const timestamp = enabled ? new Date().toISOString() : null;
+    await api.put(`/applications/${id}/monitoring`, { 
+      enabled,
+      monitoring_start_at: timestamp 
+    });
+    
+    showToast('info', enabled ? 'Suivi intelligent activé (nouveaux emails uniquement)' : 'Suivi désactivé');
+    GetAllDataPost();
+  } catch (error) {
+    console.error("Erreur lors du changement de monitoring:", error);
+    showToast('error', "Impossible de modifier le statut de suivi");
+  }
+});
+
+// ============================================
 // ENRICHISSEMENT ENTREPRISE
 // ============================================
 window.addEventListener('enrich-company', async (e: Event) => {
@@ -408,21 +429,10 @@ function initViewNavigation() {
 
   const enterKanban = () => {
     dashboardContent?.classList.add('kanban-mode');
-    // Auto-collapse sidebar to give max horizontal space
-    if (appWrapper && !appWrapper.classList.contains('sidebar-collapsed')) {
-      appWrapper.classList.add('sidebar-collapsed');
-      appWrapper.dataset.kanbanCollapsed = 'true'; // remember we collapsed it
-    }
   };
 
   const leaveKanban = () => {
     dashboardContent?.classList.remove('kanban-mode');
-    // Restore sidebar only if we were the ones who collapsed it
-    if (appWrapper?.dataset.kanbanCollapsed === 'true') {
-      appWrapper.classList.remove('sidebar-collapsed');
-      delete appWrapper.dataset.kanbanCollapsed;
-      localStorage.setItem('relancework-sidebar', 'open');
-    }
   };
 
   navBtns.forEach(btn => {
@@ -779,62 +789,51 @@ billingBtn?.addEventListener('click', async () => {
 // SIDEBAR TOGGLE FUNCTIONALITY
 // ============================================
 
-const appWrapper = document.querySelector('.app-wrapper') as HTMLElement;
+const sidebar = document.querySelector('.sidebar') as HTMLElement;
 const sidebarToggleBtn = document.getElementById('sidebarToggle');
 
-// Restore sidebar state from localStorage (default: collapsed)
-const sidebarPref = localStorage.getItem('relancework-sidebar');
-if (sidebarPref === 'open' && appWrapper) {
-  appWrapper.classList.remove('sidebar-collapsed');
+// Close nav on outside click (mobile dropdown)
+function closeMobileNav() {
+  sidebar?.classList.remove('active');
+  document.body.style.overflow = '';
 }
 
-sidebarToggleBtn?.addEventListener('click', () => {
-  if (!appWrapper) return;
-  appWrapper.classList.toggle('sidebar-collapsed');
-  const isCollapsed = appWrapper.classList.contains('sidebar-collapsed');
-  localStorage.setItem('relancework-sidebar', isCollapsed ? 'collapsed' : 'open');
+// Hamburger inside top nav bar — toggles mobile dropdown
+sidebarToggleBtn?.addEventListener('click', (e) => {
+  e.stopPropagation();
+  const isOpen = sidebar?.classList.contains('active');
+  if (isOpen) {
+    closeMobileNav();
+  } else {
+    sidebar?.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
 });
 
-// ============================================
-// MOBILE MENU FUNCTIONALITY
-// ============================================
-
-const mobileMenuToggle = document.getElementById('mobileMenuToggle');
-const mobileOverlay = document.getElementById('mobileOverlay');
-const sidebar = document.querySelector('.sidebar') as HTMLElement;
-
-function toggleMobileMenu() {
-  mobileMenuToggle?.classList.toggle('active');
-  mobileOverlay?.classList.toggle('active');
-  sidebar?.classList.toggle('active');
-
-  // Prevent body scroll when menu is open
-  if (sidebar?.classList.contains('active')) {
-    document.body.style.overflow = 'hidden';
-  } else {
-    document.body.style.overflow = '';
+// Close on click outside the nav
+document.addEventListener('click', (e) => {
+  if (window.innerWidth <= 768 && sidebar?.classList.contains('active')) {
+    if (!sidebar.contains(e.target as Node)) {
+      closeMobileNav();
+    }
   }
-}
+});
 
-// Toggle menu on button click
-mobileMenuToggle?.addEventListener('click', toggleMobileMenu);
-
-// Close menu when clicking overlay
-mobileOverlay?.addEventListener('click', toggleMobileMenu);
-
-// Close menu when clicking nav items (mobile)
+// Close on nav item click (mobile)
 const navItems = document.querySelectorAll('.nav-item');
 navItems.forEach(item => {
   item.addEventListener('click', () => {
-    if (window.innerWidth <= 768 && sidebar?.classList.contains('active')) {
-      toggleMobileMenu();
-    }
+    if (window.innerWidth <= 768) closeMobileNav();
   });
 });
 
-// Close menu on window resize if going to desktop
+// Close on resize to desktop
 window.addEventListener('resize', () => {
-  if (window.innerWidth > 768 && sidebar?.classList.contains('active')) {
-    toggleMobileMenu();
-  }
+  if (window.innerWidth > 768) closeMobileNav();
 });
+
+// Legacy: mobileMenuToggle is now hidden via CSS but kept for compat
+const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+const mobileOverlay = document.getElementById('mobileOverlay');
+mobileMenuToggle?.addEventListener('click', () => sidebar?.classList.toggle('active'));
+mobileOverlay?.addEventListener('click', () => sidebar?.classList.remove('active'));

@@ -10,7 +10,6 @@ interface OnboardingProfile {
 
 export class OnboardingWizard {
   private currentStep = 1;
-  private totalSteps = 3;
   private profile: Partial<OnboardingProfile> = {};
   private onComplete: (() => void) | null = null;
 
