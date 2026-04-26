@@ -169,22 +169,19 @@ function updateUserProfile(user: any) {
   const profileName = document.getElementById('profileName');
   const profileEmail = document.getElementById('profileEmail');
   const profileAvatar = document.getElementById('profileAvatar');
+  const profileNameMenu = document.getElementById('profileNameMenu');
+  const profileEmailMenu = document.getElementById('profileEmailMenu');
 
-  if (profileName && user.user_metadata?.name) {
-    profileName.textContent = user.user_metadata.name;
-  }
+  const name = user.user_metadata?.name || '';
+  const email = user.email || '';
 
-  if (profileEmail && user.email) {
-    profileEmail.textContent = user.email;
-  }
+  if (profileName && name) profileName.textContent = name;
+  if (profileEmail && email) profileEmail.textContent = email;
+  if (profileNameMenu && name) profileNameMenu.textContent = name;
+  if (profileEmailMenu && email) profileEmailMenu.textContent = email;
 
-  if (profileAvatar && user.user_metadata?.name) {
-    // Première lettre du nom en majuscule
-    const initial = user.user_metadata.name.charAt(0).toUpperCase();
-    profileAvatar.textContent = initial;
-  } else if (profileAvatar && user.email) {
-    // Sinon, première lettre de l'email
-    const initial = user.email.charAt(0).toUpperCase();
+  if (profileAvatar) {
+    const initial = (name || email).charAt(0).toUpperCase();
     profileAvatar.textContent = initial;
   }
 }
@@ -222,12 +219,8 @@ async function checkBillingStatus() {
 }
 
 function renderPlanBadge() {
-  const profileInfo = document.querySelector('.profile-info');
-  if (!profileInfo) return;
-
-  // Supprimer l'ancien badge s'il existe
-  const oldBadge = document.getElementById('planBadge');
-  if (oldBadge) oldBadge.remove();
+  // Remove old badge if any
+  document.getElementById('planBadge')?.remove();
 
   const badge = document.createElement('span');
   badge.id = 'planBadge';
@@ -240,7 +233,9 @@ function renderPlanBadge() {
     badge.addEventListener('click', handleUpgrade);
   }
 
-  profileInfo.appendChild(badge);
+  // Render badge inside the dropdown identity section only
+  const menuIdentity = document.querySelector('.profile-menu-identity');
+  if (menuIdentity) menuIdentity.appendChild(badge);
 }
 
 function renderUpgradeBanner() {
