@@ -118,10 +118,13 @@ export async function scrapeIndeed(
             const location = locationEl?.textContent?.trim() || '';
             const salary = salaryEl?.textContent?.trim() || null;
 
-            const href = (titleEl as HTMLAnchorElement)?.href || '';
-            const url = href.startsWith('http') ? href : `https://fr.indeed.com${href}`;
+            // Use data-jk to build a stable /viewjob URL (avoids redirect links that expire)
+            const jk = (card as HTMLElement).dataset.jk
+              || (titleEl as HTMLAnchorElement)?.href?.match(/jk=([a-f0-9]+)/i)?.[1]
+              || '';
+            const url = jk ? `https://fr.indeed.com/viewjob?jk=${jk}` : '';
 
-            if (title && company && href) {
+            if (title && company && url) {
               results.push({ title, company, location, salary, url });
             }
           });
