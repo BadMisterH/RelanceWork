@@ -127,7 +127,7 @@ export class JobAgent {
               </div>
             </div>
 
-            <!-- Row 2 : Pages | Score minimum | (spacer) -->
+            <!-- Row 2 : Pages | Score minimum | Date publication -->
             <div class="ja-neo-field">
               <span class="ja-neo-label">Pages</span>
               <div class="ja-neo-select-wrap">
@@ -149,7 +149,16 @@ export class JobAgent {
                 </select>
               </div>
             </div>
-            <div></div>
+            <div class="ja-neo-field">
+              <span class="ja-neo-label">Date de publication</span>
+              <div class="ja-neo-select-wrap">
+                <select class="ja-neo-select" id="ja-date-posted">
+                  <option value="all">Toutes les dates</option>
+                  <option value="week">7 derniers jours</option>
+                  <option value="month">30 derniers jours</option>
+                </select>
+              </div>
+            </div>
 
             <!-- Row 3 : CV drop (full width) -->
             <div class="ja-neo-form-row-full">
@@ -168,7 +177,7 @@ export class JobAgent {
               </div>
             </div>
 
-            <!-- Row 4 : LinkedIn | checkbox | button -->
+            <!-- Row 4 : LinkedIn | checkboxes | button -->
             <div class="ja-neo-form-row-full" style="align-items:flex-end">
               <div class="ja-neo-field" style="flex:1;min-width:200px">
                 <span class="ja-neo-label">Profil LinkedIn (optionnel)</span>
@@ -177,6 +186,10 @@ export class JobAgent {
               <label class="ja-neo-checkbox" style="flex-shrink:0">
                 <input type="checkbox" id="ja-letters" />
                 Lettres de motivation auto
+              </label>
+              <label class="ja-neo-checkbox ja-neo-checkbox--danger" style="flex-shrink:0" title="Supprime toutes les offres précédemment analysées avant de lancer la nouvelle recherche">
+                <input type="checkbox" id="ja-clear-previous" />
+                Effacer les résultats précédents
               </label>
               <button class="ja-neo-launch-btn" id="ja-search-btn" style="flex-shrink:0">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="15" height="15">
@@ -362,9 +375,11 @@ export class JobAgent {
     const maxPages = parseInt((document.getElementById('ja-pages') as HTMLSelectElement)?.value || '2');
     const scoreThreshold = parseInt((document.getElementById('ja-score') as HTMLSelectElement)?.value || '70');
     const source = (document.getElementById('ja-source') as HTMLSelectElement)?.value || 'indeed';
+    const datePosted = (document.getElementById('ja-date-posted') as HTMLSelectElement)?.value || 'all';
     const cvText = (document.getElementById('ja-profile') as HTMLTextAreaElement)?.value.trim();
     const linkedin = (document.getElementById('ja-linkedin') as HTMLInputElement)?.value.trim();
     const generateLetters = (document.getElementById('ja-letters') as HTMLInputElement)?.checked;
+    const clearPrevious = (document.getElementById('ja-clear-previous') as HTMLInputElement)?.checked;
 
     if (!keyword) {
       (window as any).showToast?.('warning', 'Entrez un poste à rechercher');
@@ -387,7 +402,7 @@ export class JobAgent {
 
     try {
       const res = await api.post('/job-agent/search', {
-        keyword, location, maxPages, scoreThreshold, userProfile, generateLetters, source,
+        keyword, location, maxPages, scoreThreshold, userProfile, generateLetters, source, datePosted, clearPrevious,
       });
 
       this.setLoading(false);

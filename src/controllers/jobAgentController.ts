@@ -17,6 +17,8 @@ export const startSearch = async (req: Request, res: Response): Promise<void> =>
     userProfile,
     generateLetters = false,
     source = 'indeed',
+    datePosted = 'all',
+    clearPrevious = false,
   } = req.body;
 
   if (!keyword || !userProfile) {
@@ -26,6 +28,12 @@ export const startSearch = async (req: Request, res: Response): Promise<void> =>
 
   // Hard cap: max 2 pages (~20 jobs) pour protéger les crédits OpenAI
   const cappedPages = Math.min(Math.max(1, Number(maxPages) || 2), 2);
+
+  // Effacer tous les prospects existants si demandé
+  if (clearPrevious) {
+    await supabase.from('job_prospects').delete().eq('user_id', userId);
+    console.log(`🗑️ Cleared all prospects for user ${userId}`);
+  }
 
   // Récupère le nom depuis Supabase Auth
   const { data: { user: authUser } } = await supabase.auth.admin.getUserById(userId);
@@ -41,6 +49,7 @@ export const startSearch = async (req: Request, res: Response): Promise<void> =>
       userName,
       generateLetters,
       source: source as 'indeed' | 'jsearch',
+      datePosted: datePosted as 'all' | 'week' | 'month',
     });
 
     res.json({

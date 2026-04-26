@@ -36,7 +36,8 @@ function buildSalaryString(job: JSearchJob): string | null {
 export async function scrapeJSearch(
   keyword: string,
   location: string = 'France',
-  maxPages: number = 2
+  maxPages: number = 2,
+  datePosted: 'all' | 'week' | 'month' = 'all'
 ): Promise<ScrapedJob[]> {
   const apiKey = process.env.RAPIDAPI_KEY;
   if (!apiKey) throw new Error('RAPIDAPI_KEY manquante dans .env');
@@ -44,17 +45,19 @@ export async function scrapeJSearch(
   const jobs: ScrapedJob[] = [];
   const seenIds = new Set<string>();
 
-  // JSearch expects English natural language queries with "jobs" for better matching
-  // e.g. "web designer jobs in Paris France" not "Webdesigner in Paris"
   const normalizedLocation = location.toLowerCase().includes('france') ? location : `${location}, France`;
   const query = `${keyword} jobs in ${normalizedLocation}`;
+
+  // JSearch date_posted values: "all", "today", "3days", "week", "month"
+  const datePostedParam = datePosted === 'all' ? null : datePosted;
 
   for (let page = 1; page <= maxPages; page++) {
     const url = new URL(RAPIDAPI_BASE);
     url.searchParams.set('query', query);
     url.searchParams.set('page', String(page));
     url.searchParams.set('num_pages', '1');
-    url.searchParams.set('country', 'fr'); // search in France, not US (default)
+    url.searchParams.set('country', 'fr');
+    if (datePostedParam) url.searchParams.set('date_posted', datePostedParam);
 
     console.log(`📄 JSearch page ${page}/${maxPages}: "${query}"`);
 

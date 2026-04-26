@@ -1000,6 +1000,16 @@
   flex-shrink: 0;
   cursor: pointer;
 }
+.ja-neo-checkbox--danger {
+  color: #b45309;
+  border-color: #fde68a;
+  background: #fffbeb;
+}
+.ja-neo-checkbox--danger:hover {
+  border-color: #f59e0b;
+  background: #fef3c7;
+}
+.ja-neo-checkbox--danger input { accent-color: #ef4444; }
 
 /* Neo launch button */
 .ja-neo-launch-btn {

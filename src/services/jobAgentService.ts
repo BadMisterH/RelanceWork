@@ -8,11 +8,12 @@ export interface PipelineOptions {
   keyword: string;
   location?: string;
   maxPages?: number;
-  scoreThreshold?: number;  // only keep jobs above this score (default: 70)
-  userProfile: string;      // user's CV / skills summary
+  scoreThreshold?: number;
+  userProfile: string;
   userName?: string;
   generateLetters?: boolean;
-  source?: 'indeed' | 'jsearch'; // scraping source (default: indeed)
+  source?: 'indeed' | 'jsearch';
+  datePosted?: 'all' | 'week' | 'month';
 }
 
 export interface PipelineResult {
@@ -36,18 +37,19 @@ export async function runJobAgentPipeline(
     userName = '',
     generateLetters = false,
     source = 'indeed',
+    datePosted = 'all',
   } = options;
 
   const result: PipelineResult = { scraped: 0, analyzed: 0, saved: 0, skipped: 0, errors: 0 };
 
   // ── 1. Scrape jobs ────────────────────────────────────────────────
-  console.log(`🔍 Starting pipeline [${source}]: "${keyword}" in ${location}`);
+  console.log(`🔍 Starting pipeline [${source}]: "${keyword}" in ${location} (date: ${datePosted})`);
   let jobs: ScrapedJob[] = [];
   try {
     if (source === 'jsearch') {
-      jobs = await scrapeJSearch(keyword, location, maxPages);
+      jobs = await scrapeJSearch(keyword, location, maxPages, datePosted);
     } else {
-      jobs = await scrapeIndeed(keyword, location, maxPages);
+      jobs = await scrapeIndeed(keyword, location, maxPages, datePosted);
     }
     result.scraped = jobs.length;
   } catch (err: any) {

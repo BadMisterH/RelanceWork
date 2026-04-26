@@ -45,11 +45,15 @@ async function getJobDescription(page: Page, url: string): Promise<string> {
 export async function scrapeIndeed(
   keyword: string,
   location: string = 'France',
-  maxPages: number = 3
+  maxPages: number = 3,
+  datePosted: 'all' | 'week' | 'month' = 'all'
 ): Promise<ScrapedJob[]> {
   let browser: Browser | null = null;
   const jobs: ScrapedJob[] = [];
   const seenUrls = new Set<string>();
+
+  // Indeed's fromage param = number of days (7 = last 7 days, 30 = last 30 days)
+  const fromAge = datePosted === 'week' ? 7 : datePosted === 'month' ? 30 : 0;
 
   try {
     browser = await puppeteer.launch({
@@ -76,7 +80,8 @@ export async function scrapeIndeed(
       const start = pageNum * 10;
       const encodedKeyword = encodeURIComponent(keyword);
       const encodedLocation = encodeURIComponent(location);
-      const url = `https://fr.indeed.com/jobs?q=${encodedKeyword}&l=${encodedLocation}&start=${start}&lang=fr`;
+      const fromAgeParam = fromAge > 0 ? `&fromage=${fromAge}` : '';
+      const url = `https://fr.indeed.com/jobs?q=${encodedKeyword}&l=${encodedLocation}&start=${start}&lang=fr${fromAgeParam}`;
 
       console.log(`📄 Scraping page ${pageNum + 1}/${maxPages}: ${url}`);
 
