@@ -10,6 +10,7 @@ import {
   deleteProspect,
   updateProspectStatus,
   updateProspectLetter,
+  fixProspectUrls,
 } from '../controllers/jobAgentController';
 
 const router = Router();
@@ -37,5 +38,8 @@ router.patch('/prospects/:id/letter', authenticateToken, updateProspectLetter);
 
 // DELETE /api/job-agent/prospects/:id — Supprime un prospect
 router.delete('/prospects/:id', authenticateToken, deleteProspect);
+
+// POST /api/job-agent/prospects/fix-urls — Nettoie les URLs Indeed volatiles (migration)
+router.post('/prospects/fix-urls', authenticateToken, fixProspectUrls);
 
 export default router;

@@ -317,3 +317,36 @@ export const updateProspectStatus = async (req: Request, res: Response): Promise
 
   res.json({ success: true });
 };
+
+// POST /api/job-agent/prospects/fix-urls
+// Migre les URLs Indeed volatiles (/applystart, /rc/clk) vers des URLs permanentes /viewjob?jk=
+export const fixProspectUrls = async (req: Request, res: Response): Promise<void> => {
+  const userId = (req as any).user?.id;
+  if (!userId) { res.status(401).json({ message: 'Non authentifié' }); return; }
+
+  const { data: prospects, error } = await supabase
+    .from('job_prospects')
+    .select('id, source_url')
+    .eq('user_id', userId);
+
+  if (error || !prospects) { res.status(500).json({ message: 'Erreur récupération' }); return; }
+
+  let fixed = 0;
+  for (const p of prospects) {
+    if (!p.source_url?.includes('indeed.com')) continue;
+    if (p.source_url.includes('/viewjob?jk=')) continue; // already stable
+
+    try {
+      const parsed = new URL(p.source_url);
+      const jk = parsed.searchParams.get('jk');
+      if (!jk) continue;
+
+      const stableUrl = `https://fr.indeed.com/viewjob?jk=${jk}`;
+      await supabase.from('job_prospects').update({ source_url: stableUrl }).eq('id', p.id).eq('user_id', userId);
+      fixed++;
+    } catch { /* skip malformed URLs */ }
+  }
+
+  console.log(`🔧 Fixed ${fixed}/${prospects.length} prospect URLs for user ${userId}`);
+  res.json({ success: true, fixed, total: prospects.length });
+};

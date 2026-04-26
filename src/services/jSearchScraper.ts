@@ -3,6 +3,12 @@ import { ScrapedJob } from './indeedScraper';
 const RAPIDAPI_HOST = 'jsearch.p.rapidapi.com';
 const RAPIDAPI_BASE = `https://${RAPIDAPI_HOST}/search`;
 
+interface ApplyOption {
+  publisher: string;
+  apply_link: string;
+  is_direct: boolean;
+}
+
 interface JSearchJob {
   job_id: string;
   employer_name: string;
@@ -17,6 +23,7 @@ interface JSearchJob {
   job_salary_currency: string | null;
   job_posted_at_datetime_utc: string | null;
   job_publisher: string | null;
+  apply_options?: ApplyOption[];
 }
 
 interface JSearchResponse {
@@ -31,6 +38,48 @@ function buildSalaryString(job: JSearchJob): string | null {
     return `${job.job_salary_min.toLocaleString()} – ${job.job_salary_max.toLocaleString()} ${currency}`;
   }
   return `${(job.job_salary_min || job.job_salary_max)!.toLocaleString()} ${currency}`;
+}
+
+/**
+ * Convert volatile Indeed redirect/apply URLs to stable permanent viewjob URLs.
+ * Examples cleaned:
+ *   https://fr.indeed.com/applystart?jk=abc123  → https://fr.indeed.com/viewjob?jk=abc123
+ *   https://www.indeed.com/rc/clk?jk=abc123     → https://fr.indeed.com/viewjob?jk=abc123
+ */
+function stableUrl(raw: string): string {
+  if (!raw) return raw;
+  if (!raw.includes('indeed.com')) return raw;
+
+  try {
+    const parsed = new URL(raw);
+    const jk = parsed.searchParams.get('jk') || parsed.pathname.match(/\/viewjob\/([a-f0-9]+)/i)?.[1];
+    if (jk) return `https://fr.indeed.com/viewjob?jk=${jk}`;
+  } catch {
+    // malformed URL — return as-is
+  }
+  return raw;
+}
+
+/**
+ * Pick the best apply URL for a job:
+ *   1. Direct employer link (is_direct=true) — most stable
+ *   2. LinkedIn job page — stable until removed
+ *   3. Cleaned Indeed viewjob URL — permanent
+ *   4. Raw job_apply_link cleaned of Indeed tracking params
+ */
+function pickBestUrl(job: JSearchJob): string {
+  const options = job.apply_options || [];
+
+  // 1. Direct employer link
+  const direct = options.find(o => o.is_direct && o.apply_link);
+  if (direct) return direct.apply_link;
+
+  // 2. LinkedIn stable URL
+  const linkedin = options.find(o => o.publisher?.toLowerCase().includes('linkedin') && o.apply_link);
+  if (linkedin) return linkedin.apply_link;
+
+  // 3. Clean the default apply link
+  return stableUrl(job.job_apply_link);
 }
 
 export async function scrapeJSearch(
@@ -48,7 +97,6 @@ export async function scrapeJSearch(
   const normalizedLocation = location.toLowerCase().includes('france') ? location : `${location}, France`;
   const query = `${keyword} jobs in ${normalizedLocation}`;
 
-  // JSearch date_posted values: "all", "today", "3days", "week", "month"
   const datePostedParam = datePosted === 'all' ? null : datePosted;
 
   for (let page = 1; page <= maxPages; page++) {
@@ -78,7 +126,6 @@ export async function scrapeJSearch(
 
     const json: JSearchResponse = await response.json();
 
-    // Debug: log full response structure on first page
     if (page === 1) {
       console.log('JSearch raw response status:', json.status);
       console.log('JSearch data length:', json.data?.length ?? 'undefined');
@@ -103,21 +150,22 @@ export async function scrapeJSearch(
         .filter(Boolean)
         .join(', ');
 
+      const bestUrl = pickBestUrl(job);
+
       jobs.push({
         title: job.job_title,
         company: job.employer_name,
         location: locationStr,
         salary: buildSalaryString(job),
         description: (job.job_description || '').substring(0, 4000),
-        url: job.job_apply_link,
+        url: bestUrl,
         scrapedAt: new Date().toISOString(),
         publishedAt: job.job_posted_at_datetime_utc || null,
       });
 
-      console.log(`  ✓ [${job.job_publisher || 'JSearch'}] ${job.job_title} @ ${job.employer_name}`);
+      console.log(`  ✓ [${job.job_publisher || 'JSearch'}] ${job.job_title} @ ${job.employer_name} → ${bestUrl}`);
     }
 
-    // Small delay between pages
     if (page < maxPages) await new Promise(r => setTimeout(r, 500));
   }
 

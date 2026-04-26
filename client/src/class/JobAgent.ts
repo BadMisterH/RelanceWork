@@ -418,6 +418,9 @@ export class JobAgent {
   }
 
   private async loadProspects() {
+    // Silently migrate any old volatile Indeed URLs to stable /viewjob?jk= URLs
+    api.post('/job-agent/prospects/fix-urls').catch(() => {});
+
     try {
       const params = this.sortMode === 'date' ? '?sort=date' : '';
       const res = await api.get<Prospect[]>(`/job-agent/prospects${params}`);
