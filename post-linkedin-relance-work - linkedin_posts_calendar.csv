@@ -1,0 +1,462 @@
+Date,Semaine,Jour,Pilier,Feature/Thème,Accroche,Corps du post,CTA,Format,Statut,Image_URL
+2026-03-16,S1,Lundi,Éducatif,Conseils job search,"En 2026, encore un Excel pour suivre tes candidatures ?","En 2026, encore un Excel pour suivre tes candidatures ?
+
+On a tous fait ça.
+Onglet 1 : candidatures envoyées.
+Onglet 2 : relances.
+Onglet 3 : entretiens.
+
+Le problème ?
+→ Tu oublies de mettre à jour.
+→ Tu ne sais plus qui relancer.
+→ Tu n'as aucune alerte automatique.
+
+Les 5 statuts qui changent tout dans une recherche d'emploi :
+
+Envoyée → En attente → Relancée → Entretien → Offre
+
+Chaque statut = une action différente.
+Sans suivi structuré, tu perds des opportunités sans t'en rendre compte.
+
+Il existe une alternative gratuite à l'Excel.
+
+👉 https://www.relance-work.fr/","Essaie gratuitement → https://www.relance-work.fr/",Texte long + screenshot,Publié ✅,https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=1200&q=80
+2026-03-17,S1,Mardi,Démo produit,Agent IA Job Search,"J'ai passé 3h à scraper Indeed. L'IA le fait en 30 secondes.","J'ai passé 3h à scraper Indeed.
+L'IA le fait en 30 secondes.
+
+L'Agent IA de RelanceWork scrape, analyse et score chaque offre pour toi.
+
+Tu vois immédiatement :
+→ 87% de match
+→ Compétences présentes ✅
+→ Compétences manquantes ⚠️
+
+4 critères analysés automatiquement :
+• Compétences techniques — 40 pts
+• Expérience — 25 pts
+• Domaine — 20 pts
+• Profil global — 15 pts
+
+Total → score 0 à 100.
+80+ = candidature prioritaire.
+
+Plus jamais de candidatures dans le vide.
+
+👉 https://www.relance-work.fr/","Démo disponible → https://www.relance-work.fr/",Texte + screenshot score,,
+2026-03-18,S1,Mercredi,Problème → Solution,Dashboard & suivi,"Combien de candidatures as-tu envoyées ce mois ?","Combien de candidatures as-tu envoyées ce mois ?
+
+La plupart des chercheurs d'emploi n'ont aucun chiffre.
+
+Si tu ne mesures pas ta recherche d'emploi, tu ne peux pas l'améliorer.
+
+Ton dashboard RelanceWork te donne en temps réel :
+→ Candidatures envoyées
+→ Réponses reçues
+→ Taux de conversion
+
+Un utilisateur est passé de 15% à 32% de taux de réponse en 3 semaines.
+
+La seule différence ?
+Il regardait ses données.
+Et il agissait en conséquence.
+
+Commence à tracker ta recherche (gratuit) :
+👉 https://www.relance-work.fr/","Commence à tracker → https://www.relance-work.fr/ (gratuit)",Texte long,,https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1200&q=80
+2026-03-19,S1,Jeudi,Build in public,Stack technique,"Stack technique de RelanceWork — et pourquoi ces choix","Stack technique de RelanceWork — et pourquoi ces choix.
+
+Node.js + TypeScript → backend robuste et typé
+Vite + TypeScript → frontend ultra rapide
+Supabase → base de données + auth en 1 outil
+Railway → déploiement continu sans friction
+Claude (Anthropic) → analyse d'offres + lettres de motivation
+Stripe → paiements sécurisés
+
+Chaque outil a été choisi pour une raison précise.
+Pas pour suivre une mode.
+Pour aller vite sans dette technique.
+
+Construire un SaaS solo en 2026 = choisir ses batailles.
+
+Des questions sur un choix en particulier ?
+👇 En commentaires.
+
+Le produit : https://www.relance-work.fr/","Questions sur la stack ? En commentaires — https://www.relance-work.fr/",Thread texte long,,https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1200&q=80
+2026-03-20,S1,Vendredi,Démo produit,Candidatures spontanées IA,"J'ai envoyé 10 candidatures spontanées en 15 minutes — voici le workflow exact","J'ai envoyé 10 candidatures spontanées en 15 minutes.
+
+Voici le workflow exact :
+
+1️⃣ Je tape 'agence web Paris' dans RelanceWork
+2️⃣ L'IA trouve 20 entreprises actives avec leurs emails
+3️⃣ Elle génère un email personnalisé pour chacune
+4️⃣ J'envoie via mon propre Gmail
+
+95% des postes ne sont jamais publiés.
+Le marché caché de l'emploi existe vraiment.
+
+Sans cet outil : 2 jours de travail.
+Avec : 15 minutes.
+
+Le lien en commentaire 👇
+
+👉 https://www.relance-work.fr/","Voir la démo → https://www.relance-work.fr/",Texte,Publié ✅,
+2026-03-21,S1,Samedi,Léger/Humour,UX Dark mode,"Dark mode — parce que le job search ça se fait aussi la nuit","Dark mode — parce que le job search ça se fait aussi la nuit.
+
+Construire RelanceWork la nuit après le boulot.
+L'utiliser la nuit pour chercher le prochain.
+
+Le dark mode c'était pas une option. 😅
+
+[Screenshot de l'app en dark mode]
+
+👉 https://www.relance-work.fr/","https://www.relance-work.fr/",Screenshot app,Publié ✅,
+2026-03-22,S1,Dimanche,Éducatif,Marché caché emploi,"Le marché caché de l'emploi : 70% des postes ne sont jamais publiés","Le marché caché de l'emploi : 70% des postes ne sont jamais publiés.
+
+La plupart des candidats postulent uniquement sur :
+→ LinkedIn
+→ Indeed
+→ Welcome to the Jungle
+
+C'est 30% du marché.
+
+Les 70% restants ?
+Bouche à oreille, candidatures spontanées, réseau interne.
+
+Comment les atteindre :
+1. Identifier des entreprises cibles dans ton secteur
+2. Trouver le bon contact (email du responsable RH ou manager)
+3. Envoyer un email personnalisé AVANT qu'ils recrutent
+
+C'est exactement ce que j'ai automatisé dans RelanceWork.
+
+Thread complet en commentaire 👇
+
+👉 https://www.relance-work.fr/","Thread complet en commentaire — https://www.relance-work.fr/",Texte long éducatif,,https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1200&q=80
+2026-03-23,S2,Lundi,Éducatif,Relance post-candidature,"80% des candidats ne relancent jamais. C'est leur plus grande erreur.","80% des candidats ne relancent jamais.
+
+C'est leur plus grande erreur.
+
+Les recruteurs reçoivent des centaines de candidatures.
+Ils oublient.
+Ce n'est pas malveillant — c'est humain.
+
+Relancer 7 jours après = +23% de taux de réponse.
+
+Le template qui fonctionne :
+
+'Bonjour [Prénom],
+
+Je me permets de revenir vers vous concernant ma candidature pour [Poste] envoyée le [Date].
+
+Je reste très motivé par [élément spécifique de l'entreprise / du poste].
+
+Seriez-vous disponible pour un échange de 15 minutes cette semaine ?'
+
+Court. Personnel. Efficace.
+
+RelanceWork t'envoie une notification automatique au bon moment.
+Tu n'oublies plus jamais.
+
+👉 https://www.relance-work.fr/","RelanceWork automatise tes relances → https://www.relance-work.fr/",Texte + template,,https://images.unsplash.com/photo-1506784365847-bbad939e9335?w=1200&q=80
+2026-03-24,S2,Mardi,Démo produit,Conseiller IA,"Dépose ton CV + l'URL d'une offre. L'IA fait le reste en 15 secondes.","Dépose ton CV + l'URL d'une offre.
+L'IA fait le reste en 15 secondes.
+
+Le Conseiller IA de RelanceWork :
+→ Analyse ton CV contre l'offre
+→ Te dit tes points forts pour CE poste
+→ Identifie ce qu'il faut adapter
+→ Te conseille sur ta stratégie de relance
+
+Avant de postuler, tu sais exactement si ça vaut le coup.
+Et comment maximiser tes chances.
+
+👉 https://www.relance-work.fr/","Essaie sur https://www.relance-work.fr/",Screenshot résultat analyse,Publié ✅,
+2026-03-25,S2,Mercredi,Problème → Solution,Scoring offres,"Score 78% vs score 45% — tu postulais aux deux. Tu ne devrais pas.","Score 78% vs score 45%.
+
+Tu postulais aux deux.
+Tu ne devrais pas.
+
+Le temps est ta ressource la plus limitée.
+Chaque candidature coûte : lire l'offre, rédiger la lettre, personnaliser le CV.
+
+L'Agent IA de RelanceWork score chaque offre selon ton profil.
+
+Tu priorises les 80+.
+Tu ignores les 40-.
+
+Résultat :
+→ Moins de candidatures
+→ Meilleures candidatures
+→ Plus de réponses positives
+
+Priorise enfin ta recherche :
+👉 https://www.relance-work.fr/","Priorise tes candidatures → https://www.relance-work.fr/",Texte + screenshot 2 cartes offres,Publié ✅,
+2026-03-26,S2,Jeudi,Build in public,Transparence coûts,"Combien coûte faire tourner un SaaS solo en 2026 — mes vrais chiffres","Combien coûte faire tourner un SaaS solo en 2026.
+
+Mes vrais chiffres :
+
+Railway : ~5€/mois
+Supabase : gratuit (early stage)
+Claude API : variable selon usage
+Hunter.io : ~49€/mois
+Stripe : 1,4% + 0,25€ par transaction
+
+Total fixe : ~55€/mois
+Sans compter le temps.
+
+Voilà pourquoi le plan Pro est à 9,99€/mois.
+Le prix le plus bas pour être viable.
+
+Des questions sur les coûts d'un SaaS ?
+👇 En commentaires.
+
+Le produit : https://www.relance-work.fr/","Questions en commentaires — https://www.relance-work.fr/",Texte transparent build in public,,https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=1200&q=80
+2026-03-27,S2,Vendredi,Social proof,Workflow complet,"De 0 à 20 candidatures en 45 minutes — le workflow complet","De 0 à 20 candidatures en 45 minutes.
+
+Le workflow complet :
+
+1️⃣ Agent IA → scrape 20 offres Indeed sur 'développeur React Paris'
+2️⃣ Scoring automatique → 10 offres > 75% de match
+3️⃣ Génération lettre IA → 10 lettres personnalisées en ~10 secondes chacune
+4️⃣ Ajout en 1 clic au dashboard de suivi
+5️⃣ Relances programmées automatiquement
+
+Sans RelanceWork : 2 jours de travail.
+Avec : 45 minutes.
+
+👉 https://www.relance-work.fr/","Voir le workflow → https://www.relance-work.fr/",Texte + GIF démo,,
+2026-03-28,S2,Samedi,Léger,Analytics,"Le graphique qui ne ment pas","Le graphique qui ne ment pas.
+
+[Screenshot analytics hebdomadaire]
+
+Ton activité de recherche d'emploi sur 7 jours.
+
+La régularité bat l'intensité.
+Tous les jours > sprint du dimanche soir.
+
+Track ta recherche :
+👉 https://www.relance-work.fr/","Track ta recherche → https://www.relance-work.fr/",Screenshot analytics,,
+2026-03-29,S2,Dimanche,Éducatif,Optimisation LinkedIn,"Checklist LinkedIn 10 points pour être trouvé par les recruteurs","Checklist LinkedIn pour être trouvé par les recruteurs.
+
+10 points, coche ceux que tu as déjà :
+
+☐ Photo professionnelle (x7 plus de vues)
+☐ Titre accrocheur (pas juste le poste)
+☐ Résumé en première personne
+☐ Expériences avec résultats chiffrés
+☐ Compétences validées par des pairs
+☐ Minimum 3 recommandations
+☐ URL personnalisée
+☐ Section 'En vedette' avec portfolio
+☐ 1 post minimum par semaine
+☐ Mots-clés métier dans tout le profil
+
+Combien tu en as ?
+👇 En commentaires.
+
+Pour le reste : https://www.relance-work.fr/","Quel point tu n'as pas encore fait ? — https://www.relance-work.fr/",Texte long éducatif,,https://images.unsplash.com/photo-1611944212129-29977ae1398c?w=1200&q=80
+2026-03-30,S3,Lundi,Éducatif,Lettre de motivation,"La lettre de motivation en 2026 : avant / après","La lettre de motivation en 2026.
+
+AVANT (ce que tout le monde écrit) :
+'Madame, Monsieur, Je vous contacte pour vous soumettre ma candidature au poste de...'
+
+→ Poubelle.
+
+APRÈS (ce qui fonctionne) :
+'Chez [Entreprise], vous construisez [X]. Je peux contribuer à [Y] parce que j'ai déjà fait [Z] avec des résultats concrets.'
+
+La différence :
+→ Court
+→ Personnalisé
+→ Orienté valeur pour EUX
+
+3 paragraphes maximum.
+0 formule bateau.
+
+RelanceWork génère ça automatiquement pour chaque offre.
+En 10 secondes.
+
+👉 https://www.relance-work.fr/","RelanceWork génère ça automatiquement → https://www.relance-work.fr/",Texte + before/after,,https://images.unsplash.com/photo-1455390582262-044cdead277a?w=1200&q=80
+2026-03-31,S3,Mardi,Démo produit,Gmail tracking,"Tes emails de candidature sont-ils seulement lus ?","Tes emails de candidature sont-ils seulement lus ?
+
+RelanceWork connecte ton Gmail et détecte automatiquement :
+→ Emails de candidature envoyés
+→ Réponses reçues
+→ Candidatures sans réponse depuis +3 jours
+
+Auto-sync toutes les 60 secondes.
+Tu n'as rien à faire.
+Ton dashboard se met à jour quand une réponse arrive.
+
+Fini le 'Est-ce qu'ils ont reçu mon mail ?'
+
+👉 https://www.relance-work.fr/","Connecte ton Gmail → https://www.relance-work.fr/",Texte + GIF sync Gmail,,
+2026-04-01,S3,Mercredi,Problème → Solution,Recherche entreprises,"Trouver 50 agences web à Lyon en 2 minutes — comment ?","Trouver 50 agences web à Lyon en 2 minutes.
+
+Voici comment :
+
+Recherche Google Maps intégrée dans RelanceWork.
+→ Tu filtres par secteur, ville, rayon
+→ Tu vois les sites web, emails, infos clés
+
+Hunter.io intégré :
+→ 1 clic → RelanceWork trouve l'email du recruteur
+→ Tu transformes n'importe quelle entreprise en candidature spontanée
+
+Du repérage à l'envoi en moins de 5 minutes.
+
+👉 https://www.relance-work.fr/","Cherche des entreprises → https://www.relance-work.fr/",Texte + screenshot carte,,https://images.unsplash.com/photo-1524661135-423995f22d0b?w=1200&q=80
+2026-04-02,S3,Jeudi,Build in public,Décision produit,"La feature que j'ai failli ne pas construire","La feature que j'ai failli ne pas construire.
+
+Les candidatures spontanées IA.
+
+Je pensais que personne n'utiliserait ça.
+Trop niche. Trop complexe.
+
+Puis les retours d'utilisateurs ont commencé :
+'Le marché est saturé sur les offres publiées. La vraie diff, c'est les spontanées.'
+
+J'ai construit en 3 semaines.
+
+C'est maintenant une des features les plus utilisées du produit.
+
+Leçon :
+Construire ce que les utilisateurs demandent > ce qu'on pense qu'ils veulent.
+
+Le produit : https://www.relance-work.fr/","https://www.relance-work.fr/",Texte narratif build in public,,https://images.unsplash.com/photo-1552664730-d307ca884978?w=1200&q=80
+2026-04-03,S3,Vendredi,Démo produit,Templates relance,"1 template → des dizaines d'emails personnalisés en 1 clic","1 template → des dizaines d'emails personnalisés en 1 clic.
+
+L'éditeur de templates dans RelanceWork utilise des variables dynamiques :
+{{nom}}, {{titre}}, {{telephone}}, {{linkedin}}, {{signature}}
+
+Tu écris le template une fois.
+RelanceWork personnalise chaque email automatiquement.
+
+Plus jamais le copier-coller manuel.
+Plus jamais les erreurs de personnalisation.
+
+[Screenshot éditeur template]
+
+👉 https://www.relance-work.fr/","Crée tes templates → https://www.relance-work.fr/",Texte + screenshot éditeur,,
+2026-04-04,S3,Samedi,Léger,Kanban view,"Vue Kanban — pour ceux qui pensent en colonnes","Vue Kanban — pour ceux qui pensent en colonnes.
+
+[GIF drag & drop kanban]
+
+Glisser une candidature de 'En attente' à 'Entretien' en 1 seconde.
+
+Petite satisfaction du job search. 🎯
+
+👉 https://www.relance-work.fr/","https://www.relance-work.fr/",GIF kanban,,https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=1200&q=80
+2026-04-05,S3,Dimanche,Éducatif,Analyse offre emploi,"Comment analyser une offre d'emploi en 5 minutes avant de postuler","Comment analyser une offre d'emploi en 5 minutes avant de postuler.
+
+Méthode en 5 étapes :
+
+1️⃣ Identifie les compétences MUST-HAVE vs nice-to-have
+2️⃣ Cherche des indices sur la culture d'entreprise (mots utilisés, valeurs)
+3️⃣ Évalue la séniorité réelle — pas juste le titre
+4️⃣ Repère ce qu'ils ne disent PAS (red flags)
+5️⃣ Croise avec ton profil : 70%+ ? Tu postules. En dessous ? Tu adaptes ou tu passes.
+
+C'est exactement ce que l'Agent IA fait automatiquement dans RelanceWork.
+En 30 secondes.
+
+👉 https://www.relance-work.fr/","Analyse tes offres en 30 secondes → https://www.relance-work.fr/",Texte éducatif long,,https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&q=80
+2026-04-06,S4,Lundi,Éducatif,5 erreurs job search,"5 erreurs que font TOUS les chercheurs d'emploi (et comment les éviter)","5 erreurs que font tous les chercheurs d'emploi.
+
+Tu en fais probablement encore au moins 2.
+
+❌ 1. Postuler à tout sans cibler
+→ Taux de réponse catastrophique. Qualité > quantité.
+
+❌ 2. Ne jamais relancer
+→ 80% des candidats font cette erreur. +23% de réponses avec une relance.
+
+❌ 3. CV générique pour tous les postes
+→ Personnalise ou sois ignoré. Les ATS le détectent.
+
+❌ 4. Ignorer les candidatures spontanées
+→ 70% du marché non adressé. C'est là que la concurrence est faible.
+
+❌ 5. Ne pas tracker ses candidatures
+→ Impossible d'améliorer ce qu'on ne mesure pas.
+
+Laquelle tu as déjà arrêtée ?
+👇 En commentaires.
+
+Pour les autres : https://www.relance-work.fr/","En commentaires : quelle erreur tu as arrêtée ? — https://www.relance-work.fr/",Texte éducatif,,https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?w=1200&q=80
+2026-04-07,S4,Mardi,Démo produit,Lettre IA en 10 secondes,"Lettre de motivation en 10 secondes — démo en conditions réelles","Lettre de motivation en 10 secondes.
+Démo en conditions réelles.
+
+[GIF génération lettre]
+
+L'Agent IA génère une lettre personnalisée pour chaque offre.
+
+Pas un template générique.
+Une vraie lettre basée sur :
+→ Le descriptif du poste
+→ Les compétences requises
+→ Ton profil et ton CV
+
+Différente à chaque fois.
+Modifiable avant envoi.
+
+Tu postes 5x plus vite. Sans sacrifier la qualité.
+
+👉 https://www.relance-work.fr/","Génère ta lettre → https://www.relance-work.fr/",GIF génération,,
+2026-04-08,S4,Mercredi,Problème → Solution,Email spontané personnalisé,"Email spontané générique vs email IA — la vraie différence","Email spontané générique vs email IA.
+
+La vraie différence.
+
+GÉNÉRIQUE (ce que tout le monde envoie) :
+'Je vous contacte pour vous soumettre ma candidature spontanée au sein de votre structure...'
+
+→ Corbeille en 3 secondes.
+
+AVEC IA (RelanceWork) :
+→ Mentionne un projet récent de l'entreprise
+→ Angle spécifique à leur secteur
+→ Valeur directe que tu apportes à LEUR problème
+
+Le premier est ignoré.
+Le second génère une réponse.
+
+👉 https://www.relance-work.fr/","Vois la différence → https://www.relance-work.fr/",Texte + before/after email,,https://images.unsplash.com/photo-1596526131083-e8c633c948d2?w=1200&q=80
+2026-04-09,S4,Jeudi,Build in public,Histoire fondateur,"J'ai construit RelanceWork parce que j'en avais besoin","J'ai construit RelanceWork parce que j'en avais besoin.
+
+J'étais en recherche d'emploi.
+J'avais un Excel avec 47 lignes.
+
+Je ne savais plus :
+→ Qui j'avais relancé
+→ Qui m'avait répondu
+→ Quelle lettre j'avais envoyée à qui
+
+J'ai cherché un outil.
+Rien n'existait vraiment pour ce besoin précis.
+
+Alors je l'ai construit.
+
+Aujourd'hui RelanceWork aide des centaines de candidats à structurer leur recherche.
+
+C'est ça la meilleure raison de construire quelque chose.
+
+Le produit : https://www.relance-work.fr/","https://www.relance-work.fr/",Texte narratif fondateur,,https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=1200&q=80
+2026-04-10,S4,Vendredi,Social proof,Free vs Pro,"Free vs Pro — ce qui change vraiment (spoiler : le gratuit suffit pour commencer)","Free vs Pro — ce qui change vraiment.
+
+FREE (gratuit pour toujours) :
+✅ Dashboard complet
+✅ 10 candidatures suivies
+✅ Vues Kanban / Tableau / Analytics
+✅ Relances manuelles
+
+PRO (9,99€/mois) :
+✅ Candidatures illimitées
+✅ Agent IA Job Search
+✅ Candidatures spontanées IA
+✅ Conseiller IA (analyse CV vs offre)
+✅ Gmail tracking automatique
+✅ Templates illimités
+
+Moins cher qu'un livre sur la recherche d'emploi.
+
+Commence gratuit, upgrade si tu en as besoin :
+👉 https://www.relance-work.fr/","Commence gratuit → https://www.relance-work.fr/",Texte comparatif,,https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=1200&q=80
