@@ -762,22 +762,9 @@ document.getElementById('saveProfileBtn')?.addEventListener('click', () => {
 // BILLING - Gérer l'abonnement
 // ============================================
 const billingBtn = document.getElementById('billingBtn');
-billingBtn?.addEventListener('click', async () => {
-  if (userPlan === 'pro') {
-    // Ouvrir le portail Stripe pour gérer l'abonnement
-    try {
-      const result = await api.post('/billing/portal');
-      if (result.data.url) {
-        window.location.href = result.data.url;
-      }
-    } catch (error) {
-      console.error("Erreur portail billing:", error);
-      // Si pas d'abonnement, proposer l'upgrade
-      handleUpgrade();
-    }
-  } else {
-    handleUpgrade();
-  }
+billingBtn?.addEventListener('click', () => {
+  // Toujours passer par la page pricing (gère free + pro)
+  handleUpgrade();
 });
 
 // ============================================
