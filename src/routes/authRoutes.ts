@@ -10,7 +10,7 @@ import {
 } from "../controllers/authController";
 import { authenticateToken } from "../middleware/authMiddleware";
 
-const router = Router();
+const router: Router = Router();
 
 // Public routes
 router.post("/signup", signup);

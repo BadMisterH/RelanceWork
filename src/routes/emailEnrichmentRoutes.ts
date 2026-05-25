@@ -1,7 +1,7 @@
 import { Router, Request, Response } from "express";
 import { getEmailEnrichmentService } from "../services/emailEnrichmentService";
 
-const router = Router();
+const router: Router = Router();
 
 /**
  * POST /api/email-enrichment/find-email

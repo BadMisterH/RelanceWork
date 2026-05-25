@@ -6,7 +6,7 @@ import {
 } from "../controllers/favoritesController";
 import { authenticateToken } from "../middleware/authMiddleware";
 
-const router = Router();
+const router: Router = Router();
 
 // GET /favorites - Récupérer tous les favoris de l'utilisateur
 router.get("/favorites", authenticateToken, getFavorites);

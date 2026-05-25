@@ -11,7 +11,7 @@ import {
 import { authenticateToken } from "../middleware/authMiddleware";
 import { checkApplicationLimit } from "../middleware/checkPlan";
 
-const router = Router();
+const router: Router = Router();
 
 // GET /applications - Récupérer toutes les applications
 router.get("/applications", authenticateToken, getAllApplications);

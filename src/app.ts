@@ -1,4 +1,4 @@
-import express, { Request, Response, NextFunction } from "express";
+import express, { Application, Request, Response, NextFunction } from "express";
 import path from "path";
 import cors from "cors";
 import helmet from "helmet";
@@ -17,7 +17,7 @@ import jobAgentRoutes from "./routes/jobAgentRoutes";
 import spontaneousRoutes from "./routes/spontaneousRoutes";
 import onboardingRoutes from "./routes/onboardingRoutes";
 
-const app = express();
+const app: Application = express();
 
 // Trust reverse proxy (Railway, Render, etc.) for correct IP detection
 app.set("trust proxy", 1);

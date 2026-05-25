@@ -2,7 +2,7 @@ import { Router, Request, Response } from "express";
 import { authenticateToken } from "../middleware/authMiddleware";
 import { subscriptionService } from "../services/subscriptionService";
 
-const router = Router();
+const router: Router = Router();
 
 /**
  * POST /api/search/check

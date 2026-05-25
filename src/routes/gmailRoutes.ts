@@ -1,10 +1,10 @@
-import express, { Request, Response } from 'express';
+import express, { Router, Request, Response } from 'express';
 import { gmailAuthService } from '../services/gmailAuthService';
 import { gmailWatchService } from '../services/gmailWatchService';
 import { gmailPollingService } from '../services/gmailPollingService';
 import { addApplication } from '../controllers/applicationController';
 
-const router = express.Router();
+const router: Router = express.Router();
 
 /**
  * GET /api/gmail/auth/status

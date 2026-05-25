@@ -3,11 +3,11 @@
  * Chaque user gère son propre compte Gmail
  */
 
-import express, { Request, Response } from 'express';
+import express, { Router, Request, Response } from 'express';
 import { authenticateToken } from '../middleware/authMiddleware';
 import { gmailMultiUserService } from '../services/gmailMultiUserService';
 
-const router = express.Router();
+const router: Router = express.Router();
 
 function getPublicBaseUrl(req: Request): string {
   const forwardedProto = req.headers['x-forwarded-proto'];

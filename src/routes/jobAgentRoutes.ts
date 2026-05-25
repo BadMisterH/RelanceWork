@@ -13,7 +13,7 @@ import {
   fixProspectUrls,
 } from '../controllers/jobAgentController';
 
-const router = Router();
+const router: Router = Router();
 
 // POST /api/job-agent/search — Lance le pipeline complet (scrape + analyse IA) [Pro only]
 router.post('/search', authenticateToken, requireProPlan, startSearch);

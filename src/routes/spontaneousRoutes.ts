@@ -11,7 +11,7 @@ import {
   deleteProspect,
 } from '../controllers/spontaneousController';
 
-const router = Router();
+const router: Router = Router();
 
 // Tous les endpoints nécessitent d'être authentifié
 router.use(authenticateToken);

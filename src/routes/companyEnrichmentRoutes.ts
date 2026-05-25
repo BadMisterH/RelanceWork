@@ -3,7 +3,7 @@ import { authenticateToken } from "../middleware/authMiddleware";
 import { enrichCompany } from "../services/companyEnrichmentService";
 import { supabase } from "../config/supabase";
 
-const router = Router();
+const router: Router = Router();
 
 /**
  * POST /api/company-enrichment/enrich

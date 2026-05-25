@@ -6,7 +6,7 @@ import {
   triggerOnboardingEmails,
 } from "../controllers/onboardingController";
 
-const router = Router();
+const router: Router = Router();
 
 // GET /api/onboarding/status — Check onboarding completion (authenticated)
 router.get("/status", authenticateToken, getOnboardingStatus);

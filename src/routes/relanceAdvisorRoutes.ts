@@ -4,7 +4,7 @@ import { authenticateToken } from "../middleware/authMiddleware";
 import { requireProPlan } from "../middleware/planMiddleware";
 import { analyzeRelance } from "../services/relanceAdvisorService";
 
-const router = Router();
+const router: Router = Router();
 
 const upload = multer({
   storage: multer.memoryStorage(),
