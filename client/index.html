@@ -338,73 +338,126 @@
     <!-- Profile Modal -->
     <div class="profile-modal-overlay" id="profileModalOverlay">
       <div class="profile-modal">
-        <div class="profile-modal-header">
-          <div class="profile-modal-header-content">
-            <div class="profile-modal-avatar" id="profileAvatar">K</div>
-            <div class="profile-modal-header-text">
-              <h3>Mon profil</h3>
-              <p class="profile-modal-subtitle">Personnalisez vos informations</p>
+
+        <!-- ── Panneau gauche : identité + stats ── -->
+        <div class="profile-modal-left">
+          <div class="pml-glow"></div>
+
+          <div class="pml-avatar-wrap">
+            <div class="pml-avatar" id="profileAvatar">K</div>
+          </div>
+
+          <div class="pml-name" id="profileModalName">—</div>
+          <div class="pml-email" id="profileModalEmail">—</div>
+
+          <div class="pml-divider"></div>
+
+          <div class="pml-stats">
+            <div class="pml-stat">
+              <span class="pml-stat-label">Candidatures</span>
+              <span class="pml-stat-val pml-stat-blue" id="profileStatApps">0</span>
+            </div>
+            <div class="pml-stat">
+              <span class="pml-stat-label">Relances</span>
+              <span class="pml-stat-val" id="profileStatRelances">0</span>
+            </div>
+            <div class="pml-stat">
+              <span class="pml-stat-label">Réponses</span>
+              <span class="pml-stat-val pml-stat-green" id="profileStatReponses">0</span>
             </div>
           </div>
-          <button class="profile-modal-close" id="closeProfileModal">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          </button>
+
+          <div class="pml-completion">
+            <div class="pml-completion-header">
+              <span class="pml-completion-title">Profil</span>
+              <span class="pml-completion-pct" id="profileCompletionPct">0%</span>
+            </div>
+            <div class="pml-completion-bar-bg">
+              <div class="pml-completion-bar-fill" id="profileCompletionBar" style="width:0%"></div>
+            </div>
+            <div class="pml-completion-tip" id="profileCompletionTip">Complétez votre profil pour personnaliser vos templates</div>
+          </div>
         </div>
-        <div class="profile-modal-body">
-          <div class="profile-modal-hint">
-            <span class="profile-hint-label">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-              Variables dans vos templates
-            </span>
-            <div class="profile-hint-chips">
-              <code>{{nom}}</code><code>{{titre}}</code><code>{{telephone}}</code><code>{{linkedin}}</code><code>{{signature}}</code>
+
+        <!-- ── Panneau droit : formulaire ── -->
+        <div class="profile-modal-right">
+          <div class="pmr-header">
+            <div>
+              <h3 class="pmr-title">Mon profil</h3>
+              <p class="pmr-subtitle">Personnalisez vos informations</p>
             </div>
+            <button class="pmr-close" id="closeProfileModal" aria-label="Fermer">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
           </div>
-          <div class="profile-field">
-            <label for="profileInputName">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-              Nom complet
-            </label>
-            <input type="text" id="profileInputName" placeholder="Ex: Jean Dupont">
-          </div>
-          <div class="profile-field">
-            <label for="profileInputTitle">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
-              Titre / Poste recherché
-            </label>
-            <input type="text" id="profileInputTitle" placeholder="Ex: Développeur Full Stack">
-          </div>
-          <div class="profile-fields-row">
-            <div class="profile-field">
-              <label for="profileInputPhone">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                Téléphone
+
+          <div class="pmr-body">
+            <!-- Variables hint -->
+            <div class="pmr-hint">
+              <div class="pmr-hint-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="12" height="12"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="16" r=".5" fill="currentColor"/></svg>
+                Variables dans vos templates
+              </div>
+              <div class="pmr-chips">
+                <code>{{nom}}</code><code>{{titre}}</code><code>{{telephone}}</code><code>{{linkedin}}</code><code>{{signature}}</code>
+              </div>
+            </div>
+
+            <!-- Nom -->
+            <div class="pmr-field">
+              <label for="profileInputName">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                Nom complet
               </label>
-              <input type="tel" id="profileInputPhone" placeholder="06 12 34 56 78">
+              <input type="text" id="profileInputName" autocomplete="name" placeholder="Ex: Jean Dupont">
             </div>
-            <div class="profile-field">
-              <label for="profileInputLinkedin">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
-                LinkedIn
+
+            <!-- Titre -->
+            <div class="pmr-field">
+              <label for="profileInputTitle">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                Titre / Poste recherché
               </label>
-              <input type="url" id="profileInputLinkedin" placeholder="linkedin.com/in/jean-dupont">
+              <input type="text" id="profileInputTitle" autocomplete="organization-title" placeholder="Ex: Développeur Full Stack">
+            </div>
+
+            <!-- Téléphone + LinkedIn -->
+            <div class="pmr-fields-row">
+              <div class="pmr-field">
+                <label for="profileInputPhone">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                  Téléphone
+                </label>
+                <input type="tel" id="profileInputPhone" autocomplete="tel" placeholder="06 12 34 56 78">
+              </div>
+              <div class="pmr-field">
+                <label for="profileInputLinkedin">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+                  LinkedIn
+                </label>
+                <input type="url" id="profileInputLinkedin" autocomplete="url" placeholder="linkedin.com/in/jean-dupont">
+              </div>
+            </div>
+
+            <!-- Signature -->
+            <div class="pmr-field">
+              <label for="profileInputSignature">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                Signature email
+              </label>
+              <textarea id="profileInputSignature" rows="3" placeholder="Cordialement,&#10;Jean Dupont&#10;06 12 34 56 78"></textarea>
             </div>
           </div>
-          <div class="profile-field">
-            <label for="profileInputSignature">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-              Signature email
-            </label>
-            <textarea id="profileInputSignature" rows="3" placeholder="Cordialement,&#10;Jean Dupont&#10;06 12 34 56 78"></textarea>
+
+          <div class="pmr-footer">
+            <button class="pmr-btn-cancel" id="cancelProfileBtn">Annuler</button>
+            <button class="pmr-btn-save" id="saveProfileBtn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg>
+              Enregistrer
+            </button>
           </div>
         </div>
-        <div class="profile-modal-footer">
-          <button class="profile-modal-cancel" id="cancelProfileBtn">Annuler</button>
-          <button class="profile-modal-save" id="saveProfileBtn">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="20 6 9 17 4 12"/></svg>
-            Enregistrer
-          </button>
-        </div>
+
       </div>
     </div>
 

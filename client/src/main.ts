@@ -707,6 +707,65 @@ function saveUserProfile(profile: UserProfile) {
   }
 }
 
+/** Calcule le % de complétion du profil (0–100) */
+function computeProfileCompletion(profile: UserProfile): number {
+  const fields = [profile.name, profile.title, profile.phone, profile.linkedin, profile.signature];
+  const filled = fields.filter(f => f && f.trim().length > 0).length;
+  return Math.round((filled / fields.length) * 100);
+}
+
+/** Retourne un tip contextuel selon ce qui manque */
+function getCompletionTip(profile: UserProfile): string {
+  if (!profile.title) return 'Ajoutez votre titre pour personnaliser vos templates';
+  if (!profile.phone) return 'Ajoutez votre téléphone pour compléter {{telephone}}';
+  if (!profile.linkedin) return 'Ajoutez votre LinkedIn pour les candidatures';
+  if (!profile.signature) return 'Créez une signature email pour vos relances';
+  return 'Profil complet — vos templates sont optimisés ✓';
+}
+
+/** Met à jour le panneau gauche de la modale profil */
+function refreshProfileLeftPanel(profile: UserProfile): void {
+  // Avatar + nom + email
+  const avatar = document.getElementById('profileAvatar');
+  const modalName = document.getElementById('profileModalName');
+  const modalEmail = document.getElementById('profileModalEmail');
+
+  const displayName = profile.name || document.getElementById('profileName')?.textContent?.trim() || '—';
+  const displayEmail = document.getElementById('profileEmail')?.textContent?.trim() || '—';
+
+  if (avatar) {
+    const initials = displayName !== '—'
+      ? displayName.split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2)
+      : '?';
+    avatar.textContent = initials;
+  }
+  if (modalName) modalName.textContent = displayName;
+  if (modalEmail) modalEmail.textContent = displayEmail;
+
+  // Stats depuis les candidatures courantes
+  const total = currentApplications.length;
+  const relances = currentApplications.filter(a => (a.relance_count ?? 0) > 0).length;
+  const reponses = currentApplications.filter(a =>
+    ['entretien', 'offre', 'accepté'].includes((a.status ?? '').toLowerCase())
+  ).length;
+
+  const statApps = document.getElementById('profileStatApps');
+  const statRelances = document.getElementById('profileStatRelances');
+  const statReponses = document.getElementById('profileStatReponses');
+  if (statApps) statApps.textContent = String(total);
+  if (statRelances) statRelances.textContent = String(relances);
+  if (statReponses) statReponses.textContent = String(reponses);
+
+  // Barre de complétion
+  const pct = computeProfileCompletion(profile);
+  const bar = document.getElementById('profileCompletionBar');
+  const pctEl = document.getElementById('profileCompletionPct');
+  const tipEl = document.getElementById('profileCompletionTip');
+  if (bar) bar.style.width = pct + '%';
+  if (pctEl) pctEl.textContent = pct + '%';
+  if (tipEl) tipEl.textContent = getCompletionTip(profile);
+}
+
 const profileBtn = document.getElementById('profileBtn');
 const profileModalOverlay = document.getElementById('profileModalOverlay');
 
@@ -723,12 +782,8 @@ profileBtn?.addEventListener('click', () => {
   (document.getElementById('profileInputLinkedin') as HTMLInputElement).value = profile.linkedin;
   (document.getElementById('profileInputSignature') as HTMLTextAreaElement).value = profile.signature;
 
-  // Mettre à jour l'avatar avec les initiales
-  const avatar = document.getElementById('profileAvatar');
-  if (avatar && profile.name) {
-    const initials = profile.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
-    avatar.textContent = initials || profile.name[0]?.toUpperCase() || 'U';
-  }
+  // Rafraîchir le panneau gauche
+  refreshProfileLeftPanel(profile);
 
   profileModalOverlay?.classList.add('active');
 });
